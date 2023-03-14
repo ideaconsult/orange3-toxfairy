@@ -1,0 +1,19 @@
+name: toxpi_orange_tests_
+channels:
+  - conda-forge
+  - default
+dependencies:
+  - AnyQt
+  - matplotlib
+  - numpy
+  - orange3~=3.0
+  - orange-widget-base
+  - pandas
+  - pip
+  - pyqt
+  - rpy2==3.5.7
+  - scikit-learn
+  - scipy
+  - setuptools
+  - pip:
+    - -e .
