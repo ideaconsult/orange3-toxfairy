@@ -5,7 +5,6 @@ import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
 # import warnings
 # warnings.filterwarnings('ignore')
-
 # utils.install_packages('toxpiR')
 
 base = importr("base")
@@ -43,11 +42,9 @@ def calculate_first_tox5(df, cell):
                 }
 
                 names(test_slice) <- rev(slice_names)
-
                 model <- TxpModel(txpSlices = test_slice)
                 results <- txpCalculateScores(model = model, input = df, id.var = 'material')
                 
-
                 return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
         }
     ''')
@@ -71,27 +68,13 @@ def calculate_manual_slicing(df, manual_names, manual_slices):
                 toxpi_slices <- append(toxpi_slices, TxpSlice(tmp))
             }
             
-            print(toxpi_slices)
-            print(typeof(toxpi_slices))
-            print(length(toxpi_slices))
-            print(slice_manual_names)
-            
             names(toxpi_slices) <- slice_manual_names
-            toxpi_slice_list = as.TxpSliceList(toxpi_slices)
-            
-            
-            print(toxpi_slice_list)
-            print(length(toxpi_slice_list))
-            
-            model <- TxpModel(txpSlices = toxpi_slice_list)
-            results <- txpCalculateScores(model = model, input = df, id.var = 'material')
+            model <- TxpModel(txpSlices = as.TxpSliceList(toxpi_slices))
+            results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
 
             return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
         }
     ''')
-
-    # TODO: length(TxpIDx) != length(object)
-
     result = manual_slicing_tox5(df, slice_manual_names, slices)
 
     with ro.default_converter + pandas2ri.converter:
@@ -114,25 +97,19 @@ def calculate_second_tox5_by_endpoint(df, slice_names_):
                 if (grepl('DAPI', x)){
                     Dapi <- c(Dapi, x)
                 }
-
                 if (grepl('H2AX', x)){
                     H2AX<- c(H2AX, x)
                 }
-
                 if (grepl('CTG', x)){
                     CTG <- c(CTG, x)
                 }
-
                 if (grepl('CASP', x) ){
                     CASP <- c(CASP, x)
                 }
-
                 if (grepl('OHG-1', x)){
                     OHG <- c(OHG, x)
                 }
-
             }
-
             toxpi_slices <- TxpSliceList(
                             Dapi = TxpSlice(Dapi),
                             H2AX = TxpSlice(H2AX),
@@ -140,14 +117,10 @@ def calculate_second_tox5_by_endpoint(df, slice_names_):
                             CASP = TxpSlice(CASP),
                             OHG = TxpSlice(OHG)
                           )
-            # print(toxpi_slices)
-            # print(length(toxpi_slices))
-
             model <- TxpModel(txpSlices = toxpi_slices)
             results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
 
-
-            return (as.data.frame(sort(results), id.name = "material", score.name = "toxpi_score", rank.name = "rnk"))
+            return (as.data.frame(sort(results), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
         }
     ''')
 
@@ -193,7 +166,6 @@ def calculate_second_tox5_by_endpoint_time(df, slice_names_):
                 if (grepl('DAPI', x) && grepl('72H', x)){
                     dapi_72h <- c(dapi_72h, x)
                 }
-
                 if (grepl('H2AX', x) && grepl('6H', x)){
                     H2AX_6h <- c(H2AX_6h, x)
                 }
@@ -231,7 +203,6 @@ def calculate_second_tox5_by_endpoint_time(df, slice_names_):
                     OHG_72h <- c(OHG_72h, x)
                 }
             }
-
             toxpi_slices <- TxpSliceList(
                             Dapi_6h = TxpSlice(dapi_6h),
                             Dapi_24h = TxpSlice(dapi_24h),
@@ -249,10 +220,11 @@ def calculate_second_tox5_by_endpoint_time(df, slice_names_):
                             OHG_24h = TxpSlice(OHG_24h),
                             OHG_72h = TxpSlice(OHG_72h)
                           )
+            
             model <- TxpModel(txpSlices = toxpi_slices)
             results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
 
-            return (as.data.frame(sort(results), id.name = "material", score.name = "toxpi_score", rank.name = "rnk"))
+            return (as.data.frame(sort(results), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
         }
     ''')
 
@@ -262,3 +234,4 @@ def calculate_second_tox5_by_endpoint_time(df, slice_names_):
         pd_from_r_df = ro.conversion.get_conversion().rpy2py(result)
 
     return pd_from_r_df
+
