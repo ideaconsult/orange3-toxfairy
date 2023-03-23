@@ -1,7 +1,7 @@
 import pandas as pd
 from Orange.widgets.widget import OWWidget, Input, Output
 from Orange.widgets import gui
-from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QStyle, QListWidget, QHBoxLayout
+from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QStyle, QListWidget, QHBoxLayout, QScrollArea
 from Orange.data.io import FileFormat
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 import Orange.data
@@ -52,7 +52,11 @@ class Toxpi(OWWidget):
         # main area
         self.main = gui.hBox(self.mainArea, spacing=6)
         self.box_manual_slicing = gui.vBox(None, "Manual slicing")
-        self.box_manual_s = gui.vBox(self.main, 'Slices')
+        self.box_manual_s = gui.vBox(None, 'Slices')
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.box_manual_s)
+        scroll_area.setWidgetResizable(True)
+        self.main.layout().addWidget(scroll_area)
 
         self.parameters = gui.button(None, self, 'Load parameters',
                                      callback=self.load_available_params,
@@ -143,8 +147,8 @@ class Toxpi(OWWidget):
         gui.widgetLabel(box, f"{chr(10).join(chosen_slice)}")
 
         gui.button(box, self, 'Remove slice', callback=lambda: self.remove_slice(box, sn, chosen_slice))
-
         self.box_manual_s.layout().addWidget(box)
+
         self.all_slices.append(chosen_slice)
         self.file_idx = []
 
@@ -200,8 +204,6 @@ class Toxpi(OWWidget):
             df2 = calculate_second_tox5_by_endpoint(df, slice_names_)
         else:
             df2 = calculate_manual_slicing(df, self.slice_names, self.all_slices)
-            print(self.slice_names)
-            print(self.all_slices)
 
         orange_table = table_from_frame(df2, force_nominal=True)
         self.Outputs.dataframe_tox.send(orange_table)
