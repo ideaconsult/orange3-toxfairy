@@ -48,7 +48,7 @@ class Toxpi(OWWidget):
 
     def load_available_materials(self):
         df_converted = table_to_frame(self.table, include_metas=True)
-        materials = df_converted['material']
+        materials = df_converted['Material']
         self.list_materials = list(materials)
 
     def plot_tox_rank(self):
@@ -63,10 +63,10 @@ class Toxpi(OWWidget):
         rows = len(materials) // columns + (len(materials) % columns > 0)
 
         for n, i in enumerate(materials):
-            rank = (df[df['material'] == i].iloc[:, 2]).values[0]
-            label = list(df[df['material'] == i].iloc[:, 4:])
+            rank = (df[df['Material'] == i].iloc[:, 2]).values[0]
+            label = list(df[df['Material'] == i].iloc[:, 4:])
 
-            data_tox = df[df['material'] == i].iloc[:, 4:].values.flatten().tolist()
+            data_tox = df[df['Material'] == i].iloc[:, 4:].values.flatten().tolist()
             width = 2 * np.pi / len(label)
             angle = np.linspace(0.0, 2 * np.pi, len(label), endpoint=False)
             colors = cm.get_cmap('plasma', len(label)).colors
