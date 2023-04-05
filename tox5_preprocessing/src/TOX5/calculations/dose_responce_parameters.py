@@ -1,5 +1,3 @@
-from TOX5_calc.cell_viability import CellViability
-from TOX5_calc.imaging import Imaging
 from scipy import stats
 import pandas as pd
 import numpy as np
@@ -10,6 +8,7 @@ from statistics import median
 class DoseResponse:
     def __init__(self, obj):
         self.obj = obj
+
         self.normalized = self.obj.get_normalized()
         self.median = self.obj.get_median()
         self.code = self.obj.code
@@ -28,10 +27,7 @@ class DoseResponse:
 
         self.dose_response = pd.DataFrame()
 
-    # def __repr__(self):
-    #     return str(self.data_for_auc)
-
-    def calc_p_values_and_sd(self):
+    def _calc_p_values_and_sd(self):
         for num, cell in enumerate(self.normalized['cells'].unique()):
             for n, time in enumerate(self.normalized['time'].unique()):
                 p_values = []
@@ -56,7 +52,7 @@ class DoseResponse:
                     else:
                         self.p_value_dict[key_dict][col_name] = pv
 
-    def clean_data_for_auc(self):
+    def _clean_data_for_auc(self):
         for _, cell in enumerate(self.normalized['cells'].unique()):
             for _, time in enumerate(self.normalized['time'].unique()):
                 new_row = self.normalized.groupby(['time', 'cells']).get_group((time, cell))
@@ -99,7 +95,7 @@ class DoseResponse:
                         auc_calc = metrics.auc(x, y)
                         auc_median.append(auc_calc)
 
-                    auc_median2 = median(auc_median)  # calculate stdev ?
+                    auc_median2 = median(auc_median)
 
                     if key not in dict_auc:
                         dict_auc[key] = {i: auc_median2}
@@ -173,7 +169,7 @@ class DoseResponse:
 
     def concatenate_parameters(self):
         self.dose_response = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
-        self.dose_response.columns = [str(col) + '_' + self.obj.ENDPOINT for col in self.dose_response.columns]
+        self.dose_response.columns = [str(col) + '_' + self.obj.endpoint for col in self.dose_response.columns]
         self.dose_response = self.dose_response.drop('Dispersant')
 
     def print_dose_response_df(self):
