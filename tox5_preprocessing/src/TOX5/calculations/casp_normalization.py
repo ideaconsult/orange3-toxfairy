@@ -1,13 +1,13 @@
-from tox5_preprocessing.src.TOX5.calculations.normalize import Normalize
-from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
+from tox5_preprocessing.src.TOX5.calculations.basic_normalization import BasicNormalization
+from tox5_preprocessing.src.TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
 import pandas as pd
 
 
 class CaspNormalization(CellViabilityNormalization):
-    def __init__(self, obj, obj_ctg, obj_dapi):
-        super().__init__(obj)
-        self.mean_ctg = obj_ctg.mean_df
-        self.mean_dapi = obj_dapi.mean_df
+    def __init__(self, data, data_ctg, data_dapi):
+        super().__init__(data)
+        self.mean_ctg = data_ctg.mean_df
+        self.mean_dapi = data_dapi.mean_df
 
     @staticmethod
     @CellViabilityNormalization.subtract_median_0h
@@ -15,7 +15,7 @@ class CaspNormalization(CellViabilityNormalization):
         return 100 + (df.loc[i, 'A1':] - df.loc[row_index, 'A1':])
 
     @staticmethod
-    @Normalize.percent_of_media_control
+    @BasicNormalization.percent_of_media_control
     def median_control(row):
         return (row.div(row['median control'])) * 100
 
@@ -24,7 +24,7 @@ class CaspNormalization(CellViabilityNormalization):
         df_mean = df.groupby(df.index).mean()
         df_mean = df_mean.apply(lambda x: 1 - (x / 100))
 
-        df_casp = pd.concat([self.obj.normalized_df, df_mean])
+        df_casp = pd.concat([self.data.normalized_df, df_mean])
         df_casp.insert(0, 'cell_index', df_casp['cells'] + '_' + df_casp['time'])
 
         df_ready = []
@@ -37,12 +37,4 @@ class CaspNormalization(CellViabilityNormalization):
             df_ready.append(tmp)
 
         df_ready = pd.concat(df_ready)
-        self.obj.normalized_df = df_ready.iloc[:, 1:]
-
-    def normalize_data(self):
-        self.remove_outliers_by_quantiles()
-        percent_of_media = self.median_control(self.obj.df)
-        self.obj.normalized_df = self.subtract_blank(percent_of_media)
-        self.calc_blank_sd()
-        self.calc_paramc_casp()
-        self.calc_mean_median()
+        self.data.normalized_df = df_ready.iloc[:, 1:]

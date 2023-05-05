@@ -11,3 +11,4 @@ def add_endpoint_parameters(df, replicates, times, cells):
     df.insert(loc=0, column='replicate', value=replicates)
     df.insert(loc=1, column='time', value=times)
     df.insert(loc=2, column='cells', value=cells)
+

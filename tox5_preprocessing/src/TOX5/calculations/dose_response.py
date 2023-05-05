@@ -3,18 +3,12 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 from statistics import median
+from tox5_preprocessing.src.TOX5.misc.utils import *
 
 
 class DoseResponse:
-    def __init__(self, obj):
-        self.obj = obj
-
-        self.normalized = self.obj.get_normalized()
-        self.median = self.obj.get_median()
-        self.code = self.obj.code
-        self.water_keys = self.obj.water_keys
-        self.materials = self.obj.materials
-        self.concentration = self.obj.concentration
+    def __init__(self, data):
+        self.data = data
 
         self.sd_dict = {}
         self.p_value_dict = {}
@@ -28,13 +22,12 @@ class DoseResponse:
         self.dose_response = pd.DataFrame()
 
     def _calc_p_values_and_sd(self):
-        for num, cell in enumerate(self.normalized['cells'].unique()):
-            for n, time in enumerate(self.normalized['time'].unique()):
+        for num, cell in enumerate(self.data.normalized_df['cells'].unique()):
+            for n, time in enumerate(self.data.normalized_df['time'].unique()):
                 p_values = []
+                new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
 
-                new_row = self.normalized.groupby(['time', 'cells']).get_group((time, cell))
-
-                new_water_subdf = new_row[self.water_keys].values.tolist()
+                new_water_subdf = new_row[self.data.meta_data.water_keys].values.tolist()
                 y = np.concatenate(new_water_subdf)
                 y = y[~np.isnan(y)]
                 stdev = np.std(y, ddof=1)
@@ -53,14 +46,15 @@ class DoseResponse:
                         self.p_value_dict[key_dict][col_name] = pv
 
     def _clean_data_for_auc(self):
-        for _, cell in enumerate(self.normalized['cells'].unique()):
-            for _, time in enumerate(self.normalized['time'].unique()):
-                new_row = self.normalized.groupby(['time', 'cells']).get_group((time, cell))
+        for _, cell in enumerate(self.data.normalized_df['cells'].unique()):
+            for _, time in enumerate(self.data.normalized_df['time'].unique()):
+                new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
 
                 for rowIdx, row in new_row.loc[:, 'A1':'P24'].iterrows():
                     for colIdx, value in row.items():
                         key = f'{cell}_{time}'
-                        new_row[colIdx] = np.where(self.median.loc[key, colIdx] < self.sd_dict[key]['sd2'], 0, new_row[colIdx])
+                        new_row[colIdx] = np.where(self.data.median_df.loc[key, colIdx] < self.sd_dict[key]['sd2'],
+                                                   0, new_row[colIdx])
                 self.data_for_auc.append(new_row)
 
         self.data_for_auc = pd.concat(self.data_for_auc)
@@ -68,19 +62,28 @@ class DoseResponse:
         self.data_for_auc = self.data_for_auc.drop(['median control', 'median', 'std', 'median 2sd'], axis=1)
 
     def calc_auc(self):
-        material_set = list(set(self.materials.values()))
+        self._calc_p_values_and_sd()
+        self._clean_data_for_auc()
+
+        material_set = list(set(self.data.meta_data.materials.values()))
 
         dict_auc = {}
-        for num, cell in enumerate(self.normalized['cells'].unique()):
-            for n, time in enumerate(self.normalized['time'].unique()):
+        for num, cell in enumerate(self.data_for_auc['cells'].unique()):
+            for n, time in enumerate(self.data_for_auc['time'].unique()):
                 key = f'{cell}-{time}'
-                new_df2 = self.normalized.groupby(['time', 'cells']).get_group((time, cell))
+                new_df2 = self.data_for_auc.groupby(['time', 'cells']).get_group((time, cell))
 
-                new_df2 = new_df2.append(pd.Series(self.materials, index=self.normalized.columns, name='material'))\
-                    .append(pd.Series(self.concentration, index=self.normalized.columns, name='concentration'))\
-                    .append(pd.Series(self.code, index=self.normalized.columns, name='code'))
+                # new_df2 = new_df2.append(pd.Series(self.data.meta_data.materials,
+                #                                    index=self.data_for_auc.columns, name='material'))\
+                #     .append(pd.Series(self.data.meta_data.concentration,
+                #                       index=self.data_for_auc.columns, name='concentration'))\
+                #     .append(pd.Series(self.data.meta_data.code,
+                #                       index=self.data_for_auc.columns, name='code'))
 
-                # new_df2 = add_annot_data(new_df2, annot_file)
+                new_df2 = add_annot_data(new_df2,
+                                         self.data.meta_data.materials,
+                                         self.data.meta_data.concentration,
+                                         self.data.meta_data.code)
                 new_df2.loc['code', 'A1':] = new_df2.loc['code', 'A1':].apply(str)
 
                 for i in material_set:
@@ -89,14 +92,11 @@ class DoseResponse:
                     auc_median = []
                     conc = list(sub_df.loc['concentration'])
                     x = np.log10(conc)
-
                     for k, j in sub_df.iloc[:-3, :].iterrows():
                         y = list(j)
                         auc_calc = metrics.auc(x, y)
                         auc_median.append(auc_calc)
-
                     auc_median2 = median(auc_median)
-
                     if key not in dict_auc:
                         dict_auc[key] = {i: auc_median2}
                     else:
@@ -107,8 +107,8 @@ class DoseResponse:
 
     def _create_fsc_df(self, dict_sd):
         df_sd = pd.DataFrame.from_dict(dict_sd)
-        df_sd['concentration'] = pd.Series(self.concentration)
-        df_sd['material'] = pd.Series(self.materials)
+        df_sd['concentration'] = pd.Series(self.data.meta_data.concentration)
+        df_sd['material'] = pd.Series(self.data.meta_data.materials)
         fsc_df = pd.DataFrame()
 
         for col in df_sd.columns:
@@ -121,11 +121,10 @@ class DoseResponse:
         return fsc_df
 
     def first_significant(self):
-
         new_dict_2sd = {}
         new_dict_3sd = {}
 
-        for rowIndex, row in self.median.iterrows():
+        for rowIndex, row in self.data.median_df.iterrows():
             for columnIndex, value in row.items():
                 tmp_2sd = 0 if value < self.sd_dict[rowIndex]['sd2'] else self.p_value_dict[rowIndex][columnIndex]
                 tmp_3sd = 0 if value < self.sd_dict[rowIndex]['sd3'] else self.p_value_dict[rowIndex][columnIndex]
@@ -133,11 +132,11 @@ class DoseResponse:
                 tmp3 = 0 if tmp_3sd > 0.05 else tmp_3sd
                 if rowIndex not in new_dict_2sd:
                     new_dict_2sd[rowIndex] = {}
-                new_dict_2sd[rowIndex][columnIndex] = self.concentration[columnIndex] if tmp2 > 0 else np.nan
+                new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp2 > 0 else np.nan
 
                 if rowIndex not in new_dict_3sd:
                     new_dict_3sd[rowIndex] = {}
-                new_dict_3sd[rowIndex][columnIndex] = self.concentration[columnIndex] if tmp3 > 0 else np.nan
+                new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp3 > 0 else np.nan
 
         self.fsc_2sd = self._create_fsc_df(new_dict_2sd)
         self.fsc_3sd = self._create_fsc_df(new_dict_3sd)
@@ -146,7 +145,7 @@ class DoseResponse:
 
     def max_effect(self):
         dinv = {}
-        for k, v in self.materials.items():
+        for k, v in self.data.meta_data.materials.items():
             if v in dinv:
                 dinv[v].append(k)
             else:
@@ -154,9 +153,9 @@ class DoseResponse:
 
         dict_max = {}
         for key in dinv:
-            for num, cell in enumerate(self.normalized['cells'].unique()):
-                for n, time in enumerate(self.normalized['time'].unique()):
-                    new_row = self.normalized.groupby(['time', 'cells']).get_group((time, cell))
+            for num, cell in enumerate(self.data.normalized_df['cells'].unique()):
+                for n, time in enumerate(self.data.normalized_df['time'].unique()):
+                    new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
                     max_v = new_row[dinv[key]].max(axis=1).median()
                     k = f'{cell}_{time}'
                     if key not in dict_max:
@@ -168,9 +167,16 @@ class DoseResponse:
         self.max.columns = [str(col) + '_MAX' for col in self.max.columns]
 
     def concatenate_parameters(self):
-        self.dose_response = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
-        self.dose_response.columns = [str(col) + '_' + self.obj.endpoint for col in self.dose_response.columns]
-        self.dose_response = self.dose_response.drop('Dispersant')
+        self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
+        self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in self.data.dose_response_df.columns]
+        self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
+        # self.data.dose_response_df = self.data.dose_response_df .reset_index().rename(columns={'index': 'material'})
 
-    def print_dose_response_df(self):
-        return self.dose_response
+    def dose_response_parameters(self):
+        self.calc_auc()
+        self.first_significant()
+        self.max_effect()
+        self.concatenate_parameters()
+
+    # def print_dose_response_df(self):
+    #     return self.dose_response
