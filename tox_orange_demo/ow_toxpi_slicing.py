@@ -9,6 +9,7 @@ import re
 import rpy2
 from rpy2.robjects import pandas2ri
 
+from tox5_preprocessing.src.TOX5.calculations.tox5 import TOX5
 from tox_orange_demo.toxpi_r import *
 
 
@@ -63,12 +64,15 @@ class Toxpi(OWWidget):
                                      autoDefault=False)
         self.lb = gui.listBox(None, self, "file_idx",
                               selectionMode=QListWidget.MultiSelection)
+
         self.slice_name = gui.lineEdit(None, self, '',
                                        label='Slice name:',
                                        callback=self.create_new_slice_name)
+
         self.create_slices = gui.button(None, self, 'Create slice',
                                         callback=self.create_new_slice,
                                         autoDefault=False)
+        self.slice_name_label = gui.label(None, self, 'Write slice Name:')
 
     @Inputs.table
     def set_table(self, table):
@@ -101,8 +105,10 @@ class Toxpi(OWWidget):
             self.main.layout().addWidget(self.box_manual_slicing)
             self.box_manual_slicing.layout().addWidget(self.parameters)
             self.box_manual_slicing.layout().addWidget(self.lb)
+            self.box_manual_slicing.layout().addWidget(self.slice_name_label)
             self.box_manual_slicing.layout().addWidget(self.slice_name)
             self.box_manual_slicing.layout().addWidget(self.create_slices)
+
 
         else:
             self.box_manual_slicing.setParent(None)
@@ -195,17 +201,17 @@ class Toxpi(OWWidget):
         widget.deleteLater()
 
     def calculate_toxpi_rank(self):
-        df2 = pd.DataFrame()
-        df, slice_names_ = calculate_first_tox5(self.df, self.selected_cell)
+        tox5 = TOX5(self.df, self.selected_cell, self.slice_names, self.all_slices)
+        tox5.calculate_first_tox5()
 
         if self.radioBtnSelection == 0:
-            df2 = calculate_second_tox5_by_endpoint_time(df, slice_names_)
+            tox5.calculate_second_tox5_by_endpoint_time()
         elif self.radioBtnSelection == 1:
-            df2 = calculate_second_tox5_by_endpoint(df, slice_names_)
+            tox5.calculate_second_tox5_by_endpoint()
         else:
-            df2 = calculate_manual_slicing(df, self.slice_names, self.all_slices)
+            tox5.calculate_manual_slicing()
 
-        orange_table = table_from_frame(df2, force_nominal=True)
+        orange_table = table_from_frame(tox5.tox5_score, force_nominal=True)
         self.Outputs.dataframe_tox.send(orange_table)
 
 
