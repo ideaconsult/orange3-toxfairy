@@ -46,6 +46,7 @@ class DoseResponse:
                         self.p_value_dict[key_dict][col_name] = pv
 
     def _clean_data_for_auc(self):
+        self.data_for_auc = []
         for _, cell in enumerate(self.data.normalized_df['cells'].unique()):
             for _, time in enumerate(self.data.normalized_df['time'].unique()):
                 new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
@@ -70,15 +71,8 @@ class DoseResponse:
         dict_auc = {}
         for num, cell in enumerate(self.data_for_auc['cells'].unique()):
             for n, time in enumerate(self.data_for_auc['time'].unique()):
-                key = f'{cell}-{time}'
+                key = f'{cell}_{time}'
                 new_df2 = self.data_for_auc.groupby(['time', 'cells']).get_group((time, cell))
-
-                # new_df2 = new_df2.append(pd.Series(self.data.meta_data.materials,
-                #                                    index=self.data_for_auc.columns, name='material'))\
-                #     .append(pd.Series(self.data.meta_data.concentration,
-                #                       index=self.data_for_auc.columns, name='concentration'))\
-                #     .append(pd.Series(self.data.meta_data.code,
-                #                       index=self.data_for_auc.columns, name='code'))
 
                 new_df2 = add_annot_data(new_df2,
                                          self.data.meta_data.materials,
@@ -170,7 +164,6 @@ class DoseResponse:
         self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
         self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in self.data.dose_response_df.columns]
         self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
-        # self.data.dose_response_df = self.data.dose_response_df .reset_index().rename(columns={'index': 'material'})
 
     def dose_response_parameters(self):
         self.calc_auc()
@@ -178,5 +171,3 @@ class DoseResponse:
         self.max_effect()
         self.concatenate_parameters()
 
-    # def print_dose_response_df(self):
-    #     return self.dose_response

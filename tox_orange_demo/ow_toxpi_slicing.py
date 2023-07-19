@@ -1,16 +1,12 @@
 import pandas as pd
 from Orange.widgets.widget import OWWidget, Input, Output
 from Orange.widgets import gui
-from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QStyle, QListWidget, QHBoxLayout, QScrollArea
+from AnyQt.QtWidgets import QSizePolicy as Policy, QListWidget, QScrollArea
 from Orange.data.io import FileFormat
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 import Orange.data
 import re
-import rpy2
-from rpy2.robjects import pandas2ri
-
 from tox5_preprocessing.src.TOX5.calculations.tox5 import TOX5
-from tox_orange_demo.toxpi_r import *
 
 
 class Toxpi(OWWidget):
@@ -29,16 +25,27 @@ class Toxpi(OWWidget):
         self.table = None
         self.list_cells = []
         self.list_params = []
-        self.selected_cell = 0
         self.file_idx = []
         self.slice_names = []
         self.all_slices = []
         self.df = None
 
+        self.multi_cell_lines = []
+        self.multi_cell_lines_items = []
+
         # control area
         box = gui.widgetBox(self.controlArea, 'Tox5')
-        self.combo = gui.comboBox(box, self, 'selected_cell',
-                                  sendSelectedValue=True)
+
+        self.combo2 = gui.listBox(box, self, "multi_cell_lines",
+                                  selectionMode=QListWidget.MultiSelection,
+                                  callback=self.add_selected_multi_cell_lines)
+        self.combo2.setFixedHeight(100)
+
+        self.tox5_norm_info = gui.label(box, self, "Normalize each metric for each timepoint\n"
+                                                   "and endpoint separately\n"
+                                                   "- AUC and MAX transforming function - sqrt(x),\n"
+                                                   "- 1-st significant dose transforming function - –LOG10(x) +6\n")
+
         self.radioBtnSelection = None
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
                               btnLabels=['Slice by time-endpoint', 'Slice by endpoint', 'Slice manually'],
@@ -46,8 +53,8 @@ class Toxpi(OWWidget):
                                         'Use this option for automated slicing by endpoint',
                                         'Use this option for manually slicing'],
                               callback=self.engine)
-        gui.button(box, self, 'Calculate',
-                   callback=self.calculate_toxpi_rank,
+        gui.button(box, self, 'Calculate tox5 scores',
+                   callback=self.calculate_tox5_ranks,
                    autoDefault=False)
 
         # main area
@@ -80,7 +87,7 @@ class Toxpi(OWWidget):
             self.table = table
             self.df = table_to_frame(self.table, include_metas=True)
             self.load_available_cells()
-            self.combo.addItems(self.list_cells)
+            self.combo2.addItems(self.list_cells)
         else:
             self.table = None
 
@@ -90,7 +97,7 @@ class Toxpi(OWWidget):
         for i in parameters:
             if i == 'material':
                 continue
-            cel = (re.match("^[^_,-]+", i)).group()
+            cel = (re.match("^[^_]+", i)).group()
             cells.add(cel)
         self.list_cells = list(cells)
 
@@ -108,8 +115,6 @@ class Toxpi(OWWidget):
             self.box_manual_slicing.layout().addWidget(self.slice_name_label)
             self.box_manual_slicing.layout().addWidget(self.slice_name)
             self.box_manual_slicing.layout().addWidget(self.create_slices)
-
-
         else:
             self.box_manual_slicing.setParent(None)
             self.parameters.setParent(None)
@@ -120,19 +125,11 @@ class Toxpi(OWWidget):
             for i in reversed(range(self.box_manual_s.layout().count())):
                 self.box_manual_s.layout().itemAt(i).widget().deleteLater()
 
-            auto_slices1, auto_slices2 = self.create_auto_slices()
+            df = self.create_auto_slices()
+            slices_table = gui.widgetLabel(None, df.to_html())
+            slices_table.setSizePolicy(Policy.Minimum, Policy.Fixed)
 
-            if self.radioBtnSelection == 0:
-                slices_to_print = self.print_dict(auto_slices2)
-                first_slices = gui.widgetLabel(None, slices_to_print)
-                first_slices.setSizePolicy(Policy.Minimum, Policy.Fixed)
-                self.box_manual_s.layout().addWidget(first_slices)
-            else:
-                slices_to_print = self.print_dict(auto_slices1)
-                first_slices = gui.widgetLabel(None, slices_to_print)
-
-                first_slices.setSizePolicy(Policy.Minimum, Policy.Fixed)
-                self.box_manual_s.layout().addWidget(first_slices)
+            self.box_manual_s.layout().addWidget(slices_table)
 
     def load_available_params(self):
         parameters = list(self.df.keys())
@@ -141,8 +138,9 @@ class Toxpi(OWWidget):
         for i in parameters:
             if i == 'material':
                 continue
-            if self.selected_cell in i:
-                self.list_params.append(i)
+            for cell in self.multi_cell_lines_items:
+                if cell in i:
+                    self.list_params.append(i)
         self.lb.addItems(self.list_params)
 
     def create_new_slice(self):
@@ -162,56 +160,39 @@ class Toxpi(OWWidget):
         self.slice_names.append(self.slice_name.text())
 
     def create_auto_slices(self):
-        df_columns = [col for col in self.df if col.startswith(self.selected_cell)]
-        endpoints = ['Dapi', 'CASP', 'H2AX', 'OHG', 'CASP']
-        time_points = ['6', '24', '72']
+        tox5 = TOX5(self.df, self.multi_cell_lines_items, self.slice_names, self.all_slices)
+        slices = []
+        slices_names = []
+        if self.radioBtnSelection == 0:
+            slices_names, slices = tox5.generate_auto_slices()
+        elif self.radioBtnSelection == 1:
+            slices_names, slices = tox5.generate_auto_slices('by_endpoint')
 
-        first_dict = {}
-        second_dict = {}
-        for e in endpoints:
-            tmp_e_list = []
-            for t in time_points:
-                tmp_t_list = []
-                for i in df_columns:
-                    if re.search(e, i, re.IGNORECASE):
-                        tmp_e_list.append(i)
-                        if re.search(t, i, re.IGNORECASE):
-                            tmp_t_list.append(i)
-                second_dict[f'{e}_{t}H'] = tmp_t_list
-            first_dict[e] = tmp_e_list
-
-        return first_dict, second_dict
-
-    def print_dict(self, dict_to_print):
-        final_string = ''
-        for key, value in dict_to_print.items():
-            final_string += f'Slice {key} :'
-            for i, elem in enumerate(value):
-                if i == 0 or i % 4 == 0:
-                    final_string += "\n"
-                final_string += f'{elem}, '
-            final_string += "\n"
-
-        return final_string
+        transpose_slices = list(map(list, zip(*slices)))
+        df = pd.DataFrame(transpose_slices, columns=slices_names)
+        return df
 
     def remove_slice(self, widget, name_slice, slices):
         self.slice_names = [ele for ele in self.slice_names if ele != name_slice]
-        self.all_slices = [[s for s in slice_ if s not in slices]for slice_ in self.all_slices]
+        self.all_slices = [[s for s in slice_ if s not in slices] for slice_ in self.all_slices]
         self.all_slices = [s for s in self.all_slices if s]
         widget.deleteLater()
 
-    def calculate_toxpi_rank(self):
-        tox5 = TOX5(self.df, self.selected_cell, self.slice_names, self.all_slices)
-        tox5.calculate_first_tox5()
+    def add_selected_multi_cell_lines(self):
+        self.multi_cell_lines_items = [item.text() for item in self.combo2.selectedItems()]
+
+    def calculate_tox5_ranks(self):
+        tox5 = TOX5(self.df, self.multi_cell_lines_items, self.slice_names, self.all_slices)
+        tox5.transform_data()
 
         if self.radioBtnSelection == 0:
-            tox5.calculate_second_tox5_by_endpoint_time()
+            tox5.calculate_tox5_scores()
         elif self.radioBtnSelection == 1:
-            tox5.calculate_second_tox5_by_endpoint()
+            tox5.calculate_tox5_scores(slices_pattern='by_endpoint')
         else:
-            tox5.calculate_manual_slicing()
+            tox5.calculate_tox5_scores(manual_slicing=True)
 
-        orange_table = table_from_frame(tox5.tox5_score, force_nominal=True)
+        orange_table = table_from_frame(tox5.tox5_scores, force_nominal=True)
         self.Outputs.dataframe_tox.send(orange_table)
 
 

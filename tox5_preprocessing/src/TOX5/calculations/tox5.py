@@ -4,6 +4,10 @@ from rpy2.robjects.packages import importr, data
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
+
+from itertools import product
+import re
+
 # import warnings
 # warnings.filterwarnings('ignore')
 # utils.install_packages('toxpiR')
@@ -21,21 +25,38 @@ class TOX5:
         self.manual_names = manual_names
         self.manual_slices = manual_slices
 
-        self.slice_names_ = []
-        self.first_tox5_df = []
-        self.tox5_score = pd.DataFrame()
+        self.__transformed_data = []
+        self.__tox5_scores = pd.DataFrame()
+        self.__all_slice_names = list((self.data.loc[:, self.data.columns.str.startswith(tuple(self.cell))]).keys())
 
-    def calculate_first_tox5(self):
-        df_by_cell = self.data.loc[:, self.data.columns.str.startswith(self.cell)]
-        df_cells = (list(df_by_cell.keys()))
+    @property
+    def all_slice_names(self):
+        return self.__all_slice_names
 
+    @property
+    def transformed_data(self):
+        return self.__transformed_data
+
+    @transformed_data.setter
+    def transformed_data(self, value):
+        self.__transformed_data = value
+
+    @property
+    def tox5_scores(self):
+        return self.__tox5_scores
+
+    @tox5_scores.setter
+    def tox5_scores(self, value):
+        self.__tox5_scores = value
+
+    def transform_data(self):
         with ro.default_converter + pandas2ri.converter:
             r_from_pd_df = ro.conversion.get_conversion().py2rpy(self.data)
 
-        self.slice_names_ = robjects.StrVector(df_cells)
+        slice_names_ = robjects.StrVector(self.all_slice_names)
 
-        first_part_tox5 = robjects.r('''
-            first_part_tox5 <- function(slice_names_, df){
+        transforming_data = robjects.r('''
+            transforming_data <- function(slice_names_, df){
                     trans_func <- TxpTransFuncList(tf1 = function(x) sqrt(x), tf2 = function(x) -log10(x)+6)
 
                     test_slice <- list()
@@ -60,127 +81,69 @@ class TOX5:
                     return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
             }
         ''')
-        self.first_tox5_df = first_part_tox5(self.slice_names_, r_from_pd_df)
+        self.transformed_data = transforming_data(slice_names_, r_from_pd_df)
 
-    def calculate_manual_slicing(self):
-        slice_manual_names = robjects.StrVector(self.manual_names)
-        slices = ListVector([(str(i), x) for i, x in enumerate(self.manual_slices)])
+    def generate_auto_slices(self, slicing_pattern='by_time_endpoint'):
+        cell = set([item.split('_')[0] for item in self.all_slice_names])
+        time = set([item.split('_')[1] for item in self.all_slice_names])
+        endpoint = set([item.split('_')[-1] for item in self.all_slice_names])
 
-        manual_slicing_tox5 = robjects.r('''
-            manual_slicing_tox5 <- function(df, slice_manual_names, slices){
-                toxpi_slices <- list()
-                slice_names <- c()
-                i<-1
-                for (n in slice_manual_names){
-                    tmp <- unlist(slices[i])
-                    i<-i+1
-                    toxpi_slices <- append(toxpi_slices, TxpSlice(tmp))
-                }
+        slices_names = []
+        slices = []
 
-                names(toxpi_slices) <- slice_manual_names
-                model <- TxpModel(txpSlices = as.TxpSliceList(toxpi_slices))
-                results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
-                return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
-            }
-        ''')
-        result = manual_slicing_tox5(self.first_tox5_df, slice_manual_names, slices)
+        if slicing_pattern == 'by_time_endpoint':
+            slices_names = [f"{cell_str}_{time_str}_{endpoint_str}" for cell_str, time_str, endpoint_str in
+                            product(cell, time, endpoint)]
+            for cell_val, time_val, endpoint_val in product(cell, time, endpoint):
+                tmp = []
+                for string in self.all_slice_names:
+                    pattern = fr'^(?=.*{cell_val})(?=.*{time_val})(?=.*{endpoint_val}).*'
+                    if re.match(pattern, string):
+                        tmp.append(string)
+                if tmp:
+                    slices.append(tmp)
+        elif slicing_pattern == 'by_endpoint':
+            slices_names = [f"{cell_str}_{endpoint_str}" for cell_str, endpoint_str in
+                            product(cell, endpoint)]
+            for cell_val, endpoint_val in product(cell, endpoint):
+                tmp = []
+                for string in self.all_slice_names:
+                    pattern = fr'^(?=.*{cell_val})(?=.*{endpoint_val}).*'
+                    if re.match(pattern, string):
+                        tmp.append(string)
+                if tmp:
+                    slices.append(tmp)
 
-        with ro.default_converter + pandas2ri.converter:
-            self.tox5_score = ro.conversion.get_conversion().rpy2py(result)
+        return slices_names, slices
 
-    def calculate_second_tox5_by_endpoint(self):
-        second_part_tox5 = robjects.r('''
-            second_part_tox5 <- function(df, slice_names_){
+    def calculate_tox5_scores(self, slices_pattern='by_time_endpoint', manual_slicing=False):
+        if manual_slicing:
+            slices_names = self.manual_names
+            slices = self.manual_slices
+        else:
+            slices_names, slices = self.generate_auto_slices(slices_pattern)
 
-                pattern_dapi <- "Dapi"
-                pattern_h2ax <- "H2AX"
-                pattern_ctg <- "CTG"
-                pattern_casp <- "Casp"
-                pattern_ohg <- "8OHG"
+        slices_names_r = robjects.StrVector(slices_names)
+        slices_r = ListVector([(str(i), x) for i, x in enumerate(slices)])
+        calculate_scores = robjects.r('''
+                    calculate_scores <- function(df, slices_names_r, slices_r){
+                        toxpi_slices <- list()
+                        slice_names <- c()
+                        i<-1
+                        for (n in slices_names_r){
+                            tmp <- unlist(slices_r[i])
+                            i<-i+1
+                            toxpi_slices <- append(toxpi_slices, TxpSlice(tmp))
+                        }
 
-                Dapi <- slice_names_[grepl(pattern_dapi, slice_names_)]
-                H2AX <- slice_names_[grepl(pattern_h2ax, slice_names_)]
-                CTG <- slice_names_[grepl(pattern_ctg, slice_names_)]
-                CASP <- slice_names_[grepl(pattern_casp, slice_names_)]
-                OHG <- slice_names_[grepl(pattern_ohg, slice_names_)]
+                        names(toxpi_slices) <- slices_names_r
+                        model <- TxpModel(txpSlices = as.TxpSliceList(toxpi_slices))
+                        results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
+                        return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
+                    }
+                ''')
 
-
-                toxpi_slices <- TxpSliceList(
-                                Dapi = TxpSlice(Dapi),
-                                H2AX = TxpSlice(H2AX),
-                                CTG = TxpSlice(CTG),
-                                CASP = TxpSlice(CASP),
-                                OHG = TxpSlice(OHG)
-                              )
-                model <- TxpModel(txpSlices = toxpi_slices)
-                results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
-
-                return (as.data.frame(sort(results), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
-            }
-        ''')
-
-        result = second_part_tox5(self.first_tox5_df, self.slice_names_)
-
-        with ro.default_converter + pandas2ri.converter:
-            self.tox5_score = ro.conversion.get_conversion().rpy2py(result)
-
-    def calculate_second_tox5_by_endpoint_time(self):
-        second_part_tox5 = robjects.r('''
-            second_part_tox5 <- function(df, slice_names_){
-                pattern_dapi <- "Dapi"
-                pattern_h2ax <- "H2AX"
-                pattern_ctg <- "CTG"
-                pattern_casp <- "Casp"
-                pattern_ohg <- "8OHG"
-
-                dapi_6h <- slice_names_[grepl(pattern_dapi, slice_names_) & grepl("6H", slice_names_)]
-                dapi_24h <- slice_names_[grepl(pattern_dapi, slice_names_) & grepl("24H", slice_names_)]
-                dapi_72h <- slice_names_[grepl(pattern_dapi, slice_names_) & grepl("72H", slice_names_)]
-
-                H2AX_6h <- slice_names_[grepl(pattern_h2ax, slice_names_) & grepl("6H", slice_names_)]
-                H2AX_24h <- slice_names_[grepl(pattern_h2ax, slice_names_) & grepl("24H", slice_names_)]
-                H2AX_72h <- slice_names_[grepl(pattern_h2ax, slice_names_) & grepl("72H", slice_names_)]
-
-                CTG_6h <- slice_names_[grepl(pattern_ctg, slice_names_) & grepl("6H", slice_names_)]
-                CTG_24h <- slice_names_[grepl(pattern_ctg, slice_names_) & grepl("24H", slice_names_)]
-                CTG_72h <- slice_names_[grepl(pattern_ctg, slice_names_) & grepl("72H", slice_names_)]
-
-                CASP_6h <- slice_names_[grepl(pattern_casp, slice_names_) & grepl("6H", slice_names_)]
-                CASP_24h <- slice_names_[grepl(pattern_casp, slice_names_) & grepl("24H", slice_names_)]
-                CASP_72h <- slice_names_[grepl(pattern_casp, slice_names_) & grepl("72H", slice_names_)]
-
-                OHG_6h <- slice_names_[grepl(pattern_ohg, slice_names_) & grepl("6H", slice_names_)]
-                OHG_24h <-slice_names_[grepl(pattern_ohg, slice_names_) & grepl("24H", slice_names_)]
-                OHG_72h <- slice_names_[grepl(pattern_ohg, slice_names_) & grepl("72H", slice_names_)]
-
-                toxpi_slices <- TxpSliceList(
-                                Dapi_6h = TxpSlice(dapi_6h),
-                                Dapi_24h = TxpSlice(dapi_24h),
-                                Dapi_72h = TxpSlice(dapi_72h),
-                                H2AX_6h = TxpSlice(H2AX_6h),
-                                H2AX_24h = TxpSlice(H2AX_24h),
-                                H2AX_72h = TxpSlice(H2AX_72h),
-                                CTG_6h = TxpSlice(CTG_6h),
-                                CTG_24h = TxpSlice(CTG_24h),
-                                CTG_72h = TxpSlice(CTG_72h),
-                                CASP_6h = TxpSlice(CASP_6h),
-                                CASP_24h = TxpSlice(CASP_24h),
-                                CASP_72h = TxpSlice(CASP_72h),
-                                OHG_6h = TxpSlice(OHG_6h),
-                                OHG_24h = TxpSlice(OHG_24h),
-                                OHG_72h = TxpSlice(OHG_72h)
-                                )
-
-                model <- TxpModel(txpSlices = toxpi_slices)
-                results <- txpCalculateScores(model = model, input = df, id.var = 'Material')
-
-                return (as.data.frame(sort(results), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
-            }
-        ''')
-
-        result = second_part_tox5(self.first_tox5_df, self.slice_names_)
+        result = calculate_scores(self.transformed_data, slices_names_r, slices_r)
 
         with ro.default_converter + pandas2ri.converter:
-            self.tox5_score = ro.conversion.get_conversion().rpy2py(result)
-
-
+            self.tox5_scores = ro.conversion.get_conversion().rpy2py(result)
