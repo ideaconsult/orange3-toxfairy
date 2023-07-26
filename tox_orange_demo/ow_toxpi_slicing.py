@@ -18,6 +18,7 @@ class Toxpi(OWWidget):
         table = Input("Table", Orange.data.Table)
 
     class Outputs:
+        df_transformed = Output("transformed data", Orange.data.Table)
         dataframe_tox = Output("tox data", Orange.data.Table)
 
     def __init__(self):
@@ -33,19 +34,44 @@ class Toxpi(OWWidget):
         self.multi_cell_lines = []
         self.multi_cell_lines_items = []
 
+        # transforming functions
+        self.tf_1st = 'log10x_6'
+        self.tf_auc = 'sqrt_x'
+        self.tf_max = 'log10x_6'
+        self.tf = ['log10x_6', 'sqrt_x', 'yeo_johnson']
+        self.tf_dict = {"1st": self.tf_1st,
+                        "auc": self.tf_auc,
+                        "max": self.tf_max}
+
+        self.tox5 = None
+
         # control area
-        box = gui.widgetBox(self.controlArea, 'Tox5')
+        box = gui.widgetBox(self.controlArea, 'Tox5Scores')
+        gui.label(box, self, "Select cell lines:")
 
-        self.combo2 = gui.listBox(box, self, "multi_cell_lines",
-                                  selectionMode=QListWidget.MultiSelection,
-                                  callback=self.add_selected_multi_cell_lines)
-        self.combo2.setFixedHeight(100)
+        self.multi_cell_selection = gui.listBox(box, self, "multi_cell_lines",
+                                                selectionMode=QListWidget.MultiSelection,
+                                                callback=self.add_selected_multi_cell_lines)
+        self.multi_cell_selection.setFixedHeight(100)
 
-        self.tox5_norm_info = gui.label(box, self, "Normalize each metric for each timepoint\n"
-                                                   "and endpoint separately\n"
-                                                   "- AUC and MAX transforming function - sqrt(x),\n"
-                                                   "- 1-st significant dose transforming function - –LOG10(x) +6\n")
+        gui.label(box, self, "Select transforming functions:")
+        self.tf_1st_btn = gui.comboBox(box, self, 'tf_1st',
+                                       items=self.tf,
+                                       label='1st significant dose',
+                                       sendSelectedValue=True,
+                                       callback=self.update_tf_dict)
+        self.tf_auc_btn = gui.comboBox(box, self, 'tf_auc',
+                                       items=self.tf,
+                                       label='Area under curve',
+                                       sendSelectedValue=True,
+                                       callback=self.update_tf_dict)
+        self.tf_max_btn = gui.comboBox(box, self, 'tf_max',
+                                       items=self.tf,
+                                       label='Maximum dose',
+                                       sendSelectedValue=True,
+                                       callback=self.update_tf_dict)
 
+        gui.label(box, self, "Select slicing pattern")
         self.radioBtnSelection = None
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
                               btnLabels=['Slice by time-endpoint', 'Slice by endpoint', 'Slice manually'],
@@ -87,7 +113,7 @@ class Toxpi(OWWidget):
             self.table = table
             self.df = table_to_frame(self.table, include_metas=True)
             self.load_available_cells()
-            self.combo2.addItems(self.list_cells)
+            self.multi_cell_selection.addItems(self.list_cells)
         else:
             self.table = None
 
@@ -160,13 +186,13 @@ class Toxpi(OWWidget):
         self.slice_names.append(self.slice_name.text())
 
     def create_auto_slices(self):
-        tox5 = TOX5(self.df, self.multi_cell_lines_items, self.slice_names, self.all_slices)
+        self.tox5 = TOX5(self.df, self.multi_cell_lines_items)
         slices = []
         slices_names = []
         if self.radioBtnSelection == 0:
-            slices_names, slices = tox5.generate_auto_slices()
+            slices_names, slices = self.tox5.generate_auto_slices()
         elif self.radioBtnSelection == 1:
-            slices_names, slices = tox5.generate_auto_slices('by_endpoint')
+            slices_names, slices = self.tox5.generate_auto_slices('by_endpoint')
 
         transpose_slices = list(map(list, zip(*slices)))
         df = pd.DataFrame(transpose_slices, columns=slices_names)
@@ -179,21 +205,30 @@ class Toxpi(OWWidget):
         widget.deleteLater()
 
     def add_selected_multi_cell_lines(self):
-        self.multi_cell_lines_items = [item.text() for item in self.combo2.selectedItems()]
+        self.multi_cell_lines_items = [item.text() for item in self.multi_cell_selection.selectedItems()]
 
     def calculate_tox5_ranks(self):
-        tox5 = TOX5(self.df, self.multi_cell_lines_items, self.slice_names, self.all_slices)
-        tox5.transform_data()
+        self.tox5.manual_names = self.slice_names
+        self.tox5.manual_slices = self.all_slices
+        self.tox5.transform_data(self.tf_dict)
 
         if self.radioBtnSelection == 0:
-            tox5.calculate_tox5_scores()
+            self.tox5.calculate_tox5_scores()
         elif self.radioBtnSelection == 1:
-            tox5.calculate_tox5_scores(slices_pattern='by_endpoint')
+            self.tox5.calculate_tox5_scores(slices_pattern='by_endpoint')
         else:
-            tox5.calculate_tox5_scores(manual_slicing=True)
+            self.tox5.calculate_tox5_scores(manual_slicing=True)
 
-        orange_table = table_from_frame(tox5.tox5_scores, force_nominal=True)
+        orange_table = table_from_frame(self.tox5.tox5_scores, force_nominal=True)
         self.Outputs.dataframe_tox.send(orange_table)
+
+        orange_table_transformed = table_from_frame(self.tox5.transformed_data, force_nominal=True)
+        self.Outputs.df_transformed.send(orange_table_transformed)
+
+    def update_tf_dict(self):
+        self.tf_dict['1st'] = self.tf_1st
+        self.tf_dict['auc'] = self.tf_auc
+        self.tf_dict['max'] = self.tf_max
 
 
 if __name__ == "__main__":
