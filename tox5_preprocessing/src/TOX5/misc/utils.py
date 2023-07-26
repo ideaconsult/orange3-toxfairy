@@ -7,6 +7,11 @@ def add_annot_data(df, material, concentration, code):
         .append(pd.Series(code, index=df.columns, name='code'))
 
 
+def insert_columns(df, column_names, *arrays):
+    for i, column in enumerate(column_names):
+        df.insert(loc=i, column=column, value=arrays[i])
+
+
 def add_endpoint_parameters(df, replicates, times, cells):
     df.insert(loc=0, column='replicate', value=replicates)
     df.insert(loc=1, column='time', value=times)

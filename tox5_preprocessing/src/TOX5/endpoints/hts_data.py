@@ -2,8 +2,8 @@ import pandas as pd
 
 
 class MetaData:
-    def __init__(self, annot_data_file):
-        self.annot_data = annot_data_file
+    def __init__(self, annot_data):
+        self.annot_data = annot_data
 
         self.water_keys = []
         self.code = {}
