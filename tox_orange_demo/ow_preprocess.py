@@ -4,6 +4,7 @@ from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QSt
 from Orange.data.io import FileFormat
 import Orange.data
 from Orange.data.pandas_compat import table_from_frame
+import pandas as pd
 
 from tox5_preprocessing.src.TOX5.calculations.casp_normalization import CaspNormalization
 from tox5_preprocessing.src.TOX5.calculations.ctg_normalization import CTGNormalization
@@ -12,7 +13,6 @@ from tox5_preprocessing.src.TOX5.calculations.dose_response import DoseResponse
 from tox5_preprocessing.src.TOX5.calculations.ohg_h2ax_normalization import OHGH2AXNormalization
 from tox5_preprocessing.src.TOX5.endpoints.hts_data import HTSData
 from tox5_preprocessing.src.TOX5.endpoints.hts_data_reader import HTSDataReader
-from tox_orange_demo.toxpi_data_prep import *
 
 
 class Toxpi(OWWidget):
