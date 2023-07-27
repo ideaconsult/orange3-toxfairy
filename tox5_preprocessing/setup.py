@@ -6,7 +6,7 @@ AUTHOR = 'IDEAconsult Ltd.'
 INSTALL_REQUIRES = [
     'matplotlib',
     'numpy',
-    'pandas',
+    'pandas==1.5.2',
     'rpy2==3.5.7',
     'scikit_learn',
     'scipy',

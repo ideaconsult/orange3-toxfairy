@@ -25,8 +25,7 @@ class HTSDataReader:
                 replicates.append(replicate)
                 times.append(time)
                 cells.append(cell)
-                # on_bad_lines=False for future error_bad_lines will be deprecated
-                df = pd.read_csv(file_dir, engine='python',  sep='[;,]', header=None, error_bad_lines=False)\
+                df = pd.read_csv(file_dir, engine='python',  sep='[;,]', header=None, on_bad_lines='skip')\
                     .dropna(subset=[0])
                 start_row = df[df.iloc[:, 0] == 'A'].index[0]
                 end_row = df[df.iloc[:, 0].str.match(r'^[A-Z](?![A-Z])$')].index[-1]

@@ -1,4 +1,3 @@
-
 from setuptools import setup
 
 NAME = "Tox_Demo"
@@ -11,7 +10,7 @@ INSTALL_REQUIRES = [
     'numpy',
     'orange3~=3.0',
     'orange_widget_base',
-    'pandas',
+    'pandas==1.5.2',
     'PyQt5',
     'rpy2==3.5.7',
     'scikit_learn',
@@ -37,5 +36,3 @@ setup(
     # Declare tox_orange_demo package to contain widgets for the "Tox_Demo" category
     entry_points=ENTRY_POINTS,
 )
-
-
