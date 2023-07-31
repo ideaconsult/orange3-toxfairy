@@ -30,7 +30,8 @@ class DNADamageNormalization(BasicNormalization):
                 dapi_idx = tmp[tmp['Description'] == 'Dapi'].index.values
                 for i in dapi_idx:
                     a = tmp.loc[i:i + 2, 'A1':].apply(DNADamageNormalization.correct_from_dapi)
-                    new_df = new_df.append(a)
+                    # TODO: replace _append with concat
+                    new_df = new_df._append(a)
                 tmp2 = tmp.loc[dapi_idx, 'A1':].apply(DNADamageNormalization.correct_all_dapi)
                 new_df.loc[tmp2.index, :] = tmp2[:]
 

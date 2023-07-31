@@ -39,14 +39,21 @@ class BasicNormalization:
         self.data.normalized_df['median 2sd'] = self.data.normalized_df['median'] + 2 * self.data.normalized_df['std']
 
     def calc_mean_median(self):
+        median_tmp = []
+        mean_tmp = []
         for num, cell in enumerate(self.data.normalized_df['cells'].unique()):
             for n, time in enumerate(self.data.normalized_df['time'].unique()):
                 new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
-                median_row = new_row.median()
-                avrg = new_row.mean()
-                self.data.median_df = self.data.median_df.append(pd.Series(median_row,
-                                                                           index=list(self.data.meta_data.code.keys()),
-                                                                           name=f'{cell}_{time}'))
-                self.data.mean_df = self.data.mean_df.append(pd.Series(avrg,
-                                                                       index=list(self.data.meta_data.code.keys()),
-                                                                       name=f'{cell}_{time}'))
+                numeric_cols = new_row.iloc[:, 3:]
+
+                median_row = numeric_cols.median()
+                median_tmp.append(pd.Series(median_row,
+                                            index=list(self.data.meta_data.code.keys()),
+                                            name=f'{cell}_{time}'))
+                mean_row = numeric_cols.mean()
+                mean_tmp.append(pd.Series(mean_row,
+                                          index=list(self.data.meta_data.code.keys()),
+                                          name=f'{cell}_{time}'))
+
+        self.data.median_df = pd.concat(median_tmp, axis=1).T
+        self.data.mean_df = pd.concat(mean_tmp, axis=1).T

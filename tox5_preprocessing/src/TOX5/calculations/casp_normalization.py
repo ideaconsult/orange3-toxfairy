@@ -23,7 +23,6 @@ class CaspNormalization(CellViabilityNormalization):
         df = pd.concat([self.mean_ctg, self.mean_dapi])
         df_mean = df.groupby(df.index).mean()
         df_mean = df_mean.apply(lambda x: 1 - (x / 100))
-
         df_casp = pd.concat([self.data.normalized_df, df_mean])
         df_casp.insert(0, 'cell_index', df_casp['cells'] + '_' + df_casp['time'])
 

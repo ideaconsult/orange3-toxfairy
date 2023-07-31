@@ -2,9 +2,12 @@ import pandas as pd
 
 
 def add_annot_data(df, material, concentration, code):
-    return df.append(pd.Series(material, index=df.columns, name='material')) \
-        .append(pd.Series(concentration, index=df.columns, name='concentration')) \
-        .append(pd.Series(code, index=df.columns, name='code'))
+    material_df = pd.Series(material, index=df.columns).to_frame().T.rename(index={0: 'material'})
+    concentration_df = pd.Series(concentration, index=df.columns).to_frame().T.rename(index={0: 'concentration'})
+    code_df = pd.Series(code, index=df.columns).to_frame().T.rename(index={0: 'code'})
+
+    df = pd.concat([df, material_df, concentration_df, code_df])
+    return df
 
 
 def insert_columns(df, column_names, *arrays):

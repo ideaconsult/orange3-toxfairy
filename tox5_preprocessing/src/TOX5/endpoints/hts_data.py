@@ -29,6 +29,3 @@ class HTSData:
         self.mean_df = pd.DataFrame()
         self.median_df = pd.DataFrame()
         self.dose_response_df = pd.DataFrame()
-
-
-

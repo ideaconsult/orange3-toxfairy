@@ -17,6 +17,7 @@ class HTSDataReader:
         replicates = []
         times = []
         cells = []
+        tmp = []
 
         for file_dir in all_files:
             if self.data.endpoint in file_dir:
@@ -25,7 +26,7 @@ class HTSDataReader:
                 replicates.append(replicate)
                 times.append(time)
                 cells.append(cell)
-                df = pd.read_csv(file_dir, engine='python',  sep='[;,]', header=None, on_bad_lines='skip')\
+                df = pd.read_csv(file_dir, engine='python', sep='[;,]', header=None, on_bad_lines='skip') \
                     .dropna(subset=[0])
                 start_row = df[df.iloc[:, 0] == 'A'].index[0]
                 end_row = df[df.iloc[:, 0].str.match(r'^[A-Z](?![A-Z])$')].index[-1]
@@ -33,11 +34,12 @@ class HTSDataReader:
 
                 df = df.set_index(0).T.stack().astype('int')
                 df.index = df.index.map('{0[1]}{0[0]}'.format)
-                self.data.raw_data_df = self.data.raw_data_df.append(df, ignore_index=True)
+                tmp.append(df)
+        self.data.raw_data_df = pd.concat(tmp, axis=1).T
 
-        # add_endpoint_parameters(self.data.raw_data_df, replicates, times, cells)
-        insert_columns(self.data.raw_data_df, ['replicates', 'time', 'cells'],  replicates, times, cells)
-        self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(lambda col: col.str.upper().str.strip())
+        insert_columns(self.data.raw_data_df, ['replicates', 'time', 'cells'], replicates, times, cells)
+        self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(
+            lambda col: col.str.upper().str.strip())
         self.data.raw_data_df = add_annot_data(self.data.raw_data_df,
                                                self.data.meta_data.materials,
                                                self.data.meta_data.concentration,
@@ -47,7 +49,8 @@ class HTSDataReader:
         self.data.raw_data_df = pd.read_excel(self.raw_data_, sheet_name=self.sheet, index_col=1, header=None)
         self.data.raw_data_df.drop(self.data.raw_data_df.columns[[0]], axis=1, inplace=True)
         self.data.raw_data_df = self.data.raw_data_df.T
-        self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(lambda col: col.str.upper().str.strip())
+        self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(
+            lambda col: col.str.upper().str.strip())
 
         self.data.raw_data_df = add_annot_data(self.data.raw_data_df,
                                                self.data.meta_data.materials,

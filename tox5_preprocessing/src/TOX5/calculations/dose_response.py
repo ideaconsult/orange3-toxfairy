@@ -36,8 +36,9 @@ class DoseResponse:
                 key_dict = f'{cell}_{time}'
                 self.sd_dict[key_dict] = {'sd2': median_m + 2 * stdev, 'sd3': median_m + 3 * stdev}
 
-                for col_name, col_data in new_row.iloc[:, 3:-3].iteritems():
-                    p = stats.ttest_ind(col_data.values, y).pvalue.round(60)
+                for col_name, col_data in new_row.iloc[:, 3:-3].items():
+                    col_data = pd.to_numeric(col_data, errors='coerce')
+                    p = stats.ttest_ind(col_data.values, y).pvalue.round(6)
                     pv = p if pd.isna(p) is not True else 0
                     p_values.append(pv)
                     if key_dict not in self.p_value_dict:
@@ -46,7 +47,7 @@ class DoseResponse:
                         self.p_value_dict[key_dict][col_name] = pv
 
     def _clean_data_for_auc(self):
-        self.data_for_auc = []
+        tmp_data_for_auc = []
         for _, cell in enumerate(self.data.normalized_df['cells'].unique()):
             for _, time in enumerate(self.data.normalized_df['time'].unique()):
                 new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
@@ -56,9 +57,9 @@ class DoseResponse:
                         key = f'{cell}_{time}'
                         new_row[colIdx] = np.where(self.data.median_df.loc[key, colIdx] < self.sd_dict[key]['sd2'],
                                                    0, new_row[colIdx])
-                self.data_for_auc.append(new_row)
+                tmp_data_for_auc.append(new_row)
 
-        self.data_for_auc = pd.concat(self.data_for_auc)
+        self.data_for_auc = pd.concat(tmp_data_for_auc)
         self.data_for_auc.iloc[0:, 3:-4] = self.data_for_auc.iloc[0:, 3:-4].fillna(0)
         self.data_for_auc = self.data_for_auc.drop(['median control', 'median', 'std', 'median 2sd'], axis=1)
 
@@ -85,7 +86,8 @@ class DoseResponse:
                     sub_df = new_df2.loc[:, filter_material]
                     auc_median = []
                     conc = list(sub_df.loc['concentration'])
-                    x = np.log10(conc)
+                    # x = np.log10(conc)
+                    x = np.where(np.array(conc) > 0, np.log10(conc), np.nan)
                     for k, j in sub_df.iloc[:-3, :].iterrows():
                         y = list(j)
                         auc_calc = metrics.auc(x, y)
@@ -103,16 +105,13 @@ class DoseResponse:
         df_sd = pd.DataFrame.from_dict(dict_sd)
         df_sd['concentration'] = pd.Series(self.data.meta_data.concentration)
         df_sd['material'] = pd.Series(self.data.meta_data.materials)
-        fsc_df = pd.DataFrame()
-
+        tmp = []
         for col in df_sd.columns:
             if col == 'concentration':
                 break
             a = df_sd.groupby('material')[col].min()
-            fsc_df = fsc_df.append(pd.Series(a))
-        fsc_df = fsc_df.T
-
-        return fsc_df
+            tmp.append(pd.Series(a))
+        return pd.concat(tmp, axis=1)
 
     def first_significant(self):
         new_dict_2sd = {}
@@ -126,11 +125,13 @@ class DoseResponse:
                 tmp3 = 0 if tmp_3sd > 0.05 else tmp_3sd
                 if rowIndex not in new_dict_2sd:
                     new_dict_2sd[rowIndex] = {}
-                new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp2 > 0 else np.nan
+                new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[
+                    columnIndex] if tmp2 > 0 else np.nan
 
                 if rowIndex not in new_dict_3sd:
                     new_dict_3sd[rowIndex] = {}
-                new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp3 > 0 else np.nan
+                new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[
+                    columnIndex] if tmp3 > 0 else np.nan
 
         self.fsc_2sd = self._create_fsc_df(new_dict_2sd)
         self.fsc_3sd = self._create_fsc_df(new_dict_3sd)
@@ -162,7 +163,8 @@ class DoseResponse:
 
     def concatenate_parameters(self):
         self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
-        self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in self.data.dose_response_df.columns]
+        self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in
+                                              self.data.dose_response_df.columns]
         self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
 
     def dose_response_parameters(self):
@@ -170,4 +172,3 @@ class DoseResponse:
         self.first_significant()
         self.max_effect()
         self.concatenate_parameters()
-
