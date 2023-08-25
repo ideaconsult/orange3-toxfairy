@@ -19,39 +19,51 @@ class DoseResponse:
         self.fsc_3sd = pd.DataFrame()
         self.max = pd.DataFrame()
 
-        self.dose_response = pd.DataFrame()
-
-    def _calc_p_values_and_sd(self):
+    def calc_p_values(self):
         for num, cell in enumerate(self.data.normalized_df['cells'].unique()):
             for n, time in enumerate(self.data.normalized_df['time'].unique()):
-                p_values = []
-                new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
-
+                try:
+                    new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
+                except KeyError:
+                    print(f'The group  between {time} and {cell}  does not exist')
+                    continue
                 new_water_subdf = new_row[self.data.meta_data.water_keys].values.tolist()
                 y = np.concatenate(new_water_subdf)
                 y = y[~np.isnan(y)]
+                key_dict = f'{cell}_{time}'
+                for col_name, col_data in new_row.iloc[:, 3:].iteritems():
+                    p = stats.ttest_ind(col_data.values, y).pvalue.round(60)
+                    pv = p if pd.isna(p) is not True else 0
+                    if key_dict not in self.p_value_dict:
+                        self.p_value_dict[key_dict] = {col_name: pv}
+                    else:
+                        self.p_value_dict[key_dict][col_name] = pv
+
+    def calc_2_3_sd_of_blanks(self):
+        for num, cell in enumerate(self.data.normalized_df['cells'].unique()):
+            for n, time in enumerate(self.data.normalized_df['time'].unique()):
+                try:
+                    new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
+                except KeyError:
+                    print(f'The group  between {time} and {cell}  does not exist')
+                    continue
+
+                new_water_subdf = new_row[self.data.meta_data.water_keys].values.tolist()
+                y = np.concatenate(new_water_subdf)
+                # y = y[~np.isnan(y)]
                 stdev = np.std(y, ddof=1)
                 median_m = np.median(y)
 
                 key_dict = f'{cell}_{time}'
                 self.sd_dict[key_dict] = {'sd2': median_m + 2 * stdev, 'sd3': median_m + 3 * stdev}
 
-                for col_name, col_data in new_row.iloc[:, 3:-3].iteritems():
-                    p = stats.ttest_ind(col_data.values, y).pvalue.round(60)
-                    pv = p if pd.isna(p) is not True else 0
-                    p_values.append(pv)
-                    if key_dict not in self.p_value_dict:
-                        self.p_value_dict[key_dict] = {col_name: pv}
-                    else:
-                        self.p_value_dict[key_dict][col_name] = pv
-
-    def _clean_data_for_auc(self):
+    def clean_data_for_auc(self):
         self.data_for_auc = []
         for _, cell in enumerate(self.data.normalized_df['cells'].unique()):
             for _, time in enumerate(self.data.normalized_df['time'].unique()):
                 new_row = self.data.normalized_df.groupby(['time', 'cells']).get_group((time, cell))
 
-                for rowIdx, row in new_row.loc[:, 'A1':'P24'].iterrows():
+                for rowIdx, row in new_row.iloc[:, 3:].iterrows():
                     for colIdx, value in row.items():
                         key = f'{cell}_{time}'
                         new_row[colIdx] = np.where(self.data.median_df.loc[key, colIdx] < self.sd_dict[key]['sd2'],
@@ -59,12 +71,10 @@ class DoseResponse:
                 self.data_for_auc.append(new_row)
 
         self.data_for_auc = pd.concat(self.data_for_auc)
-        self.data_for_auc.iloc[0:, 3:-4] = self.data_for_auc.iloc[0:, 3:-4].fillna(0)
-        self.data_for_auc = self.data_for_auc.drop(['median control', 'median', 'std', 'median 2sd'], axis=1)
+        self.data_for_auc.iloc[0:, 3:] = self.data_for_auc.iloc[0:, 3:].fillna(0)
 
     def calc_auc(self):
-        self._calc_p_values_and_sd()
-        self._clean_data_for_auc()
+        self.clean_data_for_auc()
 
         material_set = list(set(self.data.meta_data.materials.values()))
 
@@ -126,11 +136,13 @@ class DoseResponse:
                 tmp3 = 0 if tmp_3sd > 0.05 else tmp_3sd
                 if rowIndex not in new_dict_2sd:
                     new_dict_2sd[rowIndex] = {}
-                new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp2 > 0 else np.nan
+                new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[
+                    columnIndex] if tmp2 > 0 else np.nan
 
                 if rowIndex not in new_dict_3sd:
                     new_dict_3sd[rowIndex] = {}
-                new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp3 > 0 else np.nan
+                new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[
+                    columnIndex] if tmp3 > 0 else np.nan
 
         self.fsc_2sd = self._create_fsc_df(new_dict_2sd)
         self.fsc_3sd = self._create_fsc_df(new_dict_3sd)
@@ -162,12 +174,14 @@ class DoseResponse:
 
     def concatenate_parameters(self):
         self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
-        self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in self.data.dose_response_df.columns]
+        self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in
+                                              self.data.dose_response_df.columns]
         self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
 
     def dose_response_parameters(self):
+        self.calc_p_values()
+        self.calc_2_3_sd_of_blanks()
         self.calc_auc()
         self.first_significant()
         self.max_effect()
         self.concatenate_parameters()
-

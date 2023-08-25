@@ -1,3 +1,5 @@
+import numpy as np
+
 from tox5_preprocessing.src.TOX5.calculations.basic_normalization import BasicNormalization
 from tox5_preprocessing.src.TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
 
@@ -12,5 +14,8 @@ class CTGNormalization(CellViabilityNormalization):
     @staticmethod
     @CellViabilityNormalization.subtract_median_0h
     def subtract_blank(df, i, row_index):
-        return df.loc[i, 'A1':] - df.loc[row_index, 'A1':]
+        res_of_median_control = df.loc[i, 'A1':]
+        median_0_h = df.loc[row_index, 'A1':]
+        result = res_of_median_control.subtract(median_0_h, fill_value=0)
+        return result
 

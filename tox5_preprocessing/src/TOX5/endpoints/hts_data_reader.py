@@ -48,7 +48,7 @@ class HTSDataReader:
         self.data.raw_data_df.drop(self.data.raw_data_df.columns[[0]], axis=1, inplace=True)
         self.data.raw_data_df = self.data.raw_data_df.T
         self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(lambda col: col.str.upper().str.strip())
-
+        self.data.raw_data_df = self.data.raw_data_df.rename_axis(None, axis=1).reset_index(drop=True)
         self.data.raw_data_df = add_annot_data(self.data.raw_data_df,
                                                self.data.meta_data.materials,
                                                self.data.meta_data.concentration,

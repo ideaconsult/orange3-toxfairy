@@ -17,4 +17,5 @@ class CellViabilityNormalization(BasicNormalization):
                 df[df.cells == v] = tmp
             df.drop(df[df.time == '0H'].index, inplace=True)
             df.drop(df.filter(regex='^median_', axis=0).index, inplace=True)
+            df.reset_index(drop=True, inplace=True)
         return wrapper

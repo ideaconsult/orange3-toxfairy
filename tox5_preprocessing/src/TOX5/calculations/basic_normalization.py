@@ -31,6 +31,7 @@ class BasicNormalization:
         def wrapper(df):
             df.fillna(value=np.nan, inplace=True)
             df.iloc[:, 3:] = df.iloc[:, 3:].apply(lambda row: func(row), axis=1)
+            df.drop('median control', axis=1, inplace=True)
         return wrapper
 
     def calc_blank_sd(self):
