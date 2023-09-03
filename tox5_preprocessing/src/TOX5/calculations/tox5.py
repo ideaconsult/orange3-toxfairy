@@ -87,11 +87,15 @@ class TOX5:
         transforming_data = robjects.r('''
             transforming_data <- function(slice_names_, df, tf_dict){
                     yeo_johnson_wrapper <- function(x) {
+                        if (length(unique(x)) == 1){
+                            return(x)
+                        }else{
                       # Estimate the optimal lambda using powerTransform()
-                      yeo_transform <- powerTransform(x, family = "yjPower")
-                      lambda_est <- yeo_transform$yjlambda
+                        yeo_transform <- powerTransform(x, family = "yjPower")
+                        lambda_est <- yeo_transform$yjlambda
                       # Apply the Yeo-Johnson transformation using the estimated lambda
-                      transformed_data <- yjPower(x, yeo_transform$lambda, jacobian.adjusted = FALSE)
+                        transformed_data <- yjPower(x, yeo_transform$lambda, jacobian.adjusted = FALSE)
+                        }
                     }
                     
                     tf1 <- TxpTransFunc(function(x) sqrt(x))
