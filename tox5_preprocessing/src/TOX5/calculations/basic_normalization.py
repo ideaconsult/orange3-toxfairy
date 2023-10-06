@@ -9,8 +9,18 @@ class BasicNormalization:
     def remove_outliers_by_quantiles(self):
         self.data.normalized_df = self.data.raw_data_df.copy()
 
-        filter_water = (self.data.normalized_df == 'water').any()
-        sub_df = self.data.normalized_df.loc[:, filter_water].iloc[:-3].astype(float)
+        # filter_water = (self.data.normalized_df == 'water').any()
+        # sub_df = self.data.normalized_df.loc[:, filter_water].iloc[:-3].astype(float)
+        # print(sub_df)
+
+        # mask = (
+        #         (self.data.normalized_df.columns.to_series().map(self.data.metadata).str.get(
+        #             'material') == 'water') |
+        #         (self.data.normalized_df.columns.to_series().map(self.data.metadata).str.get(
+        #             'concentration') == 0.0)
+        # )
+        sub_df = self.data.normalized_df[self.data.water_keys].astype(float)
+        # sub_df = self.data.normalized_df.loc[:, mask].astype(float)
 
         sub_df['lower Bound'] = sub_df.quantile(0.25, axis=1) - 1.5 * (
                 sub_df.quantile(0.75, axis=1) - sub_df.quantile(0.25, axis=1))
@@ -23,8 +33,9 @@ class BasicNormalization:
         sub_df['median control'] = sub_df.iloc[:, :-2].median(axis=1)
         columns = list(sub_df.iloc[:, :-3].keys())
         columns.append('median control')
-        self.data.normalized_df = self.data.normalized_df.iloc[0:-3, :]
+        # self.data.normalized_df = self.data.normalized_df.iloc[0:-3, :]
         self.data.normalized_df[columns] = sub_df[columns]
+        # print(self.data.normalized_df)
 
     @staticmethod
     def percent_of_media_control(func):
@@ -35,8 +46,8 @@ class BasicNormalization:
         return wrapper
 
     def calc_blank_sd(self):
-        self.data.normalized_df['median'] = self.data.normalized_df[self.data.meta_data.water_keys].median(axis=1)
-        self.data.normalized_df['std'] = self.data.normalized_df[self.data.meta_data.water_keys].std(axis=1)
+        self.data.normalized_df['median'] = self.data.normalized_df[self.data.water_keys].median(axis=1)
+        self.data.normalized_df['std'] = self.data.normalized_df[self.data.water_keys].std(axis=1)
         self.data.normalized_df['median 2sd'] = self.data.normalized_df['median'] + 2 * self.data.normalized_df['std']
 
     def calc_mean_median(self):
@@ -46,8 +57,8 @@ class BasicNormalization:
                 median_row = new_row.median()
                 avrg = new_row.mean()
                 self.data.median_df = self.data.median_df.append(pd.Series(median_row,
-                                                                           index=list(self.data.meta_data.code.keys()),
+                                                                           index=list(self.data.metadata.keys()),
                                                                            name=f'{cell}_{time}'))
                 self.data.mean_df = self.data.mean_df.append(pd.Series(avrg,
-                                                                       index=list(self.data.meta_data.code.keys()),
+                                                                       index=list(self.data.metadata.keys()),
                                                                        name=f'{cell}_{time}'))

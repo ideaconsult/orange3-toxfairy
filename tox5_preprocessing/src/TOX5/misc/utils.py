@@ -16,3 +16,10 @@ def add_endpoint_parameters(df, replicates, times, cells):
     df.insert(loc=0, column='replicate', value=replicates)
     df.insert(loc=1, column='time', value=times)
     df.insert(loc=2, column='cells', value=cells)
+
+
+def annotate_data(df, nested_dict):
+    df.loc['material'] = pd.Series({
+        col: nested_dict[col]['material'] if col in nested_dict else None for col in df.columns})
+    df.loc['concentration'] = pd.Series(
+        {col: nested_dict[col]['concentration'] if col in nested_dict else None for col in df.columns})

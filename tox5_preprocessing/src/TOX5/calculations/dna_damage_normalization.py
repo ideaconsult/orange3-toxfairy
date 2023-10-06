@@ -22,18 +22,17 @@ class DNADamageNormalization(BasicNormalization):
 
     def clean_dna_raw(self):
         new_df = pd.DataFrame()
-        self.data.raw_data_df.drop(index=self.data.raw_data_df.index[-3:], inplace=True)
+        # self.data.raw_data_df.drop(index=self.data.raw_data_df.index[-3:], inplace=True)
 
         for idx1, cell in enumerate(self.data.raw_data_df['cells'].unique()):
             for idx2, time in enumerate(self.data.raw_data_df['time'].unique()):
                 tmp = self.data.raw_data_df.groupby(['cells', 'time']).get_group((cell, time))
-                dapi_idx = tmp[tmp['Description'] == 'Dapi'].index.values
+                dapi_idx = tmp[tmp['Description'] == 'DAPI'].index.values
                 for i in dapi_idx:
                     a = tmp.loc[i:i + 2, 'A1':].apply(DNADamageNormalization.correct_from_dapi)
                     new_df = new_df.append(a)
                 tmp2 = tmp.loc[dapi_idx, 'A1':].apply(DNADamageNormalization.correct_all_dapi)
                 new_df.loc[tmp2.index, :] = tmp2[:]
-
         new_df = new_df.sort_index(ascending=True)
         add_endpoint_parameters(new_df, self.data.raw_data_df['replicate'],
                                 self.data.raw_data_df['time'],
@@ -43,7 +42,7 @@ class DNADamageNormalization(BasicNormalization):
         self.data.raw_data_df = new_df
         self.data.raw_data_df = self.data.raw_data_df[self.data.raw_data_df['description'] == self.data.endpoint] \
             .reset_index(drop=True).drop(['description'], axis=1)
-        self.data.raw_data_df = add_annot_data(self.data.raw_data_df,
-                                               self.data.meta_data.materials,
-                                               self.data.meta_data.concentration,
-                                               self.data.meta_data.code)
+        # self.data.raw_data_df = add_annot_data(self.data.raw_data_df,
+        #                                        self.data.meta_data.materials,
+        #                                        self.data.meta_data.concentration,
+        #                                        self.data.meta_data.code)

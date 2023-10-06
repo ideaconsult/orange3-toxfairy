@@ -3,17 +3,21 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 from TOX5.calculations.ctg_normalization import CTGNormalization
 from TOX5.endpoints.hts_data import HTSData
+from TOX5.endpoints.hts_data_container import HTS
 from TOX5.endpoints.hts_data_reader import HTSDataReader
 from TOX5.calculations.dose_response import DoseResponse
+from TOX5.endpoints.reader import DataReader, MetaDataReader
 
 
 class DoseResponseTest(TestCase):
 
     def setUp(self) -> None:
-        self.ctg_data = HTSData('CTG', './test_data/annotation.xlsx')
-        self.ctg_reader = HTSDataReader('./test_data/raw_data', './test_data/annotation.xlsx',
-                                        self.ctg_data)
+        self.ctg_data = HTS('CTG')
+        self.ctg_reader = DataReader('./test_data/raw_data', './test_data/annotation.xlsx',
+                                     self.ctg_data)
         self.ctg_reader.read_data_csv()
+        self.ctg_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.ctg_data)
+        self.ctg_meta_data.read_meta_data()
         self.ctg_normalize = CTGNormalization(self.ctg_data)
         self.ctg_dose_response = DoseResponse(self.ctg_data)
 
@@ -41,7 +45,7 @@ class DoseResponseTest(TestCase):
             'B2': [7.668, 8.409, 11.454, 5.932]
         }
         self.ctg_data.normalized_df = pd.DataFrame(normalized)
-        self.ctg_data.meta_data.water_keys = ['A2', 'B2']
+        self.ctg_data.water_keys = ['A2', 'B2']
         dose_response = DoseResponse(self.ctg_data)
         dose_response.calc_p_values()
         expected_p_value_dict = {'A549_6H': {'A1': 0.568, 'A2': 0.373, 'B2': 0.345},
@@ -80,17 +84,15 @@ class DoseResponseTest(TestCase):
                      }
         self.ctg_data.median_df = pd.DataFrame(median_df)
         self.ctg_data.median_df.rename(index={0: 'BEAS-2B_6H'}, inplace=True)
-        self.ctg_data.meta_data.materials = {'A1': 'Nanofil9 (Nanoclay)', 'B1': 'Nanofil9 (Nanoclay)',
-                                             'C1': 'Nanofil9 (Nanoclay)', 'D1': 'Nanofil9 (Nanoclay)',
-                                             'E1': 'Nanofil9 (Nanoclay)', 'F1': 'Nanofil9 (Nanoclay)',
-                                             'G1': 'Nanofil9 (Nanoclay)', 'H1': 'Nanofil9 (Nanoclay)'}
-        self.ctg_data.meta_data.concentration = {'A1': 0.1170553, 'B1': 0.3511660,
-                                                 'C1': 1.0534979, 'D1': 3.1604938,
-                                                 'E1': 9.4814815, 'F1': 28.4444444,
-                                                 'G1': 85.3333333, 'H1': 256}
-        self.ctg_data.meta_data.code = {'A1': 20, 'B1': 20, 'C1': 20,
-                                        'D1': 20, 'E1': 20, 'F1': 20,
-                                        'G1': 20, 'H1': 20}
+        self.ctg_data.metadata = {'A1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 0.1170553},
+                                  'B1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 0.3511660},
+                                  'C1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 1.0534979},
+                                  'D1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 3.1604938},
+                                  'E1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 9.4814815},
+                                  'F1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 28.4444444},
+                                  'G1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 85.3333333},
+                                  'H1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 256}}
+
         dose_response = DoseResponse(self.ctg_data)
         dose_response.sd_dict = {'BEAS-2B_6H': {'sd2': 21.18876, 'sd3': 30.74008}}
         dose_response.clean_data_for_auc()

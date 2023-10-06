@@ -28,6 +28,8 @@ class CaspNormalization(CellViabilityNormalization):
             raise ValueError('To do additional normalization of CASP, CTG and DAPI mean dataframes are required')
         if not isinstance(self.ctg_mean_df, pd.DataFrame) and not isinstance(self.dapi_mean_df, pd.DataFrame):
             raise TypeError('Attributes should be a pandas DataFrame')
+        if (self.ctg_mean_df is not None and self.ctg_mean_df.empty) or (self.dapi_mean_df is not None and self.dapi_mean_df.empty):
+            raise ValueError('Data frames are empty')
 
         df = pd.concat([self.ctg_mean_df, self.dapi_mean_df])
         df_mean = df.groupby(df.index).mean()
