@@ -1,8 +1,8 @@
 
-NAME = "TOX_DEMO"
+NAME = "TOX5 Scores"
 
 DESCRIPTION = "Test description text"
 
 BACKGROUND = "#CAE1EF"
 
-ICON = "icons/category_test.svg"
+ICON = "icons/test.svg"

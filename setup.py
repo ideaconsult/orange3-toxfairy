@@ -1,6 +1,6 @@
 from setuptools import setup
 
-NAME = "Tox_Demo"
+NAME = "TOX5 Scores"
 
 AUTHOR = 'IDEAconsult Ltd.'
 
@@ -24,7 +24,7 @@ PACKAGE_DATA = {"tox_orange_demo": ["icons/*.svg"]}
 
 CLASSIFIERS = ["Example :: Invalid"]
 
-ENTRY_POINTS = {"orange.widgets": "Tox_Demo = tox_orange_demo"}
+ENTRY_POINTS = {"orange.widgets": "TOX5 Scores = tox_orange_demo"}
 
 setup(
     name=NAME,
