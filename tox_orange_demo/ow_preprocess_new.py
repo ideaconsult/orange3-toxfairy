@@ -1,9 +1,10 @@
 import pandas as pd
 from Orange.widgets.widget import OWWidget, Input, Output
 from Orange.widgets import gui
-from AnyQt.QtWidgets import QGridLayout
+from AnyQt.QtWidgets import QGridLayout, QFileDialog
 from Orange.data.io import FileFormat
 import Orange.data
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 import copy
 from tox5_preprocessing.src.TOX5.calculations.casp_normalization import CaspNormalization
 from tox5_preprocessing.src.TOX5.calculations.ctg_normalization import CTGNormalization
@@ -21,7 +22,7 @@ class Toxpi(OWWidget):
         data_container = Input("Data dictionary", dict)
 
     class Outputs:
-        dataframe_tox = Output("tox data", Orange.data.Table)
+        data_container_output = Output("Data dictionary", dict)
 
     def __init__(self):
         super().__init__()
@@ -40,7 +41,7 @@ class Toxpi(OWWidget):
         self.clean_dna = 0
         self.dose = 0
 
-        # control area
+        # ---------------------------------- control area ------------------------------------------------------------
         self.layout = QGridLayout()
         gui.widgetBox(self.controlArea, 'Tox5', orientation=self.layout)
 
@@ -88,6 +89,7 @@ class Toxpi(OWWidget):
         self.dr_params.setObjectName('dr_param')
 
         self.button = gui.button(None, self, f'Preprocess', autoDefault=False, callback=self.process)
+        self.button_view = gui.button(None, self, f'View processed data', autoDefault=False, callback=self.view_data)
 
         # self.button.clicked.connect(self.update_progress)
 
@@ -104,6 +106,7 @@ class Toxpi(OWWidget):
         self.layout.addWidget(self.box2, 0, 1)
         self.layout.addWidget(self.box3, 1, 1)
         self.layout.addWidget(self.button, 2, 0, 1, 2)
+        self.layout.addWidget(self.button_view, 3, 0, 1, 2)
 
         # self.layout.addWidget(self.reset_button, 3, 0, 1, 2)
 
@@ -119,6 +122,19 @@ class Toxpi(OWWidget):
                                self.calc_bl_sd, self.calc_mean_median, self.dr_params]}
 
         self.checked_btn = {}
+
+        # ---------------------------------------- Main area -----------------------------------------------------------
+        self.endpoint_view = ''
+        self.dataframe_view = ''
+        self.previous_table = None
+        self.table = pd.DataFrame()
+        self.mainBox = gui.widgetBox(self.mainArea, 'Data view')
+        self.combo_box_endpoint = gui.comboBox(None, self, 'endpoint_view', label='Select endpoint',
+                                               sendSelectedValue=True)
+        self.combo_box_dataframe = gui.comboBox(None, self, 'dataframe_view', label='Select dataframe',
+                                                sendSelectedValue=True, callback=self.view)
+        self.view_table = gui.widgetBox(None, 'table')
+        self.saveBtn = gui.button(None, self, 'Save as', callback=self.save_table, autoDefault=False)
 
     @Inputs.data_container
     def set_data_container(self, data_container):
@@ -194,21 +210,6 @@ class Toxpi(OWWidget):
             self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['CTG'][0].mean_df
             self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['DAPI'][0].mean_df
             self.data_container_copy[selected_endpoint][1].additional_normalization()
-
-            # if 'CTG' in self.data_container_copy:
-                # if (
-                #         hasattr(self.data_container_copy['CTG'][0], 'mean_df') and
-                #         isinstance(self.data_container_copy['CTG'][0].mean_df, pd.DataFrame) and
-                #         not self.data_container_copy['CTG'][0].mean_df.empty):
-                #     self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['CTG'][
-                #         0].mean_df
-                # if (
-                #         hasattr(self.data_container_copy['DAPI'][0], 'mean_df') and
-                #         isinstance(self.data_container_copy['DAPI'][0].mean_df, pd.DataFrame) and
-                #         not self.data_container_copy['DAPI'][0].mean_df.empty):
-                #     self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['DAPI'][
-                #         0].mean_df
-
         else:
             print('no available function')
 
@@ -241,8 +242,57 @@ class Toxpi(OWWidget):
                 CaspNormalization(self.data_container_copy[selected_endp][0]))
         self.data_container_copy[selected_endp].append(DoseResponse(self.data_container_copy[selected_endp][0]))
 
+    def view_data(self):
+        self.combo_box_endpoint.clear()
+        self.combo_box_endpoint.addItems(self.endpoint)
+        self.mainBox.layout().addWidget(self.combo_box_endpoint)
+        self.combo_box_dataframe.clear()
+        dataframes_available = ['normalized_df', 'mean_df', 'median_df', 'dose_response_df']
+
+        self.combo_box_dataframe.addItems(dataframes_available)
+        self.mainBox.layout().addWidget(self.combo_box_dataframe)
+        self.mainBox.layout().addWidget(self.view_table)
+
+        self.Outputs.data_container_output.send(self.data_container_copy)
+
+    def view(self):
+        if self.previous_table:
+            self.view_table.layout().itemAt(0).widget().deleteLater()
+
+        if self.endpoint_view in self.data_container_copy: # TODO: check that self.endpoint_view exist and it is not empty ''
+            self.table = getattr(self.data_container_copy[self.endpoint_view][0], self.dataframe_view)
+        else:
+            print('key doesnt exist')
+
+        table_widget = QTableWidget()
+        num_rows, num_cols = self.table.shape
+        table_widget.setRowCount(num_rows)
+        table_widget.setColumnCount(num_cols)
+        table_widget.setHorizontalHeaderLabels(self.table.columns)
+        for i in range(num_rows):
+            table_widget.setVerticalHeaderItem(i, QTableWidgetItem(str(self.table.index[i])))
+            for j in range(num_cols):
+                item = QTableWidgetItem(str(self.table.iloc[i, j]))
+                table_widget.setItem(i, j, item)
+
+        self.view_table.layout().addWidget(table_widget)
+        self.previous_table = table_widget
+        self.view_table.layout().addWidget(self.saveBtn)
+
+    def save_table(self):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Table", "",
+                                                   "CSV Files (*.csv);;Excel Files (*.xlsx);;All Files (*)",
+                                                   options=options)
+        if file_path:
+            if file_path.endswith(".csv"):
+                self.table.to_csv(file_path)
+            elif file_path.endswith(".xlsx"):
+                self.table.to_excel(file_path)
+            else:
+                print('no existing file format to save')
+
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-
     WidgetPreview(Toxpi).run()

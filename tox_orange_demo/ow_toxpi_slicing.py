@@ -15,7 +15,7 @@ class Toxpi(OWWidget):
     icon = "icons/print.svg"
 
     class Inputs:
-        table = Input("Table", Orange.data.Table)
+        data_container = Input("Data dictionary", dict)
 
     class Outputs:
         df_transformed = Output("transformed data", Orange.data.Table)
@@ -23,13 +23,15 @@ class Toxpi(OWWidget):
 
     def __init__(self):
         super().__init__()
-        self.table = None
+        self.data_container = None
+
         self.list_cells = []
         self.list_params = []
         self.file_idx = []
         self.slice_names = []
         self.all_slices = []
         self.df = None
+        self.df2 = None
 
         self.multi_cell_lines = []
         self.multi_cell_lines_items = []
@@ -107,15 +109,23 @@ class Toxpi(OWWidget):
                                         autoDefault=False)
         self.slice_name_label = gui.label(None, self, 'Write slice Name:')
 
-    @Inputs.table
-    def set_table(self, table):
-        if table:
-            self.table = table
-            self.df = table_to_frame(self.table, include_metas=True)
+    @Inputs.data_container
+    def set_data_container(self, data_container):
+        if data_container:
+            self.data_container = data_container
+            concatenated_df = None
+            for key, data_list in self.data_container.items():
+                hts_obj = data_list[0]
+                df_params = hts_obj.dose_response_df
+                if concatenated_df is None:
+                    concatenated_df = df_params
+                else:
+                    concatenated_df = pd.concat([concatenated_df, df_params], axis=1)
+            self.df = concatenated_df.reset_index().rename(columns={'index': 'material'})
+
             self.load_available_cells()
             self.multi_cell_selection.addItems(self.list_cells)
-        else:
-            self.table = None
+            # print(self.df)
 
     def load_available_cells(self):
         cells = set()

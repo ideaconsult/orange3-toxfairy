@@ -2,6 +2,7 @@ import os
 import glob
 import re
 import pandas as pd
+import copy
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 from Orange.data import table_from_frame
 from Orange.widgets.widget import OWWidget, Input, Output
@@ -133,7 +134,6 @@ class Toxpi(OWWidget):
         for i, items in enumerate(self.endpoints_list):
             combo_box = gui.comboBox(self.box_dir, self, '', label=f'{items}', items=test)
             combo_box.activated.connect(lambda value, items=items: self.save_selected_value(items, test[value]))
-        # gui.comboBox(self.box_dir, self, 'annot_data', label='Annotation file', items=test, sendSelectedValue=True)
 
         self.annot_dir.clear()
         self.annot_dir.addItems(test)
@@ -180,7 +180,6 @@ class Toxpi(OWWidget):
             if key not in self.output_dict:
                 self.output_dict[key] = []
             self.output_dict[key].append(test_data)
-            # annotate_data(test_data.raw_data_df, test_data.metadata)
 
         self.combo_box_main.clear()
         self.combo_box_main.addItems(self.endpoints_list)
@@ -188,21 +187,19 @@ class Toxpi(OWWidget):
         self.mainBox.layout().addWidget(self.view_table)
 
         self.Outputs.data_dict.send(self.output_dict)
-        # print(self.output_dict)
 
     def view(self):
+        output_dict_copy = copy.deepcopy(self.output_dict)
         if self.previous_table:
             self.view_table.layout().itemAt(0).widget().deleteLater()
 
-        if self.endpoint_view in self.output_dict:
-            self.raw_data = self.output_dict[self.endpoint_view][0].raw_data_df
+        if self.endpoint_view in output_dict_copy:
+            annotate_data(output_dict_copy[self.endpoint_view][0].raw_data_df,
+                          output_dict_copy[self.endpoint_view][0].metadata)
+
+            self.raw_data = output_dict_copy[self.endpoint_view][0].raw_data_df
         else:
             print('key doesnt exist')
-
-        # for hts_obj in self.output_dict:
-        #     if hts_obj.endpoint == self.endpoint_view:
-        #         self.raw_data = hts_obj.raw_data_df
-                # annotate_data(self.raw_data, hts_obj.metadata)
 
         table_widget = QTableWidget()
         num_rows, num_cols = self.raw_data.shape
@@ -210,6 +207,7 @@ class Toxpi(OWWidget):
         table_widget.setColumnCount(num_cols)
         table_widget.setHorizontalHeaderLabels(self.raw_data.columns)
         for i in range(num_rows):
+            table_widget.setVerticalHeaderItem(i, QTableWidgetItem(str(self.raw_data.index[i])))
             for j in range(num_cols):
                 item = QTableWidgetItem(str(self.raw_data.iloc[i, j]))
                 table_widget.setItem(i, j, item)
