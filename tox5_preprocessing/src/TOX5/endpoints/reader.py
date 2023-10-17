@@ -69,17 +69,28 @@ class MetaDataReader:
 class DataReader:
     def __init__(self, raw_data_path, data_container, sheet=None):
         self.raw_data = raw_data_path
+        # TODO: remove attr sheet
         self.sheet = sheet
 
         self.data = data_container
 
     def read_data_csv(self):
         all_files = glob.glob(os.path.join(self.raw_data, "*.csv"))
+        cell = ''
+        replicate = ''
+        time = ''
 
         for file_dir in all_files:
             if self.data.endpoint in file_dir.upper():
                 filepath, file_name = os.path.split(file_dir)
-                (replicate, time, _endpoint, cell, date) = file_name.split('_')
+
+                parts = file_name.split('_')
+                if len(parts) >= 5:
+                    (replicate, time, _endpoint, cell, _date) = parts[:5]
+                else:
+                    print(f"File '{file_name}' does not have enough parts.")
+
+                # (replicate, time, _endpoint, cell, date) = file_name.split('_')
                 df = pd.read_csv(file_dir, engine='python', sep='[;,]', header=None, on_bad_lines='skip') \
                     .dropna(subset=[0])
                 start_row = df[df.iloc[:, 0] == 'A'].index[0]
@@ -116,7 +127,7 @@ class DataReader:
             df.insert(0, 'cells', cell)
             df.insert(1, 'replicates', replicate)
             df.insert(2, 'time', time)
-            df.insert(3, 'Description', ['Dapi', 'X2AX', '8OHG'])
+            df.insert(3, 'Description', ['DAPI', 'X2AX', '8OHG'])
             dfs.append(df)
 
         self.data.raw_data_df = pd.concat(dfs, ignore_index=True)
