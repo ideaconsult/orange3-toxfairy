@@ -153,8 +153,6 @@ class Toxpi(OWWidget):
                         button_name = button.objectName()
                         endpoint_states[button_name] = False
                     self.checked_btn[endpoint] = endpoint_states
-
-            print(self.checked_btn)
         else:
             self.data_container = None
 
@@ -177,7 +175,6 @@ class Toxpi(OWWidget):
                 btn.setVisible(True)
                 button_id = btn.objectName()
                 btn.setChecked(self.checked_btn[selected_endpoint].get(button_id, False))
-        print(self.checked_btn)
 
     def save_checked_btn(self):
         # save actual state for each btn in self.checked_btn dict for selected endpoint
@@ -208,7 +205,7 @@ class Toxpi(OWWidget):
             self.data_container_copy[selected_endpoint][2].dose_response_parameters()
         elif todo == 'casp_clean':
             self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['CTG'][0].mean_df
-            self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['DAPI'][0].mean_df
+            self.data_container_copy[selected_endpoint][1].dapi_mean_df = self.data_container_copy['DAPI'][0].mean_df
             self.data_container_copy[selected_endpoint][1].additional_normalization()
         else:
             print('no available function')
@@ -221,9 +218,6 @@ class Toxpi(OWWidget):
         for func, isAvailable in self.checked_btn[selected_endp].items():
             if isAvailable:
                 self.function_map(selected_endp, func)
-
-        print('//////////////////////////////// processing //////////////////////////////////////////////////////////')
-        print(self.data_container_copy)
 
     def create_hts_calc_objects(self, selected_endp):
         if selected_endp == 'CTG':
