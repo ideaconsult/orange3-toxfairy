@@ -27,7 +27,6 @@ class DoseResponse:
                 except KeyError:
                     print(f'The group  between {time} and {cell}  does not exist')
                     continue
-                # new_water_subdf = new_row[self.data.meta_data.water_keys].values.tolist()
                 new_water_subdf = new_row[self.data.water_keys].values.tolist()
 
                 y = np.concatenate(new_water_subdf)
@@ -50,10 +49,9 @@ class DoseResponse:
                     print(f'The group  between {time} and {cell}  does not exist')
                     continue
 
-                # new_water_subdf = new_row[self.data.meta_data.water_keys].values.tolist()
                 new_water_subdf = new_row[self.data.water_keys].values.tolist()
                 y = np.concatenate(new_water_subdf)
-                # y = y[~np.isnan(y)]
+                y = y[~np.isnan(y)]
                 stdev = np.std(y, ddof=1)
                 median_m = np.median(y)
 
@@ -78,8 +76,6 @@ class DoseResponse:
 
     def calc_auc(self):
         self.clean_data_for_auc()
-
-        # material_set = list(set(self.data.meta_data.materials.values()))
         material_set = list(set(item['material'] for item in self.data.metadata.values() if 'material' in item))
 
         dict_auc = {}
@@ -88,17 +84,12 @@ class DoseResponse:
                 key = f'{cell}_{time}'
                 new_df2 = self.data_for_auc.groupby(['time', 'cells']).get_group((time, cell))
 
-                # new_df2 = add_annot_data(new_df2,
-                #                          self.data.meta_data.materials,
-                #                          self.data.meta_data.concentration,
-                #                          self.data.meta_data.code)
                 annotate_data(new_df2, self.data.metadata)
-
-                # new_df2.loc['code', 'A1':] = new_df2.loc['code', 'A1':].apply(str)
 
                 for i in material_set:
                     filter_material = (new_df2 == i).any()
                     sub_df = new_df2.loc[:, filter_material]
+                    # TODO: subdf sorted based on x
                     auc_median = []
                     conc = list(sub_df.loc['concentration'])
                     x = np.log10(conc)
@@ -117,33 +108,10 @@ class DoseResponse:
 
     def _create_fsc_df(self, dict_sd):
         df_sd = pd.DataFrame.from_dict(dict_sd)
-
-
         df_sd['material'] = [self.data.metadata.get(key, {}).get('material') for key in df_sd.index]
-        # df_sd['concentration'] = [self.data.metadata.get(key, {}).get('concentration') for key in df_sd.index]
-
-        # Drop the 'concentration' column if it exists
-        # df_sd = df_sd.drop(columns=['concentration'], errors='ignore')
 
         # Calculate the minimum value for each group defined by 'material'
         fsc_df = df_sd.groupby('material').min()
-
-
-        # df_sd['concentration'] = pd.Series(self.data.meta_data.concentration)
-        # df_sd['material'] = pd.Series(self.data.meta_data.materials)
-        # fsc_df = pd.DataFrame()
-
-        # for col in df_sd.columns:
-        #     # if col == 'concentration':
-        #     #     break
-        #     a = df_sd.groupby('material')[col].min()
-        #
-        #     print('..................................................................................................')
-        #     print(a)
-        #     fsc_df = fsc_df.append(pd.Series(a))
-        # fsc_df = fsc_df.T
-        # print(fsc_df.iloc[:, :-1])
-
         return fsc_df
 
     def first_significant(self):
@@ -158,12 +126,10 @@ class DoseResponse:
                 tmp3 = 0 if tmp_3sd > 0.05 else tmp_3sd
                 if rowIndex not in new_dict_2sd:
                     new_dict_2sd[rowIndex] = {}
-                # new_dict_2sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp2 > 0 else np.nan
                 new_dict_2sd[rowIndex][columnIndex] = self.data.metadata[columnIndex]['concentration'] if tmp2 > 0 else np.nan
 
                 if rowIndex not in new_dict_3sd:
                     new_dict_3sd[rowIndex] = {}
-                # new_dict_3sd[rowIndex][columnIndex] = self.data.meta_data.concentration[columnIndex] if tmp3 > 0 else np.nan
                 new_dict_3sd[rowIndex][columnIndex] = self.data.metadata[columnIndex]['concentration'] if tmp3 > 0 else np.nan
 
         self.fsc_2sd = self._create_fsc_df(new_dict_2sd)
@@ -180,13 +146,6 @@ class DoseResponse:
                 dinv[material].append(k)
             else:
                 dinv[material] = [k]
-
-
-        # for k, v in self.data.meta_data.materials.items():
-        #     if v in dinv:
-        #         dinv[v].append(k)
-        #     else:
-        #         dinv[v] = [k]
 
         dict_max = {}
         for key in dinv:
@@ -207,7 +166,7 @@ class DoseResponse:
         self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
         self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in
                                               self.data.dose_response_df.columns]
-        self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
+        # self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
 
     def dose_response_parameters(self):
         self.calc_p_values()
