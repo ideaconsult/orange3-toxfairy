@@ -11,7 +11,7 @@ import Orange.data
 from AnyQt.QtWidgets import QFileDialog
 
 from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.reader import DataReader, MetaDataReader
+from TOX5.endpoints.reader_from_tmp import DataReaderTmp, MetaDataReaderTmp
 from TOX5.misc.utils import annotate_data
 
 
@@ -147,26 +147,12 @@ class Toxpi(OWWidget):
 
     def process(self):
         for key, value in self.selected_values_dict.items():
+            print(key, value)
             test_data = HTS(key)
-            test_read = DataReader(value, test_data, 'Imaging raw')
-
-            if os.path.isfile(value) and value.lower().endswith(('.xls', '.xlsx')):
-                test_read.read_data_excel()
-            elif os.path.isdir(value):
-                files = glob.glob(os.path.join(value, "*"))
-                file_extensions = [os.path.splitext(file)[1] for file in files]
-                unique_file_extensions = list(set(file_extensions))
-                if unique_file_extensions[0].lower() == '.csv':
-                    test_read.read_data_csv()
-                elif unique_file_extensions[0].lower() == 'txt':
-                    test_read.read_data_txt()
-                else:
-                    print(f'dont exist {unique_file_extensions[0]}')
-            else:
-                print(f'dont exist {value}')
-
-            test_meta = MetaDataReader(self.annot_data, test_data)
+            test_meta = MetaDataReaderTmp(self.annot_data, test_data)
             test_meta.read_meta_data()
+            test_read = DataReaderTmp(self.annot_data, value, test_data)
+            test_read.read_data()
 
             if self.radioBtnSelection == 0:
                 test_meta.recalculate_dose_from_cell_growth(float(self.well_volume.text()),
