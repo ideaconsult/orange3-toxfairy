@@ -82,12 +82,12 @@ class DataReaderTmp:
                 df_tmp.insert(0, 'cells', row['Cell'])
                 df_tmp.insert(1, 'replicates', row['Replicate'])
                 df_tmp.insert(2, 'time', row['Time'])
-                df_tmp.insert(3, 'Description', ['DAPI', 'X2AX', '8OHG'])
+                endpoints = re.split(r'[,.]\s+', row['Endpoint'].upper())
+                df_tmp.insert(3, 'Description', endpoints)
                 df_tmp = df_tmp.rename_axis(None, axis=1)
                 df_result = df_tmp
         else:
             raise FileNotFoundError(f"File '{full_file_path}' does not exist.")
-
         return df_result
 
     def read_data(self):

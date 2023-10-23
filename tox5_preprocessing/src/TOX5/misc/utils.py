@@ -4,6 +4,7 @@ import glob
 from openpyxl import load_workbook
 
 
+# TODO: to be removed
 def add_annot_data(df, material, concentration, code):
     return df.append(pd.Series(material, index=df.columns, name='material')) \
         .append(pd.Series(concentration, index=df.columns, name='concentration')) \
@@ -16,7 +17,7 @@ def insert_columns(df, column_names, *arrays):
 
 
 def add_endpoint_parameters(df, replicates, times, cells):
-    df.insert(loc=0, column='replicate', value=replicates)
+    df.insert(loc=0, column='replicates', value=replicates)
     df.insert(loc=1, column='time', value=times)
     df.insert(loc=2, column='cells', value=cells)
 
@@ -56,4 +57,3 @@ def generate_annotation_file(directories, template_path):
     writer.book = book
     df.to_excel(writer, sheet_name='Files', index=False, header=False, startrow=1)
     writer.save()
-
