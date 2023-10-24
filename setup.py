@@ -11,6 +11,7 @@ INSTALL_REQUIRES = [
     'orange3~=3.0',
     'orange_widget_base',
     'pandas==1.5.2',
+    # 'pandas',
     'PyQt5',
     'rpy2==3.5.7',
     'scikit_learn',

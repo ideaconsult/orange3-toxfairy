@@ -1,5 +1,6 @@
 import os
 import re
+import pandas as pd
 from tox5_preprocessing.src.TOX5.misc.utils import *
 
 
@@ -34,7 +35,8 @@ class MetaDataReaderTmp:
         # Recalculate material dose (ug/ml), based on SBET in cm2/cm2
         for key, value in self.data_container.metadata.items():
             if "concentration" in value and 'SBET' in value:
-                value['concentration'] = value['SBET'] / 100 * (value['concentration'] / (1000 / well_volume)) / cell_growth_area
+                value['concentration'] = value['SBET'] / 100 * (
+                            value['concentration'] / (1000 / well_volume)) / cell_growth_area
 
 
 class DataReaderTmp:
@@ -66,7 +68,7 @@ class DataReaderTmp:
         return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
     def _process_file(self, row):
-        df_result = []
+        df_result = pd.DataFrame()
         filename = row['filename']
         full_file_path = os.path.join(self.directory, filename)
         file_extension = os.path.splitext(full_file_path)[1]
@@ -76,7 +78,9 @@ class DataReaderTmp:
                 df_tmp = self._read_data_csv(full_file_path)
                 new_values = pd.Series([row['Cell'], row['Replicate'], row['Time']],
                                        index=['cells', 'replicates', 'time'])
-                df_result = new_values.append(df_tmp)
+                df_concat = pd.concat([new_values, df_tmp])
+                df_result = pd.DataFrame(df_concat).T
+
             elif file_extension.lower() == '.txt':
                 df_tmp = self._read_data_txt(full_file_path)
                 df_tmp.insert(0, 'cells', row['Cell'])
@@ -94,9 +98,11 @@ class DataReaderTmp:
         df = pd.read_excel(self.template, sheet_name='Files')
         filtered_df = df[df['Endpoint'].apply(lambda x: self._check_endpoint_existence(x, self.data.endpoint))]
 
+        tmp_results = []
         for index, row in filtered_df.iterrows():
             tmp_result = self._process_file(row)
-            self.data.raw_data_df = self.data.raw_data_df.append(tmp_result, ignore_index=True)
+            tmp_results.append(tmp_result)
 
+        self.data.raw_data_df = pd.concat(tmp_results, ignore_index=True)
         self.data.raw_data_df[['time', 'cells', 'replicates']] = self.data.raw_data_df[['time', 'cells', 'replicates']]\
             .apply(lambda col: col.str.upper().str.strip())

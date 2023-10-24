@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-
 from tox5_preprocessing.src.TOX5.calculations.basic_normalization import BasicNormalization
 from tox5_preprocessing.src.TOX5.misc.utils import *
 
@@ -29,7 +28,7 @@ class DNADamageNormalization(BasicNormalization):
                 dapi_idx = tmp[tmp['Description'] == 'DAPI'].index.values
                 for i in dapi_idx:
                     a = tmp.loc[i:i + 2, 'A1':].apply(DNADamageNormalization.correct_from_dapi)
-                    new_df = new_df.append(a)
+                    new_df = pd.concat([new_df, a])
                 tmp2 = tmp.loc[dapi_idx, 'A1':].apply(DNADamageNormalization.correct_all_dapi)
                 new_df.loc[tmp2.index, :] = tmp2[:]
         new_df = new_df.sort_index(ascending=True)

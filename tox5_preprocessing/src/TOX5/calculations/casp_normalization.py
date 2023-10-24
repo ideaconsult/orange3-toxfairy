@@ -1,6 +1,7 @@
 from tox5_preprocessing.src.TOX5.calculations.basic_normalization import BasicNormalization
 from tox5_preprocessing.src.TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
 import pandas as pd
+import numpy as np
 
 
 class CaspNormalization(CellViabilityNormalization):
@@ -14,7 +15,7 @@ class CaspNormalization(CellViabilityNormalization):
     def subtract_blank(df, i, row_index):
         res_of_median_control = df.loc[i, 'A1':]
         median_0_h = df.loc[row_index, 'A1':]
-        result = 100 + (res_of_median_control.subtract(median_0_h, fill_value=0))
+        result = 100 + (res_of_median_control.subtract(median_0_h, fill_value=np.nan))
 
         return result
 
