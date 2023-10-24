@@ -9,6 +9,7 @@ dependencies:
   - orange3~=3.0
   - orange-widget-base
   - pandas==1.5.2
+#  - pandas
   - pip
   - pyqt
   - rpy2==3.5.7

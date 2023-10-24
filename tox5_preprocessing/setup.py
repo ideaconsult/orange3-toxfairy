@@ -7,6 +7,7 @@ INSTALL_REQUIRES = [
     'matplotlib',
     'numpy',
     'pandas==1.5.2',
+    # 'pandas',
     'rpy2==3.5.7',
     'scikit_learn',
     'scipy',

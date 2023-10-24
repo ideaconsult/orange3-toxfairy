@@ -7,7 +7,8 @@ class CellViabilityNormalization(BasicNormalization):
     def subtract_median_0h(func):
         def wrapper(df):
             for i, j in enumerate(df['cells'].unique()):
-                median = df.groupby(['time', 'cells']).get_group(('0H', j)).median()
+                tmp = df.groupby(['time', 'cells']).get_group(('0H', j))
+                median = tmp.iloc[:, 3:].median()
                 df.loc[f"median_{j}"] = median
             for num, v in enumerate(df['cells'].unique()):
                 tmp = df[df.cells == v]

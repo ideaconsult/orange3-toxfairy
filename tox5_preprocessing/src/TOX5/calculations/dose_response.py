@@ -32,7 +32,8 @@ class DoseResponse:
                 y = np.concatenate(new_water_subdf)
                 y = y[~np.isnan(y)]
                 key_dict = f'{cell}_{time}'
-                for col_name, col_data in new_row.iloc[:, 3:].iteritems():
+                for col_name, col_data in new_row.iloc[:, 3:].items():
+                    col_data = pd.to_numeric(col_data, errors='coerce')
                     p = stats.ttest_ind(col_data.values, y).pvalue.round(60)
                     pv = p if pd.isna(p) is not True else 0
                     if key_dict not in self.p_value_dict:
@@ -166,7 +167,6 @@ class DoseResponse:
         self.data.dose_response_df = pd.concat([self.auc, self.fsc_2sd, self.fsc_3sd, self.max], axis=1)
         self.data.dose_response_df.columns = [str(col) + '_' + self.data.endpoint for col in
                                               self.data.dose_response_df.columns]
-        # self.data.dose_response_df = self.data.dose_response_df.drop('Dispersant')
 
     def dose_response_parameters(self):
         self.calc_p_values()
