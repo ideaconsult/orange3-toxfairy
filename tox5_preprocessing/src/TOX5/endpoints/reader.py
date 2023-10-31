@@ -100,7 +100,7 @@ class DataReader:
                 df = df.set_index(0).T.stack().astype('int')
                 df.index = df.index.map('{0[1]}{0[0]}'.format)
                 new_values = pd.Series([cell, replicate, time], index=['cells', 'replicates', 'time'])
-                df = new_values.append(df)
+                df = pd.concat([new_values, df])
                 self.data.raw_data_df = self.data.raw_data_df.append(df, ignore_index=True)
 
         self.data.raw_data_df[['time', 'cells']] = self.data.raw_data_df[['time', 'cells']].apply(
@@ -127,7 +127,7 @@ class DataReader:
             df.insert(0, 'cells', cell)
             df.insert(1, 'replicates', replicate)
             df.insert(2, 'time', time)
-            df.insert(3, 'Description', ['DAPI', 'X2AX', '8OHG'])
+            df.insert(3, 'Description', ['DAPI', 'H2AX', '8OHG'])
             dfs.append(df)
 
         self.data.raw_data_df = pd.concat(dfs, ignore_index=True)
