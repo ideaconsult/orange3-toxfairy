@@ -2,24 +2,37 @@ from unittest import TestCase, main
 import pandas as pd
 from pandas.testing import assert_frame_equal
 from TOX5.calculations.ctg_normalization import CTGNormalization
-from TOX5.endpoints.hts_data import HTSData
 from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.hts_data_reader import HTSDataReader
 from TOX5.calculations.dose_response import DoseResponse
 from TOX5.endpoints.reader import DataReader, MetaDataReader
+from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 
 
 class DoseResponseTest(TestCase):
 
     def setUp(self) -> None:
-        self.ctg_data = HTS('CTG')
-        self.ctg_reader = DataReader('./test_data/raw_data', './test_data/annotation.xlsx',
-                                     self.ctg_data)
-        self.ctg_reader.read_data_csv()
-        self.ctg_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.ctg_data)
-        self.ctg_meta_data.read_meta_data()
+        # self.ctg_data = HTS('CTG')
+        # self.ctg_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.ctg_data)
+        # self.ctg_meta_data.read_meta_data()
+        # self.ctg_reader = DataReader('./test_data/raw_data', './test_data/annotation.xlsx',
+        #                              self.ctg_data)
+        # self.ctg_reader.read_data_csv()
+        #
+        # self.ctg_normalize = CTGNormalization(self.ctg_data)
+        # self.ctg_dose_response = DoseResponse(self.ctg_data)
+
+
+        template_test = './test_data/TestDataRecordingForm_harmless_HTS_METADATA_tests.xlsx'
+        directory_test = ['./test_data/raw_data', './test_data/raw_data_imaging']
+
+        self.ctg_data = HTS('ctg')
+        self.ctg_meta = MetaDataReaderTmp(template_test, self.ctg_data)
+        self.ctg_meta.read_meta_data()
+        self.ctg_data_reader = DataReaderTmp(template_test, directory_test[0], self.ctg_data)
+        self.ctg_data_reader.read_data()
         self.ctg_normalize = CTGNormalization(self.ctg_data)
         self.ctg_dose_response = DoseResponse(self.ctg_data)
+
 
     def assert_dicts_almost_equal(self, dict1, dict2, places=7):
         self.assertEqual(set(dict1.keys()), set(dict2.keys()))
@@ -84,20 +97,20 @@ class DoseResponseTest(TestCase):
                      }
         self.ctg_data.median_df = pd.DataFrame(median_df)
         self.ctg_data.median_df.rename(index={0: 'BEAS-2B_6H'}, inplace=True)
-        self.ctg_data.metadata = {'A1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 0.1170553},
-                                  'B1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 0.3511660},
-                                  'C1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 1.0534979},
-                                  'D1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 3.1604938},
-                                  'E1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 9.4814815},
-                                  'F1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 28.4444444},
-                                  'G1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 85.3333333},
-                                  'H1': {'material': 'Nanofil9 (Nanoclay)', 'concentration': 256}}
+        self.ctg_data.metadata = {'A1': {'material': 'NANOFIL 9', 'concentration': 0.1170553},
+                                  'B1': {'material': 'NANOFIL 9', 'concentration': 0.3511660},
+                                  'C1': {'material': 'NANOFIL 9', 'concentration': 1.0534979},
+                                  'D1': {'material': 'NANOFIL 9', 'concentration': 3.1604938},
+                                  'E1': {'material': 'NANOFIL 9', 'concentration': 9.4814815},
+                                  'F1': {'material': 'NANOFIL 9', 'concentration': 28.4444444},
+                                  'G1': {'material': 'NANOFIL 9', 'concentration': 85.3333333},
+                                  'H1': {'material': 'NANOFIL 9', 'concentration': 256}}
 
         dose_response = DoseResponse(self.ctg_data)
         dose_response.sd_dict = {'BEAS-2B_6H': {'sd2': 21.18876, 'sd3': 30.74008}}
         dose_response.clean_data_for_auc()
         dose_response.calc_auc()
-        expected_auc = pd.DataFrame({'BEAS-2B_6H_AUC': [93.25385]}, index=['Nanofil9 (Nanoclay)'])
+        expected_auc = pd.DataFrame({'BEAS-2B_6H_AUC': [93.25385]}, index=['NANOFIL 9'])
         assert_frame_equal(expected_auc, dose_response.auc, check_index_type=False, check_dtype=False)
 
     def test_fsc_calculation(self):
@@ -119,9 +132,9 @@ class DoseResponseTest(TestCase):
                                                      'G1': 1.70415E-07, 'H1': 3.36427E-05}}
         dose_response.sd_dict = {'BEAS-2B_6H': {'sd2': 21.18876, 'sd3': 30.74008}}
         dose_response.first_significant()
-        expected_fsc_2sd = pd.DataFrame({'BEAS-2B_6H_1st_2SD': [9.481481]}, index=['Nanofil9 (Nanoclay)'])
+        expected_fsc_2sd = pd.DataFrame({'BEAS-2B_6H_1st_2SD': [9.481481]}, index=['NANOFIL 9'])
         expected_fsc_2sd.index.name = 'material'
-        expected_fsc_3sd = pd.DataFrame({'BEAS-2B_6H_1st_3SD': [9.481481]}, index=['Nanofil9 (Nanoclay)'])
+        expected_fsc_3sd = pd.DataFrame({'BEAS-2B_6H_1st_3SD': [9.481481]}, index=['NANOFIL 9'])
         expected_fsc_3sd.index.name = 'material'
 
         assert_frame_equal(expected_fsc_2sd, dose_response.fsc_2sd, check_index_type=False, check_dtype=False)
@@ -131,12 +144,12 @@ class DoseResponseTest(TestCase):
         self.ctg_normalize.remove_outliers_by_quantiles()
         self.ctg_normalize.median_control(self.ctg_data.normalized_df)
         self.ctg_normalize.subtract_blank(self.ctg_data.normalized_df)
-        # self.ctg_normalize.calc_blank_sd()
         self.ctg_normalize.calc_mean_median()
         self.ctg_dose_response.dose_response_parameters()
 
         expected = pd.read_csv('./test_data/expected_dose_response.csv', index_col=0)
-        assert_frame_equal(expected, self.ctg_data.dose_response_df, check_index_type=False, check_dtype=False)
+        assert_frame_equal(expected, self.ctg_data.dose_response_df, check_index_type=False,
+                           check_dtype=False, check_like=True)
 
 
 if __name__ == "__main__":
