@@ -11,17 +11,6 @@ from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 class DoseResponseTest(TestCase):
 
     def setUp(self) -> None:
-        # self.ctg_data = HTS('CTG')
-        # self.ctg_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.ctg_data)
-        # self.ctg_meta_data.read_meta_data()
-        # self.ctg_reader = DataReader('./test_data/raw_data', './test_data/annotation.xlsx',
-        #                              self.ctg_data)
-        # self.ctg_reader.read_data_csv()
-        #
-        # self.ctg_normalize = CTGNormalization(self.ctg_data)
-        # self.ctg_dose_response = DoseResponse(self.ctg_data)
-
-
         template_test = './test_data/TestDataRecordingForm_harmless_HTS_METADATA_tests.xlsx'
         directory_test = ['./test_data/raw_data', './test_data/raw_data_imaging']
 
@@ -32,7 +21,6 @@ class DoseResponseTest(TestCase):
         self.ctg_data_reader.read_data()
         self.ctg_normalize = CTGNormalization(self.ctg_data)
         self.ctg_dose_response = DoseResponse(self.ctg_data)
-
 
     def assert_dicts_almost_equal(self, dict1, dict2, places=7):
         self.assertEqual(set(dict1.keys()), set(dict2.keys()))
