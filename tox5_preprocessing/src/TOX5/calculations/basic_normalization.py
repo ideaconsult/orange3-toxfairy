@@ -26,7 +26,8 @@ class BasicNormalization:
     def percent_of_media_control(func):
         def wrapper(df):
             df.fillna(value=np.nan, inplace=True)
-            df.iloc[:, 3:] = df.iloc[:, 3:].apply(lambda row: func(row), axis=1)
+            # df.iloc[:, 3:] = df.iloc[:, 3:].apply(lambda row: func(row), axis=1)
+            df[df.columns[3:]] = df[df.columns[3:]].apply(lambda row: func(row), axis=1)
             df.drop('median control', axis=1, inplace=True)
         return wrapper
 
