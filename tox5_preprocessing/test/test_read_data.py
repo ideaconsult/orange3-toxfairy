@@ -1,9 +1,7 @@
 from unittest import TestCase, main
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from TOX5.endpoints.hts_data import HTSData
 from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.hts_data_reader import HTSDataReader
 from TOX5.endpoints.reader import DataReader, MetaDataReader
 from TOX5.misc.utils import annotate_data
 
@@ -20,18 +18,16 @@ def convert_df_non_numeric_int_to_numeric(df):
     return df
 
 
-class HTSDataReaderTest(TestCase):
+class DataReaderTest(TestCase):
     def setUp(self) -> None:
         self.ctg_data = HTS('CTG')
         self.ctg_reader = DataReader('./test_data/raw_data', self.ctg_data)
-        # self.ctg_reader.read_data_csv()
         self.ctg_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.ctg_data)
-        # self.ctg_meta_data.read_meta_data()
+        self.ctg_meta_data.read_meta_data()
 
         self.dapi_data = HTS('Dapi')
-        self.dapi_reader = DataReader('./test_data/raw_data',
-                                      self.dapi_data, 'Imaging raw')
         self.dapi_meta_data = MetaDataReader('./test_data/annotation.xlsx', self.dapi_data)
+        self.dapi_meta_data.read_meta_data()
 
     def assert_dicts_almost_equal(self, dict1, dict2, places=7):
         self.assertEqual(set(dict1.keys()), set(dict2.keys()))
@@ -67,30 +63,35 @@ class HTSDataReaderTest(TestCase):
                              'H2': {'material': 'Dispersant', 'concentration': 0.0}
                              }
         expected_water_keys = ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2']
-        self.ctg_meta_data.read_meta_data()
         self.assert_dicts_almost_equal(self.ctg_data.metadata, expected_metadata)
 
         self.assertEqual(self.ctg_data.water_keys, expected_water_keys)
 
     def test_csv_reader(self):
         self.ctg_reader.read_data_csv()
-        self.ctg_meta_data.read_meta_data()
         annotate_data(self.ctg_data.raw_data_df, self.ctg_data.metadata)
         expected = pd.read_csv('./test_data/expected_read_csv.csv', index_col=0)
         expected = convert_df_non_numeric_int_to_numeric(expected)
-        assert_frame_equal(expected.iloc[:-1], self.ctg_data.raw_data_df, check_index_type=False, check_dtype=False)
+        assert_frame_equal(expected, self.ctg_data.raw_data_df, check_index_type=False, check_dtype=False)
 
     def test_excel_reader(self):
-        self.dapi_reader.read_data_excel()
-        self.dapi_meta_data.read_meta_data()
+        dapi_reader = DataReader('./test_data/HARMLESS_for_tests.xlsx',
+                                 self.dapi_data, 'Imaging raw')
+        dapi_reader.read_data_excel()
         annotate_data(self.dapi_data.raw_data_df, self.dapi_data.metadata)
         expected = pd.read_csv('./test_data/expected_read_excel.csv', index_col=0)
 
         expected = convert_df_non_numeric_int_to_numeric(expected)
-        assert_frame_equal(expected.iloc[:-1], self.dapi_data.raw_data_df, check_index_type=False, check_dtype=False)
+        assert_frame_equal(expected, self.dapi_data.raw_data_df, check_index_type=False, check_dtype=False)
 
     def test_txt_reader(self):
-        pass
+        dapi_reader = DataReader('./test_data/raw_data_imaging',
+                                 self.dapi_data)
+        dapi_reader.read_data_txt()
+        annotate_data(self.dapi_data.raw_data_df, self.dapi_data.metadata)
+        expected = pd.read_csv('./test_data/expected_read_txt.csv', index_col=0)
+        expected = convert_df_non_numeric_int_to_numeric(expected)
+        assert_frame_equal(expected, self.dapi_data.raw_data_df, check_index_type=False, check_dtype=False)
 
 
 if __name__ == "__main__":
