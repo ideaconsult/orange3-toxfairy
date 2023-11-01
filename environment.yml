@@ -3,18 +3,40 @@ channels:
   - conda-forge
   - default
 dependencies:
+  - python==3.10
   - AnyQt
   - matplotlib
   - numpy
-  - orange3~=3.0
   - orange-widget-base
-  - pandas==1.5.2
-#  - pandas
+  - orange3~=3.0
+  - pandas
   - pip
   - pyqt
+  - r
+  - r-abind
+  - r-brio
+  - r-car
+  - r-cardata
+  - r-desc
+  - r-diffobj
+  - r-essentials
+  - r-lme4
+  - r-matrixmodels
+  - r-minqa
+  - r-nloptr
+  - r-pbkrtest
+  - r-pkgbuild
+  - r-pkgload
+  - r-praise
+  - r-quantreg
+  - r-rprojroot
+  - r-sparsem
+  - r-testthat
+  - r-waldo
   - rpy2==3.5.7
   - scikit-learn
   - scipy
   - setuptools
   - pip:
+    - -e tox5_preprocessing
     - -e .
