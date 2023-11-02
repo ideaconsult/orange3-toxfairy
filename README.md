@@ -11,6 +11,10 @@ conda env create -n orange-tox5 -f environment.yml
 ```bash
 conda activate orange-tox5
 ```
+* Only for windows installation 
+```bash
+set R_HOME="%CONDA_PREFIX%\lib\R"
+```
 5. Run Orange 
 ```bash
 orange-canvas
