@@ -1,4 +1,4 @@
-name: toxpi_orange_tests_
+name: orange-tox5
 channels:
   - bioconda
   - conda-forge
