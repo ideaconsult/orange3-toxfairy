@@ -24,9 +24,6 @@ def get_source_package(package_name):
         return source_package
 
 
-car = get_source_package('car')
-S4Vectors = get_source_package('S4Vectors')
-BiocGenerics = get_source_package('BiocGenerics')
 toxpiR = get_source_package('toxpiR')
 
 # def extract_versions(package_data):

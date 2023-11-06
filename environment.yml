@@ -1,10 +1,13 @@
 name: toxpi_orange_tests_
 channels:
+  - bioconda
   - conda-forge
   - default
 dependencies:
   - python==3.10
   - AnyQt
+  - bioconductor-biocgenerics
+  - bioconductor-s4vectors
   - matplotlib
   - numpy
   - orange-widget-base
