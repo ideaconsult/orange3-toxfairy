@@ -1,39 +1,14 @@
 import pandas as pd
 from rpy2 import robjects
-from rpy2.robjects.packages import importr, isinstalled
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
 from itertools import product
 import re
 import warnings
+
+
 warnings.filterwarnings('ignore')
-
-base = importr("base")
-utils = importr("utils")
-utils.chooseCRANmirror(ind=1)
-
-
-def get_source_package(package_name):
-    if isinstalled(package_name):
-        source_package = importr(package_name)
-        return source_package
-    else:
-        utils.install_packages(package_name)
-        source_package = importr(package_name)
-        return source_package
-
-
-toxpiR = get_source_package('toxpiR')
-
-# def extract_versions(package_data):
-#     return dict(zip(
-#         package_data.rx(True, 'Package'),
-#         package_data.rx(True, 'Version')
-#     ))
-# i = extract_versions(utils.installed_packages())
-# a = extract_versions(utils.available_packages())
-# is_latest_version = i['car'] == a['car']
 
 
 class TOX5:
