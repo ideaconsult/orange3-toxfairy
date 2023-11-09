@@ -6,7 +6,7 @@ from Orange.data.io import FileFormat
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 import Orange.data
 import re
-from tox5_preprocessing.src.TOX5.calculations.tox5 import TOX5
+from TOX5.calculations.tox5 import TOX5
 
 
 class Toxpi(OWWidget):
