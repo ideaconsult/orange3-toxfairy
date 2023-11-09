@@ -10,8 +10,8 @@ from tox5_preprocessing.src.TOX5.calculations.tox5 import TOX5
 
 
 class Toxpi(OWWidget):
-    name = "Tox5"
-    description = "Calculate TOX5 prioritization index"
+    name = "Tox5 Score"
+    description = "Transforming slicing and calculate TOX5 prioritization index"
     icon = "icons/print.svg"
 
     class Inputs:

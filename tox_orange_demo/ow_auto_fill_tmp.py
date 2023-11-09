@@ -1,15 +1,21 @@
 from Orange.widgets.widget import OWWidget, Input
 from Orange.widgets import gui
 import Orange
+from orangewidget import widget
 
 from TOX5.misc.utils import generate_annotation_file
 
 
 class AutofillTmp(OWWidget):
-    name = "Auto-fill template"
+    name = "Auto-fill HTS template"
     description = "Auto-fill HTS_METADATA template"
     icon = "icons/print.svg"
     priority = 10
+
+    UserAdviceMessages = [
+        widget.Message("When you are ready with the manually fill and correct "
+                       "the template, you can reconnect the completed "
+                       "template with the reader.", '')]
 
     class Inputs:
         data_input = Input("Directory to data ", Orange.data.Table)

@@ -14,8 +14,8 @@ from tox5_preprocessing.src.TOX5.calculations.ohg_h2ax_normalization import OHGH
 
 
 class Toxpi(OWWidget):
-    name = "Toxpi preprocess new"
-    description = "Calculate 1st significant concentration, AUC, MAX effect"
+    name = "HTS preprocess"
+    description = "HTS data preprocessing and calculation of dose-response parameters"
     icon = "icons/print.svg"
 
     class Inputs:

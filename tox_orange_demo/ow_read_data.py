@@ -16,8 +16,8 @@ from TOX5.misc.utils import annotate_data
 
 
 class Toxpi(OWWidget):
-    name = "Toxpi read data"
-    description = "read and annotate data"
+    name = "Read HTS data/metadata"
+    description = "Read HTS data and annotate with meta data"
     icon = "icons/print.svg"
 
     class Inputs:
