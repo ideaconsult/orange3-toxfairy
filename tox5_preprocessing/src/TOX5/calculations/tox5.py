@@ -102,7 +102,8 @@ class TOX5:
         ''')
         self.transformed_data_r = transforming_data(slice_names_, r_from_pd_df, user_transform_funcs_r)
 
-        with ro.default_converter + pandas2ri.converter:
+        # with ro.default_converter + pandas2ri.converter:
+        with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.transformed_data = ro.conversion.get_conversion().rpy2py(self.transformed_data_r)
 
     def generate_auto_slices(self, slicing_pattern='by_time_endpoint'):
@@ -167,5 +168,6 @@ class TOX5:
 
         result = calculate_scores(self.transformed_data_r, slices_names_r, slices_r)
 
-        with ro.default_converter + pandas2ri.converter:
+        # with ro.default_converter + pandas2ri.converter:
+        with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.tox5_scores = ro.conversion.get_conversion().rpy2py(result)
