@@ -25,6 +25,7 @@ utils = importr("utils")
 utils.chooseCRANmirror(ind=1)
 biocmanager = get_source_package('BiocManager')
 biocmanager.install('S4Vectors', update=False, ask=False)
+car = get_source_package('car')
 toxpiR = get_source_package('toxpiR')
 
 # def extract_versions(package_data):
