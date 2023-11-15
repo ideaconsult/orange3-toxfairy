@@ -52,7 +52,8 @@ class TOX5:
         self.__tox5_scores = value
 
     def transform_data(self, user_transform_funcs):
-        with ro.default_converter + pandas2ri.converter:
+        # with ro.default_converter + pandas2ri.converter:
+        with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             r_from_pd_df = ro.conversion.get_conversion().py2rpy(self.data)
 
         slice_names_ = robjects.StrVector(self.all_slice_names)
