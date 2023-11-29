@@ -7,6 +7,7 @@ from Orange.widgets import widget, gui
 from Orange.widgets.utils.filedialogs import RecentPathsWidgetMixin, RecentPath, open_filename_dialog
 from Orange.widgets.utils.signals import Output
 from orangewidget.widget import OWBaseWidget
+from Orange.widgets.settings import Setting
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 
 
@@ -30,15 +31,14 @@ class RelocatablePathsWidgetMixin(RecentPathsWidgetMixin):
 class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
     name = "Multifiles"
     icon = "icons/print.svg"
-    description = "Read multiple file names and path."
+    description = "Read multiple file names or directories."
     priority = 10
-    # keywords = ["file", "files", "multiple"]
 
     class Outputs:
         table = Output("Data", Orange.data.Table)
 
     want_main_area = False
-    # file_idx = []
+    radioBtnSelection = Setting(0, schema_only=True)
 
     def __init__(self, *args, **kwargs):
         widget.OWWidget.__init__(self)
@@ -48,8 +48,11 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
         self.files = []
         self.paths = []
 
+        """ 
+        Only Control Area 
+        """
+
         box = gui.widgetBox(self.controlArea, self.name)
-        self.radioBtnSelection = None
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
                               btnLabels=['Select files', 'Select directories'],
                               tooltips=['Use this option for files', 'Use this option for directories'],
@@ -59,25 +62,27 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
         gui.widgetBox(self.controlArea,
                       margin=0,
                       orientation=self.layout)
-
         self.file_button = gui.button(None, self, ' select multiple files',
                                       callback=self.browse_files,
                                       autoDefault=False)
         self.file_button.setIcon(self.style().standardIcon(QStyle.SP_FileIcon))
-        self.file_button.setSizePolicy(Policy.Minimum, Policy.Fixed)
-
         self.path_button = gui.button(None, self, ' select directories',
                                       callback=self.browse_directory,
                                       autoDefault=False)
         self.path_button.setIcon(self.style().standardIcon(QStyle.SP_DirOpenIcon))
         self.path_button.setSizePolicy(Policy.Minimum, Policy.Fixed)
+        self.clear_button = gui.button(self.controlArea, self, ' clear output',
+                                       callback=self.clear,
+                                       autoDefault=False)
+        self.clear_button.setIcon(self.style().standardIcon(QStyle.SP_TrashIcon))
+
+        self.engine()
 
     def engine(self):
         if self.radioBtnSelection == 0:
             self.layout.addWidget(self.file_button, 0, 0)
             self.create_output(self.files)
             self.path_button.setParent(None)
-
         else:
             self.layout.addWidget(self.path_button, 0, 0)
             self.create_output(self.paths)
@@ -85,7 +90,6 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
 
     def browse_from_files(self):
         start_file = os.path.expanduser("~/")
-
         readers = [f for f in FileFormat.formats if getattr(f, 'read', None) and getattr(f, "EXTENSIONS", None)]
         filenames, reader, _ = open_filename_dialog(start_file, None, readers, dialog=QFileDialog.getOpenFileNames)
 
@@ -108,6 +112,17 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
         df = pd.DataFrame(data, columns=['data'])
         orange_table = table_from_frame(df)
         self.Outputs.table.send(orange_table)
+
+    def clear_output(self):
+        self.Outputs.table.send(Orange.data.Table)
+
+    def clear(self):
+        if self.radioBtnSelection == 0:
+            self.files = []
+            self.clear_output()
+        else:
+            self.paths = []
+            self.clear_output()
 
 
 if __name__ == "__main__":
