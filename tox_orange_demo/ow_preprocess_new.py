@@ -2,10 +2,9 @@ import pandas as pd
 from Orange.widgets.widget import OWWidget, Input, Output
 from Orange.widgets import gui
 from AnyQt.QtWidgets import QGridLayout, QFileDialog
-from Orange.data.io import FileFormat
-import Orange.data
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 import copy
+from orangewidget.settings import Setting
 from tox5_preprocessing.src.TOX5.calculations.casp_normalization import CaspNormalization
 from tox5_preprocessing.src.TOX5.calculations.ctg_normalization import CTGNormalization
 from tox5_preprocessing.src.TOX5.calculations.dapi_normalization import DapiNormalization
@@ -24,22 +23,30 @@ class Toxpi(OWWidget):
     class Outputs:
         data_container_output = Output("Data dictionary", dict)
 
+    dataframes_available_dict = {'Normalized': 'normalized_df',
+                                 'Mean': 'mean_df',
+                                 'Median': 'median_df',
+                                 'Dose-response': 'dose_response_df'}
+    dataframes_available = list(dataframes_available_dict.keys())
+
+    endpoint = Setting([])
+    endpoint_ = Setting(-1)
+    endpoint_view = Setting('')
+    dataframe_view = Setting('')
+
+    remove_out = Setting(True, schema_only=True)
+    med_control = Setting(True, schema_only=True)
+    sub_bl = Setting(True, schema_only=True)
+    sd_bl = Setting(False, schema_only=True)
+    casp_clean_ = Setting(True, schema_only=True)
+    mean_median = Setting(True, schema_only=True)
+    clean_dna = Setting(True, schema_only=True)
+    dose = Setting(True, schema_only=True)
+
     def __init__(self):
         super().__init__()
         self.data_container = None
         self.data_container_copy = None
-        self.endpoint = []
-
-        # save checked btn state
-        self.endpoint_ = -1
-        self.remove_out = 0
-        self.med_control = 0
-        self.sub_bl = 0
-        self.sd_bl = 0
-        self.casp_clean_ = 0
-        self.mean_median = 0
-        self.clean_dna = 0
-        self.dose = 0
 
         # ---------------------------------- control area ------------------------------------------------------------
         self.layout = QGridLayout()
@@ -47,27 +54,26 @@ class Toxpi(OWWidget):
 
         self.radioBtnSelection = None
         self.endpoints = gui.listBox(None, self, 'endpoint_', callback=self.load_available_btns)
-        # self.endpoints.addItems(self.endpoint)
         self.layout.addWidget(self.endpoints, 0, 0, 2, 1)
 
         self.box2 = gui.widgetBox(None, 'Normalizations', orientation='vertical')
 
-        self.clean_dna_ = gui.checkBox(self.box2, self, 'clean_dna', 'clean dna raw',
+        self.clean_dna_ = gui.checkBox(self.box2, self, 'clean_dna', 'Clean DAPI data',
                                        callback=self.save_checked_btn,
-                                       tooltip='for all 0 dapi results: remove results for 8ohg + h2ax '
-                                               'if dapi is 0 and remove result for dapi if imaging is failed '
-                                               '(median for dapi replicates are more than 50)')
+                                       tooltip='for all 0 DAPI results: remove results for 8OHG + H2AX '
+                                               'if DAPI is 0 and remove result for DAPI if imaging is failed '
+                                               '(median for DAPI replicates are more than 50)')
         self.clean_dna_.setObjectName('clean_dna')
 
-        self.remove_outliers = gui.checkBox(self.box2, self, 'remove_out', 'remove_outliers',
+        self.remove_outliers = gui.checkBox(self.box2, self, 'remove_out', 'Remove outliers',
                                             callback=self.save_checked_btn,
                                             tooltip='removing  dispersant outliers based on first and '
                                                     'third quantiles and replacing the value with NaN')
         self.remove_outliers.setObjectName('remove')
-        self.median_control = gui.checkBox(self.box2, self, 'med_control', 'median_control',
+        self.median_control = gui.checkBox(self.box2, self, 'med_control', 'Percent of control',
                                            callback=self.save_checked_btn)
         self.median_control.setObjectName('median_control')
-        self.subtract_blanks = gui.checkBox(self.box2, self, 'sub_bl', 'subtract_blanks',
+        self.subtract_blanks = gui.checkBox(self.box2, self, 'sub_bl', 'Baseline correction',
                                             callback=self.save_checked_btn)
         self.subtract_blanks.setObjectName('subtract')
 
@@ -75,23 +81,21 @@ class Toxpi(OWWidget):
                                        callback=self.save_checked_btn)
         self.calc_bl_sd.setObjectName('sd_blank')
 
-        self.casp_clean = gui.checkBox(self.box2, self, 'casp_clean_', 'casp_normalized',
+        self.casp_clean = gui.checkBox(self.box2, self, 'casp_clean_', 'Normalize Casp to cell amount',
                                        callback=self.save_checked_btn,
-                                       tooltip='based on ctg and dapi normalization')
+                                       tooltip='based on CTG and DAPI normalization')
         self.casp_clean.setObjectName('casp_clean')
 
-        self.calc_mean_median = gui.checkBox(self.box2, self, 'mean_median', 'calculate mean median',
+        self.calc_mean_median = gui.checkBox(self.box2, self, 'mean_median', 'Mean and Median of replicates',
                                              callback=self.save_checked_btn)
         self.calc_mean_median.setObjectName('mean_median')
 
         self.box3 = gui.widgetBox(None, 'Dose - response', orientation='vertical')
-        self.dr_params = gui.checkBox(self.box3, self, 'dose', 'dose_response_params', callback=self.save_checked_btn)
+        self.dr_params = gui.checkBox(self.box3, self, 'dose', 'Dose - response', callback=self.save_checked_btn)
         self.dr_params.setObjectName('dr_param')
 
         self.button = gui.button(None, self, f'Preprocess', autoDefault=False, callback=self.process)
         self.button_view = gui.button(None, self, f'View processed data', autoDefault=False, callback=self.view_data)
-
-        # self.button.clicked.connect(self.update_progress)
 
         self.remove_outliers.setVisible(False)
         self.subtract_blanks.setVisible(False)
@@ -101,14 +105,10 @@ class Toxpi(OWWidget):
         self.clean_dna_.setVisible(False)
         self.casp_clean.setVisible(False)
 
-        # self.reset_button.setVisible(False)
-
         self.layout.addWidget(self.box2, 0, 1)
         self.layout.addWidget(self.box3, 1, 1)
         self.layout.addWidget(self.button, 2, 0, 1, 2)
         self.layout.addWidget(self.button_view, 3, 0, 1, 2)
-
-        # self.layout.addWidget(self.reset_button, 3, 0, 1, 2)
 
         self.rules = {'CTG': [self.remove_outliers, self.median_control, self.subtract_blanks,
                               self.calc_bl_sd, self.calc_mean_median, self.dr_params],
@@ -124,8 +124,6 @@ class Toxpi(OWWidget):
         self.checked_btn = {}
 
         # ---------------------------------------- Main area -----------------------------------------------------------
-        self.endpoint_view = ''
-        self.dataframe_view = ''
         self.previous_table = None
         self.table = pd.DataFrame()
         self.mainBox = gui.widgetBox(self.mainArea, 'Data view')
@@ -143,22 +141,30 @@ class Toxpi(OWWidget):
             self.endpoint = list(self.data_container.keys())
             self.endpoints.addItems(self.endpoint)
             self.data_container_copy = copy.deepcopy(self.data_container)
-            # create dict with key for each available endpoint and set empty dict to store checked btns
+            """
+            create dict with key for each available endpoint and set empty dict to store checked btn's
+            """
             self.checked_btn = {key: {} for key in self.endpoint}
+            self.endpoint_ = 0
 
             for endpoint, buttons in self.rules.items():
                 endpoint_states = {}
                 if endpoint in self.endpoint:
                     for button in buttons:
                         button_name = button.objectName()
-                        endpoint_states[button_name] = False
+                        endpoint_states[button_name] = button.isChecked()
                     self.checked_btn[endpoint] = endpoint_states
+
+            self.load_available_btns()
         else:
             self.data_container = None
 
     def load_available_btns(self):
-        # set available btns with actual state  for each selected endpoint
-        # the actual state is taken from self.checked_btn dict for selected endpoint
+        """
+        set available btn's with actual state  for each selected endpoint
+        the actual state is taken from self.checked_btn dict for selected endpoint
+        """
+
         selected_endpoint = self.endpoint[self.endpoint_]
         self.button.setText(f'Preprocess {selected_endpoint}')
 
@@ -177,7 +183,9 @@ class Toxpi(OWWidget):
                 btn.setChecked(self.checked_btn[selected_endpoint].get(button_id, False))
 
     def save_checked_btn(self):
-        # save actual state for each btn in self.checked_btn dict for selected endpoint
+        """
+        save actual state for each btn in self.checked_btn dict for selected endpoint
+        """
         button_id = self.sender().objectName()
         button_state = self.sender().isChecked()
         self.save_button_state(button_id, button_state)
@@ -211,7 +219,7 @@ class Toxpi(OWWidget):
             print('no available function')
 
     def process(self):
-        selected_endp = self.endpoints.currentItem().text()
+        selected_endp = self.endpoint[self.endpoint_]
         self.data_container_copy[selected_endp] = copy.deepcopy(self.data_container[selected_endp])
         self.create_hts_calc_objects(selected_endp)
 
@@ -241,11 +249,15 @@ class Toxpi(OWWidget):
         self.combo_box_endpoint.addItems(self.endpoint)
         self.mainBox.layout().addWidget(self.combo_box_endpoint)
         self.combo_box_dataframe.clear()
-        dataframes_available = ['normalized_df', 'mean_df', 'median_df', 'dose_response_df']
 
-        self.combo_box_dataframe.addItems(dataframes_available)
+        self.combo_box_dataframe.addItems(self.dataframes_available)
+        self.endpoint_view = self.endpoint[0]
+        self.dataframe_view = self.dataframes_available[0]
+
         self.mainBox.layout().addWidget(self.combo_box_dataframe)
         self.mainBox.layout().addWidget(self.view_table)
+
+        self.view()
 
         self.Outputs.data_container_output.send(self.data_container_copy)
 
@@ -253,8 +265,9 @@ class Toxpi(OWWidget):
         if self.previous_table:
             self.view_table.layout().itemAt(0).widget().deleteLater()
 
-        if self.endpoint_view in self.data_container_copy: # TODO: check that self.endpoint_view exist and it is not empty ''
-            self.table = getattr(self.data_container_copy[self.endpoint_view][0], self.dataframe_view)
+        if self.endpoint_view in self.data_container_copy:
+            self.table = getattr(self.data_container_copy[self.endpoint_view][0],
+                                 self.dataframes_available_dict[self.dataframe_view])
         else:
             print('key doesnt exist')
 
