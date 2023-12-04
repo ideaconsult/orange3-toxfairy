@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import glob
-from openpyxl import load_workbook
+import warnings
 
 
 # TODO: to be removed
@@ -41,7 +41,16 @@ def _extract_info_from_filename(file_name):
 
 def generate_annotation_file(directories, template_path):
     data_list = []
+    error_message = None
+
     for directory in directories:
+        no_extension_files = [file for file in os.listdir(directory) if
+                              os.path.isfile(os.path.join(directory, file)) and '.' not in file]
+        if no_extension_files:
+            joined_files = '\n'.join(no_extension_files)
+            error_message = 'Files without extensions.Please add extensions, or ' \
+                            f'this files will be skipped.\n{joined_files}'
+
         all_files = glob.glob(os.path.join(directory, "*.*"))
 
         for file_dir in all_files:
@@ -51,9 +60,15 @@ def generate_annotation_file(directories, template_path):
                 data_list.append(data)
 
     df = pd.DataFrame(data_list)
+    """
+    Use pd.ExcelWriter but with openpyxl engine, which support append mode, without load_workbook instance.
+    The pd.ExcelWriter will handle the creation and management of the workbook
+    """
+    with pd.ExcelWriter(template_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+        df.to_excel(writer, sheet_name='Files', index=False, header=False, startrow=1)
 
-    book = load_workbook(template_path)
-    writer = pd.ExcelWriter(template_path, engine='openpyxl')
-    writer.book = book
-    df.to_excel(writer, sheet_name='Files', index=False, header=False, startrow=1)
-    writer.save()
+    if error_message:
+        warnings.warn(error_message, Warning)
+
+
+warnings.simplefilter("always", Warning)
