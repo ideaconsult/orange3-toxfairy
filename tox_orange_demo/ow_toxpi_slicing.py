@@ -5,6 +5,7 @@ from AnyQt.QtWidgets import QSizePolicy as Policy, QListWidget, QScrollArea
 from Orange.data.io import FileFormat
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 import Orange.data
+from Orange.widgets.settings import Setting
 import re
 from TOX5.calculations.tox5 import TOX5
 
@@ -21,6 +22,12 @@ class Toxpi(OWWidget):
         df_transformed = Output("transformed data", Orange.data.Table)
         dataframe_tox = Output("tox data", Orange.data.Table)
 
+    tf_1st = Setting('log10x_6', schema_only=True)
+    tf_auc = Setting('sqrt_x', schema_only=True)
+    tf_max = Setting('log10x_6', schema_only=True)
+    radioBtnSelection = Setting(0, schema_only=True)
+    multi_cell_lines = Setting([], schema_only=True)
+
     def __init__(self):
         super().__init__()
         self.data_container = None
@@ -33,22 +40,15 @@ class Toxpi(OWWidget):
         self.df = None
         self.df2 = None
 
-        self.multi_cell_lines = []
         self.multi_cell_lines_items = []
-
-        # transforming functions
-        self.tf_1st = 'log10x_6'
-        self.tf_auc = 'sqrt_x'
-        self.tf_max = 'log10x_6'
         self.tf = ['log10x_6', 'sqrt_x', 'yeo_johnson']
         self.tf_dict = {"1st": self.tf_1st,
                         "auc": self.tf_auc,
                         "max": self.tf_max}
-
         self.tox5 = None
 
         # control area
-        box = gui.widgetBox(self.controlArea, 'Tox5Scores')
+        box = gui.widgetBox(self.controlArea, 'Tox5-scores')
         gui.label(box, self, "Select cell lines:")
 
         self.multi_cell_selection = gui.listBox(box, self, "multi_cell_lines",
@@ -74,7 +74,6 @@ class Toxpi(OWWidget):
                                        callback=self.update_tf_dict)
 
         gui.label(box, self, "Select slicing pattern")
-        self.radioBtnSelection = None
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
                               btnLabels=['Slice by time-endpoint', 'Slice by endpoint', 'Slice manually'],
                               tooltips=['Use this option for automated slicing by time-endpoint',
@@ -125,7 +124,10 @@ class Toxpi(OWWidget):
 
             self.load_available_cells()
             self.multi_cell_selection.addItems(self.list_cells)
-            # print(self.df)
+
+            self.multi_cell_lines = [0]
+            self.add_selected_multi_cell_lines()
+            self.engine()
 
     def load_available_cells(self):
         cells = set()
