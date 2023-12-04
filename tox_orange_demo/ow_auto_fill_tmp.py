@@ -1,8 +1,8 @@
-from Orange.widgets.widget import OWWidget, Input
+from Orange.widgets.widget import OWWidget, Input, Msg
 from Orange.widgets import gui
 import Orange
 from orangewidget import widget
-
+import warnings
 from TOX5.misc.utils import generate_annotation_file
 
 
@@ -16,6 +16,12 @@ class AutofillTmp(OWWidget):
         widget.Message("When you are ready with the manually fill and correct "
                        "the template, you can reconnect the completed "
                        "template with the reader.", '')]
+
+    class Warning(OWWidget.Warning):
+        warning_func = Msg('Warning: {}')
+        # ignoring_discrete = Msg("Ignoring {n} discrete features: {}")
+        # self.Warning.ignoring_discrete(", ".join(attrs), n=len(attr))
+
 
     class Inputs:
         data_input = Input("Directory to data ", Orange.data.Table)
@@ -54,7 +60,18 @@ class AutofillTmp(OWWidget):
 
     def auto_fill_tmp(self):
         directories = [item[0] for item in self.data.metas]
-        generate_annotation_file(directories, self.meta_data.metas[0][0])
+
+        with warnings.catch_warnings(record=True) as w:
+            try:
+                generate_annotation_file(directories, self.meta_data.metas[0][0])
+            except Warning as warn:
+                print(warn)
+
+        if w:
+            for warning in w:
+                self.Warning.warning_func(', '.join([str(warning.message)]))
+        else:
+            self.Warning.warning_func.clear()
 
 
 if __name__ == "__main__":
