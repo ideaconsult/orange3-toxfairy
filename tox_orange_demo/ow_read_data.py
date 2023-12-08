@@ -101,7 +101,7 @@ class Toxpi(OWWidget):
     def set_pat(self, data):
         if data:
             self.data_files_path = data.metas
-            self.Error.no_datafiles_error.clear()
+            # self.Error.no_datafiles_error.clear()
             self.endpoint_names()
         else:
             self.data_files_path = None
@@ -110,7 +110,7 @@ class Toxpi(OWWidget):
     def set_file(self, meta_data):
         if meta_data:
             self.annot_file = meta_data.metas
-            self.Error.no_datafiles_error.clear()
+            # self.Error.no_datafiles_error.clear()
             self.endpoint_names()
         else:
             self.annot_file = None
@@ -130,37 +130,43 @@ class Toxpi(OWWidget):
             self.radioBtns.setParent(None)
 
     def endpoint_names(self):
-        if self.endpoint_line.text():
-            self.endpoints_list = []
-            self.endpoints_list = re.split(r'[,.]\s+', self.endpoint_line.text())
-            self.endpoints_list = [x.upper() for x in self.endpoints_list]
-            self.remove_existing_widgets()
-
-        if all(item != '' for item in self.endpoints_list):
-            self.chose_dir()
-
-    def chose_dir(self):
-        if self.annot_file is None or self.data_files_path is None or not self.annot_file.any() or not self.data_files_path.any():
+        # if (self.annot_file and self.data_files_path) or (self.annot_file.any() and self.data_files_path.any()):
+        #     self.Error.no_datafiles_error.clear()
+        if self.annot_file is None or self.data_files_path is None:
             self.Error.no_datafiles_error()
         else:
-            self.selected_values_dict = {}
-            meta_values = [item[0] for item in self.annot_file]
-            data_values = [item[0] for item in self.data_files_path]
+            self.Error.no_datafiles_error.clear()
 
-            for i, items in enumerate(self.endpoints_list):
-                combo_box = gui.comboBox(self.box_dir, self, '', label=f'{items}', items=data_values)
-                combo_box.activated.connect(
-                    lambda value, items=items: self.save_selected_value(items, data_values, value))
+            if self.endpoint_line.text():
+                self.endpoints_list = []
+                self.endpoints_list = re.split(r'[,.]\s+', self.endpoint_line.text())
+                self.endpoints_list = [x.upper() for x in self.endpoints_list]
+                self.remove_existing_widgets()
 
-                if data_values:
-                    combo_box.setCurrentText(data_values[0])
-                    self.save_selected_value(items, data_values, 0)
+            if all(item != '' for item in self.endpoints_list):
+                self.chose_dir()
+        # else:
+        #     self.Error.no_datafiles_error()
 
-            self.annot_dir.clear()
-            self.annot_dir.addItems(meta_values)
+    def chose_dir(self):
+        self.selected_values_dict = {}
+        meta_values = [item[0] for item in self.annot_file]
+        data_values = [item[0] for item in self.data_files_path]
 
-            if meta_values:
-                self.annot_data = meta_values[0]
+        for i, items in enumerate(self.endpoints_list):
+            combo_box = gui.comboBox(self.box_dir, self, '', label=f'{items}', items=data_values)
+            combo_box.activated.connect(
+                lambda value, items=items: self.save_selected_value(items, data_values, value))
+
+            if data_values:
+                combo_box.setCurrentText(data_values[0])
+                self.save_selected_value(items, data_values, 0)
+
+        self.annot_dir.clear()
+        self.annot_dir.addItems(meta_values)
+
+        if meta_values:
+            self.annot_data = meta_values[0]
 
     def save_selected_value(self, items, values, index):
         if index < len(values):
