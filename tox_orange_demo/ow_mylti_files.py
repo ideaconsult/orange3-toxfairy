@@ -39,18 +39,13 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
 
     want_main_area = False
     radioBtnSelection = Setting(0, schema_only=True)
+    files = Setting([], schema_only=True)
+    paths = Setting([], schema_only=True)
 
     def __init__(self, *args, **kwargs):
         widget.OWWidget.__init__(self)
         RelocatablePathsWidgetMixin.__init__(self)
         super().__init__(*args, **kwargs)
-
-        self.files = []
-        self.paths = []
-
-        """ 
-        Only Control Area 
-        """
 
         box = gui.widgetBox(self.controlArea, self.name)
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
@@ -114,7 +109,7 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
         self.Outputs.table.send(orange_table)
 
     def clear_output(self):
-        self.Outputs.table.send(Orange.data.Table)
+        self.Outputs.table.send(None)
 
     def clear(self):
         if self.radioBtnSelection == 0:

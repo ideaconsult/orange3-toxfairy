@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme version="2.0" title="" description="">
+	<nodes>
+		<node id="0" name="Multifiles" qualified_name="tox_orange_demo.ow_mylti_files.MultifileNames" project_name="TOX5-Scores" version="" title="Raw data  dirs" position="(62.0, 258.0)" />
+		<node id="1" name="Multifiles" qualified_name="tox_orange_demo.ow_mylti_files.MultifileNames" project_name="TOX5-Scores" version="" title="TMP file" position="(53.0, 556.0)" />
+		<node id="2" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(270.0, 385.0)" />
+		<node id="3" name="Tox5 Score" qualified_name="tox_orange_demo.ow_toxpi_slicing.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 Score" position="(586.0, 384.0)" />
+		<node id="4" name="Tox5 view" qualified_name="tox_orange_demo.ow_toxpi_pie_view.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 view" position="(752.0, 386.0)" />
+		<node id="5" name="HTS preprocess" qualified_name="tox_orange_demo.ow_preprocess_new.Toxpi" project_name="TOX5-Scores" version="" title="HTS preprocess" position="(425.0, 384.0)" />
+	</nodes>
+	<links>
+		<link id="0" source_node_id="0" sink_node_id="2" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="1" source_node_id="1" sink_node_id="2" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+		<link id="2" source_node_id="3" sink_node_id="4" source_channel="tox data" sink_channel="Table" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
+		<link id="3" source_node_id="2" sink_node_id="5" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_dict" sink_channel_id="data_container" />
+		<link id="4" source_node_id="5" sink_node_id="3" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container" />
+	</links>
+	<annotations>
+		<arrow id="0" start="(125.0, 660.0)" end="(94.99999999999999, 595.0)" fill="#C1272D" />
+		<text id="1" type="text/plain" rect="(15.0, 660.0, 251.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select already complete Template file with metadata from select files button. The template file is already selected.</text>
+		<text id="2" type="text/plain" rect="(10.0, 54.0, 237.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select all directories with raw data from select directories button. The raw data dirs are already selected.</text>
+		<arrow id="3" start="(119.0, 154.00000000000003)" end="(87.0, 218.0)" fill="#C1272D" />
+		<text id="4" type="text/plain" rect="(10.0, 361.0, 143.0, 107.0)" font-family="MS Shell Dlg 2" font-size="16">The same "Multifiles" widget, renamed and used in two different scenario.</text>
+		<arrow id="5" start="(317.0, 274.99999999999994)" end="(271.0, 353.99999999999994)" fill="#C1272D" />
+		<arrow id="6" start="(481.0, 547.0)" end="(427.0, 446.0)" fill="#C1272D" />
+		<arrow id="7" start="(639.0, 280.00000000000006)" end="(593.0, 353.00000000000006)" fill="#C1272D" />
+		<arrow id="8" start="(838.0, 547.0)" end="(767.0, 449.0)" fill="#C1272D" />
+		<text id="9" type="text/plain" rect="(229.0, 129.0, 265.0, 141.0)" font-family="MS Shell Dlg 2" font-size="16">Read raw data for each endpoint and annotate with metadata from Template file. Recalculate dose concentration if needed.
+Just select proper dirs for each endpoint and click button Proccess.</text>
+		<text id="10" type="text/plain" rect="(359.0, 554.0, 339.0, 109.0)" font-family="MS Shell Dlg 2" font-size="16">Normalize and calculate dose-response metrics for each endpoint separately. 
+Select endpoint and click preprocess button separatly for each endpoint and View resulting tables from dropdown menues.</text>
+		<text id="11" type="text/plain" rect="(536.0, 169.0, 293.0, 122.0)" font-family="MS Shell Dlg 2" font-size="16">Calculate toxicity score for each material. Just click on Calculate Tox5 score button. Also try to select multiple cell lines, change transforming function  and choose different slicing pattern. </text>
+		<text id="12" type="text/plain" rect="(744.0, 556.0, 315.0, 90.0)" font-family="MS Shell Dlg 2" font-size="16">View Tox5-score for selected materials.</text>
+		<arrow id="13" start="(52.0, 361.0)" end="(53.0, 319.0)" fill="#C1272D" />
+		<arrow id="14" start="(53.0, 467.0)" end="(51.0, 509.0)" fill="#C1272D" />
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties node_id="0" format="pickle">gASVhgwAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjAVmaWxlc5RdlIwFcGF0aHOUXZQo
+jExEOi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rl
+c3QvdGVzdF9kYXRhL3Jhd19kYXRhlIxURDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10b3g1
+L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9yYXdfZGF0YV9pbWFnaW5nlGWMEXJh
+ZGlvQnRuU2VsZWN0aW9ulEsBjAxyZWNlbnRfcGF0aHOUXZQojB5vcmFuZ2V3aWRnZXQudXRpbHMu
+ZmlsZWRpYWxvZ3OUjApSZWNlbnRQYXRolJOUKYGUfZQojAdhYnNwYXRolIxaRDovUGhEL3Byb2pl
+Y3RzL1RveFBpL3RveF9kYXRhL3Zlc2FfZmlsZXMvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1s
+ZXNzX0hUU19NRVRBREFUQS54bHN4lIwGcHJlZml4lE6MB3JlbHBhdGiUTowFdGl0bGWUjACUjAVz
+aGVldJRoFYwLZmlsZV9mb3JtYXSUTnViaA0pgZR9lChoEIxaRDovUGhEL3Byb2plY3RzL1RveFBp
+L3RveF9kYXRhL3Zlc2FfZmlsZXMvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19N
+RVRBREFUQS54bHN4lGgSTmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpEOi9QaEQvcHJvamVj
+dHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rl
+c3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEk5o
+E05oFGgVaBZoFWgXTnViaA0pgZR9lChoEIx6RDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10
+b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29yZGluZ0Zv
+cm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBJOaBNOaBRoFWgWaBVoF051YmgN
+KYGUfZQoaBCMekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3ByZXByb2Nl
+c3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19N
+RVRBREFUQV90ZXN0cy54bHN4lGgSTmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpEOi9QaEQv
+cHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9k
+YXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxz
+eJRoEk5oE05oFGgVaBZoFWgXTnViaA0pgZR9lChoEIx6RDovUGhEL3Byb2plY3RzL1RveFBpL29y
+YW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29y
+ZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBJOaBNOaBRoFWgWaBVo
+F051YmgNKYGUfZQoaBCMekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3By
+ZXByb2Nlc3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNz
+X0hUU19NRVRBREFUQV90ZXN0cy54bHN4lGgSTmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpE
+Oi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3Qv
+dGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVz
+dHMueGxzeJRoEk5oE05oFGgVaBZoFWgXTnViaA0pgZR9lChoEIxRRDovUGhEL3Byb2plY3RzL1Rv
+eFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9tZWFuX2Rh
+cGkuY3N2lGgSTmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpEOi9QaEQvcHJvamVjdHMvVG94
+UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRh
+UmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEk5oE05oFGgV
+aBZoFWgXTnViaA0pgZR9lChoEIxbRDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10b3g1L3Rv
+eDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9IQVJNTEVTU19mb3JfdGVzdHMueGxzeJRo
+Ek5oE05oFGgVaBZoFWgXTnViaA0pgZR9lChoEIxRRDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5n
+ZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9tZWFuX2RhcGkuY3N2lGgS
+TmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpEOi9QaEQvcHJvamVjdHMvVG94UGkvb3Jhbmdl
+LXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5n
+Rm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEk5oE05oFGgVaBZoFWgXTnVi
+aA0pgZR9lChoEIx6RDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJv
+Y2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1faGFybWxlc3NfSFRT
+X01FVEFEQVRBX3Rlc3RzLnhsc3iUaBJOaBNOaBRoFWgWaBVoF051YmgNKYGUfZQoaBCMekQ6L1Bo
+RC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3ByZXByb2Nlc3NpbmcvdGVzdC90ZXN0
+X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19NRVRBREFUQV90ZXN0cy54
+bHN4lGgSTmgTTmgUaBVoFmgVaBdOdWJoDSmBlH2UKGgQjHpEOi9QaEQvcHJvamVjdHMvVG94UGkv
+b3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVj
+b3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEk5oE05oFGgVaBZo
+FWgXTnViaA0pgZR9lChoEIx6RDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVf
+cHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1faGFybWxl
+c3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBJOaBNOaBRoFWgWaBVoF051YmgNKYGUfZQoaBCM
+ekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3ByZXByb2Nlc3NpbmcvdGVz
+dC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19NRVRBREFUQV90
+ZXN0cy54bHN4lGgSTmgTTmgUaBVoFmgVaBdOdWJljBNzYXZlZFdpZGdldEdlb21ldHJ5lENCAdnQ
+ywADAAAAAAK7AAAAkQAAA4QAAAKkAAACvAAAALAAAAODAAACowAAAAAAAAAABkAAAAK8AAAAsAAA
+A4MAAAKjlIwLX192ZXJzaW9uX1+USwF1Lg==
+</properties>
+		<properties node_id="1" format="pickle">gASVxA4AAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjAVmaWxlc5RdlIx6RDovUGhEL3By
+b2plY3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0
+YS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iU
+YYwFcGF0aHOUXZSMEXJhZGlvQnRuU2VsZWN0aW9ulEsAjAxyZWNlbnRfcGF0aHOUXZQojB5vcmFu
+Z2V3aWRnZXQudXRpbHMuZmlsZWRpYWxvZ3OUjApSZWNlbnRQYXRolJOUKYGUfZQojAdhYnNwYXRo
+lIxaRDovUGhEL3Byb2plY3RzL1RveFBpL3RveF9kYXRhL3Zlc2FfZmlsZXMvVGVzdERhdGFSZWNv
+cmRpbmdGb3JtX2hhcm1sZXNzX0hUU19NRVRBREFUQS54bHN4lIwGcHJlZml4lE6MB3JlbHBhdGiU
+TowFdGl0bGWUjACUjAVzaGVldJRoFIwLZmlsZV9mb3JtYXSUTnViaAwpgZR9lChoD4xaRDovUGhE
+L3Byb2plY3RzL1RveFBpL3RveF9kYXRhL3Zlc2FfZmlsZXMvVGVzdERhdGFSZWNvcmRpbmdGb3Jt
+X2hhcm1sZXNzX0hUU19NRVRBREFUQS54bHN4lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgP
+jHpEOi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rl
+c3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFf
+dGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4x6RDovUGhEL3Byb2plY3Rz
+L1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0
+RGF0YVJlY29yZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBFOaBJO
+aBNoFGgVaBRoFk51YmgMKYGUfZQoaA+MekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94
+NS90b3g1X3ByZXByb2Nlc3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3Jt
+X2hhcm1sZXNzX0hUU19NRVRBREFUQV90ZXN0cy54bHN4lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmB
+lH2UKGgPjHpEOi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNz
+aW5nL3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVU
+QURBVEFfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4x6RDovUGhEL3By
+b2plY3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0
+YS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iU
+aBFOaBJOaBNoFGgVaBRoFk51YmgMKYGUfZQoaA+MekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFu
+Z2UtdG94NS90b3g1X3ByZXByb2Nlc3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRp
+bmdGb3JtX2hhcm1sZXNzX0hUU19NRVRBREFUQV90ZXN0cy54bHN4lGgRTmgSTmgTaBRoFWgUaBZO
+dWJoDCmBlH2UKGgPjHpEOi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVw
+cm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19I
+VFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4xRRDov
+UGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rl
+c3RfZGF0YS9tZWFuX2RhcGkuY3N2lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgPjHpEOi9Q
+aEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVz
+dF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMu
+eGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4xbRDovUGhEL3Byb2plY3RzL1RveFBp
+L29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9IQVJNTEVTU19m
+b3JfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4xRRDovUGhEL3Byb2pl
+Y3RzL1RveFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9t
+ZWFuX2RhcGkuY3N2lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgPjHpEOi9QaEQvcHJvamVj
+dHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9kYXRhL1Rl
+c3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxzeJRoEU5o
+Ek5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4x6RDovUGhEL3Byb2plY3RzL1RveFBpL29yYW5nZS10
+b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29yZGluZ0Zv
+cm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBFOaBJOaBNoFGgVaBRoFk51YmgM
+KYGUfZQoaA+MekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3ByZXByb2Nl
+c3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19N
+RVRBREFUQV90ZXN0cy54bHN4lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgPjHpEOi9QaEQv
+cHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3QvdGVzdF9k
+YXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVzdHMueGxz
+eJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4x6RDovUGhEL3Byb2plY3RzL1RveFBpL29y
+YW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0YVJlY29y
+ZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBFOaBJOaBNoFGgVaBRo
+Fk51YmgMKYGUfZQoaA+MekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90b3g1X3By
+ZXByb2Nlc3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNz
+X0hUU19NRVRBREFUQV90ZXN0cy54bHN4lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgPjHpE
+Oi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5nL3Rlc3Qv
+dGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURBVEFfdGVz
+dHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViaAwpgZR9lChoD4x6RDovUGhEL3Byb2plY3RzL1Rv
+eFBpL29yYW5nZS10b3g1L3RveDVfcHJlcHJvY2Vzc2luZy90ZXN0L3Rlc3RfZGF0YS9UZXN0RGF0
+YVJlY29yZGluZ0Zvcm1faGFybWxlc3NfSFRTX01FVEFEQVRBX3Rlc3RzLnhsc3iUaBFOaBJOaBNo
+FGgVaBRoFk51YmgMKYGUfZQoaA+MekQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS9vcmFuZ2UtdG94NS90
+b3g1X3ByZXByb2Nlc3NpbmcvdGVzdC90ZXN0X2RhdGEvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hh
+cm1sZXNzX0hUU19NRVRBREFUQV90ZXN0cy54bHN4lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2U
+KGgPjHpEOi9QaEQvcHJvamVjdHMvVG94UGkvb3JhbmdlLXRveDUvdG94NV9wcmVwcm9jZXNzaW5n
+L3Rlc3QvdGVzdF9kYXRhL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURB
+VEFfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViZYwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRD
+QgHZ0MsAAwAAAAACuwAAAJEAAAOEAAACpAAAArwAAACwAAADgwAAAqMAAAAAAAAAAAZAAAACvAAA
+ALAAAAODAAACo5SMC19fdmVyc2lvbl9flEsBdS4=
+</properties>
+		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'ctg, dapi', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="3" format="literal">{'controlAreaVisible': True, 'multi_cell_lines': [0], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xdc\x00\x00\x00&lt;\x00\x00\x043\x00\x00\x02O\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N', 'tf_1st': 'log10x_6', 'tf_auc': 'sqrt_x', 'tf_max': 'log10x_6', '__version__': 1}</properties>
+		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xaf\x00\x00\x00\x91\x00\x00\x04^\x00\x00\x02p\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o', '__version__': 1}</properties>
+		<properties node_id="5" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dataframe_view': 'Normalized', 'dose': True, 'endpoint': ['CTG', 'DAPI'], 'endpoint_': 1, 'endpoint_view': 'CTG', 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sd_bl': False, 'sub_bl': True, '__version__': 1}</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>

@@ -1,0 +1,17 @@
+Index	Description	Main/Cell populations/Mean Intensity Alexa568/Objects	Main/Cell populations/Mean Intensity Alexa568/Mean	Cytosol/Cell populations/Mean Intensity Alexa647/Mean	
+1	A1	204	58.23	5.736	
+2	A2	236	219.6	160.2	
+3	B1	135	75.79	13.52	
+4	B2	269	248.3	162.1	
+5	C1	106	333.4	157.5	
+6	C2	246	252.3	159.5	
+7	D1	198	409.8	209.6	
+8	D2	263	229	144.9	
+9	E1	251	225.9	132.7	
+10	E2	250	223.5	139.6	
+11	F1	260	194.3	119.7	
+12	F2	244	255.3	153.1	
+13	G1	236	232	133.8	
+14	G2	214	221.5	144.6	
+15	H1	206	240.5	150.2	
+16	H2	269	245.4	152.1

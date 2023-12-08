@@ -1,0 +1,31 @@
+PLATE RESULTS,,
+PROTOCOL NAME:,Lum - Corning 3570 384-plates,
+MEASUREMENT START DATE: Tue May 03 2022 15:58:26 GMT+0300 (Suomen normaaliaika),,
+User interface program version: 2.9.2.3,,
+Communication firmware version: 2.02,,
+Instrument interface version: 2294,,
+Instrument serial number: 2150006,,
+2. OPERATION: LUM EndPoint,,
+Temperature: 23.1,,
+,1,2
+A,9002,11518
+B,10062,12105
+C,10673,12217
+D,11119,10919
+E,7051,11860
+F,2442,10506
+G,708,11584
+H,439,9306
+PARAMETERS,,
+PROTOCOL: Lum - Corning 3570 384-plates,,
+SAVE TIME: Tue Apr 14 2020 13:41:20 GMT+0300 (Suomen normaaliaika),,
+PLATE: Corning Costar Polystyrene,,
+PLATE FORMAT: 384 wells (16X24),,
+1. OPERATION: Others Shake,,
+Shake Time: 0 hours 0 minutes 10 seconds Shaking in normal mode Shaking in circular form,,
+2. OPERATION: LUM EndPoint Top measurement,,
+Z-FOCUS/mm: 8.5,,
+No Mirror,,
+EMS FILTER: IR Blocker (400-650) EMS SPOT SIZE:  2 (Default),,
+Meas time/ms: 500,,
+PMT HV: 1000 V Discr: 47,,
