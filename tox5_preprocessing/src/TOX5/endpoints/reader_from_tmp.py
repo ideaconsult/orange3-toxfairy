@@ -18,9 +18,9 @@ class MetaDataReaderTmp:
         sbet.set_index('ERM identifiers', inplace=True)
 
         for k, v in df_names.iterrows():
-            self.data_container.metadata[k] = {'material': v[0], 'concentration': v[2]}
-            if v[0] in sbet.index:
-                self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet.loc[v[0], 'BET surface in m²/g'])
+            self.data_container.metadata[k] = {'material': v.iloc[0], 'concentration': v.iloc[2]}
+            if v.iloc[0] in sbet.index:
+                self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet.loc[v.iloc[0], 'BET surface in m²/g'])
 
         self.data_container.water_keys = [key for key, value in self.data_container.metadata.items()
                                           if value['material'] in materials_to_check]
