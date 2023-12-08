@@ -12,24 +12,8 @@
 	<annotations />
 	<thumbnail />
 	<node_properties>
-		<properties node_id="0" format="pickle">gASVrgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UKIxQZDpccGhkXHBy
-b2plY3RzXHRveHBpXG9yYW5nZS10b3g1XHRveDVfcHJlcHJvY2Vzc2luZ1xzcmNcVE9YNVx0ZXN0
-X2RhdGFccmF3X2RhdGGUjFhkOlxwaGRccHJvamVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9w
-cmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3RfZGF0YVxyYXdfZGF0YV9pbWFnaW5nlGWMBWZpbGVz
-lIwHY29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoDCmHlFKU
-jAVwYXRoc5RoCWgMaAwph5RSlChLAEsBZYwRcmFkaW9CdG5TZWxlY3Rpb26USwGME3NhdmVkV2lk
-Z2V0R2VvbWV0cnmUQ0IB2dDLAAMAAAAAArsAAACRAAADhAAAAqQAAAK8AAAAsAAAA4MAAAKjAAAA
-AAAAAAAGQAAAArwAAACwAAADgwAAAqOUjAtfX3ZlcnNpb25fX5RLAXUu
-</properties>
-		<properties node_id="1" format="pickle">gASVjgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UjI9kOlxwaGRccHJv
-amVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9wcmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3Rf
-ZGF0YVxodHNfbWV0YWRhdGFfdG1wXFRlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNf
-TUVUQURBVEFfZW1wdHkueGxzeJRhjAVmaWxlc5SMB2NvcHlyZWeUjA5fcmVjb25zdHJ1Y3RvcpST
-lIwIYnVpbHRpbnOUjARsaXN0lJOUaAsph5RSlEsAYYwFcGF0aHOUaAhoC2gLKYeUUpSMEXJhZGlv
-QnRuU2VsZWN0aW9ulEsAjBNzYXZlZFdpZGdldEdlb21ldHJ5lENCAdnQywADAAAAAAK7AAAAkQAA
-BOUAAAKkAAACvAAAALAAAATkAAACowAAAAAAAAAABkAAAAK8AAAAsAAABOQAAAKjlIwLX192ZXJz
-aW9uX1+USwF1Lg==
-</properties>
+		<properties node_id="0" format="literal">{'controlAreaVisible': True, 'data': ['d:\\phd\\projects\\toxpi\\orange-tox5\\tox5_preprocessing\\src\\TOX5\\test_data\\raw_data'], 'files': [], 'paths': [0], 'radioBtnSelection': 1, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\xbb\x00\x00\x00\x91\x00\x00\x03\x84\x00\x00\x02\xa4\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x03\x83\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x03\x83\x00\x00\x02\xa3', '__version__': 1}</properties>
+		<properties node_id="1" format="literal">{'controlAreaVisible': True, 'data': ['d:\\phd\\projects\\toxpi\\orange-tox5\\tox5_preprocessing\\src\\TOX5\\test_data\\hts_metadata_tmp\\TestDataRecordingForm_harmless_HTS_METADATA_empty.xlsx'], 'files': [0], 'paths': [], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\xbb\x00\x00\x00\x91\x00\x00\x04\xe5\x00\x00\x02\xa4\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3', '__version__': 1}</properties>
 		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'ctg', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xa3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2', 'well_volume': '50', '__version__': 1}</properties>
 	</node_properties>
 	<session_state>
