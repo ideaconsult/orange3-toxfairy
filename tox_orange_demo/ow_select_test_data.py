@@ -1,13 +1,11 @@
 import Orange
 import pandas as pd
 import os
-
-from Orange.widgets.widget import OWWidget, Input, Output, Msg
+from Orange.widgets.widget import OWWidget, Output, Msg
 from Orange.widgets.settings import Setting
-from Orange.widgets import widget, gui
-from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QStyle, QListWidget
+from Orange.widgets import gui
+from AnyQt.QtWidgets import QGridLayout, QStyle, QListWidget
 from Orange.data.pandas_compat import table_from_frame
-
 from TOX5 import test_data
 
 
@@ -27,16 +25,15 @@ class TestData(OWWidget):
 
     def __init__(self):
         super().__init__()
-
-        self.directory_path = os.path.dirname(test_data.__file__)
-        self.directory_names = [f for f in os.listdir(self.directory_path) if
-                                os.path.isdir(os.path.join(self.directory_path, f)) and not f.startswith(
+        self.package_path = os.path.dirname(test_data.__file__)
+        self.directory_names = [f for f in os.listdir(self.package_path) if
+                                os.path.isdir(os.path.join(self.package_path, f)) and not f.startswith(
                                     '__') and f != '__pycache__']
         self.tmp = self.directory_names[0]
         self.test_data_dirs = self.directory_names[1:]
 
-        self.files_from_tmp = [f for f in os.listdir(os.path.join(self.directory_path, self.tmp)) if
-                               os.path.isfile(os.path.join(self.directory_path, self.tmp, f))]
+        self.files_from_tmp = [f for f in os.listdir(os.path.join(self.package_path, self.tmp)) if
+                               os.path.isfile(os.path.join(self.package_path, self.tmp, f))]
 
         box = gui.widgetBox(self.controlArea, self.name)
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
@@ -63,8 +60,11 @@ class TestData(OWWidget):
                                        autoDefault=False)
         self.clear_button.setIcon(self.style().standardIcon(QStyle.SP_TrashIcon))
 
-        if self.data:
-            self.create_output(self.data)
+        if self.paths and self.data:
+            self.add_paths()
+
+        if self.files and self.data:
+            self.add_files()
 
         self.engine()
 
@@ -84,20 +84,18 @@ class TestData(OWWidget):
         selected_files = [self.files_from_tmp[index] for index in self.files]
 
         self.data = []
-        for i in self.files:
-            full_path = os.path.join(self.directory_path, self.directory_names[0], selected_files[i])
+        for file in selected_files:
+            full_path = os.path.join(self.package_path, self.directory_names[0], file)
             self.data.append(full_path)
-
         self.create_output(self.data)
 
     def add_paths(self):
         selected_paths = [self.test_data_dirs[index] for index in self.paths]
 
         self.data = []
-        for i in self.paths:
-            full_path = os.path.join(self.directory_path, selected_paths[i])
+        for path in selected_paths:
+            full_path = os.path.join(self.package_path, path)
             self.data.append(full_path)
-
         self.create_output(self.data)
 
     def create_output(self, data):
