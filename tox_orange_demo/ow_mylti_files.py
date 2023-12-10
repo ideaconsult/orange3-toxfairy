@@ -5,10 +5,11 @@ from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QSt
 from Orange.data.io import FileFormat
 from Orange.widgets import widget, gui
 from Orange.widgets.utils.filedialogs import RecentPathsWidgetMixin, RecentPath, open_filename_dialog
-from Orange.widgets.utils.signals import Output
-from orangewidget.widget import OWBaseWidget
 from Orange.widgets.settings import Setting
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
+
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from Orange.widgets.widget import OWWidget, Input, Output, Msg
 
 
 class RelocatablePathsWidgetMixin(RecentPathsWidgetMixin):
@@ -28,7 +29,7 @@ class RelocatablePathsWidgetMixin(RecentPathsWidgetMixin):
         return NotImplementedError
 
 
-class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
+class MultifileNames(OWWidget, RelocatablePathsWidgetMixin):
     name = "Multifiles"
     icon = "icons/print.svg"
     description = "Read multiple file names or directories."
@@ -37,15 +38,16 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
     class Outputs:
         table = Output("Data", Orange.data.Table)
 
-    want_main_area = False
+    want_main_area = True
     radioBtnSelection = Setting(0, schema_only=True)
     files = Setting([], schema_only=True)
     paths = Setting([], schema_only=True)
 
     def __init__(self, *args, **kwargs):
-        widget.OWWidget.__init__(self)
         RelocatablePathsWidgetMixin.__init__(self)
         super().__init__(*args, **kwargs)
+
+        self.prev_table = None
 
         box = gui.widgetBox(self.controlArea, self.name)
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
@@ -66,10 +68,10 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
                                       autoDefault=False)
         self.path_button.setIcon(self.style().standardIcon(QStyle.SP_DirOpenIcon))
         self.path_button.setSizePolicy(Policy.Minimum, Policy.Fixed)
-        self.clear_button = gui.button(self.controlArea, self, ' clear output',
-                                       callback=self.clear,
-                                       autoDefault=False)
-        self.clear_button.setIcon(self.style().standardIcon(QStyle.SP_TrashIcon))
+
+        self.mainBox = gui.widgetBox(self.mainArea, 'Data view')
+        self.view_table = QTableWidget()
+        self.clear_selected_rows = gui.button(None, self, 'Remove selected items', self.clear_rows)
 
         self.engine()
 
@@ -107,17 +109,33 @@ class MultifileNames(OWBaseWidget, RelocatablePathsWidgetMixin):
         df = pd.DataFrame(data, columns=['data'])
         orange_table = table_from_frame(df)
         self.Outputs.table.send(orange_table)
+        self.show_table(df)
 
-    def clear_output(self):
-        self.Outputs.table.send(None)
+    def show_table(self, df):
+        self.mainBox.layout().addWidget(self.view_table)
 
-    def clear(self):
-        if self.radioBtnSelection == 0:
-            self.files = []
-            self.clear_output()
-        else:
-            self.paths = []
-            self.clear_output()
+        num_rows, num_cols = df.shape
+        self.view_table.setRowCount(num_rows)
+        self.view_table.setColumnCount(num_cols)
+        self.view_table.setHorizontalHeaderLabels(df.columns)
+        for i in range(num_rows):
+            self.view_table.setVerticalHeaderItem(i, QTableWidgetItem(str(df.index[i])))
+            for j in range(num_cols):
+                item = QTableWidgetItem(str(df.iloc[i, j]))
+                self.view_table.setItem(i, j, item)
+
+        self.mainBox.layout().addWidget(self.clear_selected_rows)
+
+    def clear_rows(self):
+        selected_rows = set(index.row() for index in self.view_table.selectedIndexes())
+
+        for row in selected_rows:
+            if self.radioBtnSelection == 0:
+                self.files.remove(self.files[row])
+                self.create_output(self.files)
+            else:
+                self.paths.remove(self.paths[row])
+                self.create_output(self.paths)
 
 
 if __name__ == "__main__":
