@@ -84,7 +84,8 @@ class TestData(OWWidget):
 
         self.data = []
         for file in selected_files:
-            full_path = os.path.join(self.package_path, self.directory_names[0], file)
+            full_path = os.path.join(self.package_path, 'hts_metadata_tmp', file)
+            print(full_path)
             self.data.append(full_path)
         self.create_output(self.data)
 
