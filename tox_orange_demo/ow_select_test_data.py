@@ -27,8 +27,11 @@ class TestData(OWWidget):
         super().__init__()
 
         self.directory_names = test_data.get_dirs()
-        self.files_from_tmp = test_data.get_files_from_dir(self.directory_names[0])
-        self.test_data_dirs = self.directory_names[1:]
+        print(self.directory_names)
+        self.files_from_tmp = test_data.get_files_from_dir('hts_metadata_tmp')
+        print(self.files_from_tmp)
+        self.test_data_dirs = ['raw_data', 'raw_data_imaging']
+        print(self.test_data_dirs)
         self.package_path = test_data.loc
 
         box = gui.widgetBox(self.controlArea, self.name)
