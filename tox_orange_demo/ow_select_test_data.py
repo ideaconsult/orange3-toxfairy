@@ -25,15 +25,11 @@ class TestData(OWWidget):
 
     def __init__(self):
         super().__init__()
-        self.package_path = os.path.dirname(test_data.__file__)
-        self.directory_names = [f for f in os.listdir(self.package_path) if
-                                os.path.isdir(os.path.join(self.package_path, f)) and not f.startswith(
-                                    '__') and f != '__pycache__']
-        self.tmp = self.directory_names[0]
-        self.test_data_dirs = self.directory_names[1:]
 
-        self.files_from_tmp = [f for f in os.listdir(os.path.join(self.package_path, self.tmp)) if
-                               os.path.isfile(os.path.join(self.package_path, self.tmp, f))]
+        self.directory_names = test_data.get_dirs()
+        self.files_from_tmp = test_data.get_files_from_dir(self.directory_names[0])
+        self.test_data_dirs = self.directory_names[1:]
+        self.package_path = test_data.loc
 
         box = gui.widgetBox(self.controlArea, self.name)
         gui.radioButtonsInBox(box, self, 'radioBtnSelection',
