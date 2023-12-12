@@ -37,7 +37,6 @@ class Toxpi(OWWidget):
     remove_out = Setting(True, schema_only=True)
     med_control = Setting(True, schema_only=True)
     sub_bl = Setting(True, schema_only=True)
-    sd_bl = Setting(False, schema_only=True)
     casp_clean_ = Setting(True, schema_only=True)
     mean_median = Setting(True, schema_only=True)
     clean_dna = Setting(True, schema_only=True)
@@ -56,7 +55,7 @@ class Toxpi(OWWidget):
         self.endpoints = gui.listBox(None, self, 'endpoint_', callback=self.load_available_btns)
         self.layout.addWidget(self.endpoints, 0, 0, 2, 1)
 
-        self.box2 = gui.widgetBox(None, 'Normalizations', orientation='vertical')
+        self.box2 = gui.widgetBox(None, 'Normalizations')
 
         self.clean_dna_ = gui.checkBox(self.box2, self, 'clean_dna', 'Clean DAPI data',
                                        callback=self.save_checked_btn,
@@ -77,10 +76,6 @@ class Toxpi(OWWidget):
                                             callback=self.save_checked_btn)
         self.subtract_blanks.setObjectName('subtract')
 
-        self.calc_bl_sd = gui.checkBox(self.box2, self, 'sd_bl', 'calculate blank sd',
-                                       callback=self.save_checked_btn)
-        self.calc_bl_sd.setObjectName('sd_blank')
-
         self.casp_clean = gui.checkBox(self.box2, self, 'casp_clean_', 'Normalize Casp to cell amount',
                                        callback=self.save_checked_btn,
                                        tooltip='based on CTG and DAPI normalization')
@@ -90,7 +85,7 @@ class Toxpi(OWWidget):
                                              callback=self.save_checked_btn)
         self.calc_mean_median.setObjectName('mean_median')
 
-        self.box3 = gui.widgetBox(None, 'Dose - response', orientation='vertical')
+        self.box3 = gui.widgetBox(None, 'Dose - response')
         self.dr_params = gui.checkBox(self.box3, self, 'dose', 'Dose - response', callback=self.save_checked_btn)
         self.dr_params.setObjectName('dr_param')
 
@@ -100,7 +95,6 @@ class Toxpi(OWWidget):
         self.remove_outliers.setVisible(False)
         self.subtract_blanks.setVisible(False)
         self.median_control.setVisible(False)
-        self.calc_bl_sd.setVisible(False)
         self.calc_mean_median.setVisible(False)
         self.clean_dna_.setVisible(False)
         self.casp_clean.setVisible(False)
@@ -111,15 +105,15 @@ class Toxpi(OWWidget):
         self.layout.addWidget(self.button_view, 3, 0, 1, 2)
 
         self.rules = {'CTG': [self.remove_outliers, self.median_control, self.subtract_blanks,
-                              self.calc_bl_sd, self.calc_mean_median, self.dr_params],
+                              self.calc_mean_median, self.dr_params],
                       'CASP': [self.remove_outliers, self.median_control, self.subtract_blanks,
-                               self.calc_bl_sd, self.casp_clean, self.calc_mean_median, self.dr_params],
+                               self.casp_clean, self.calc_mean_median, self.dr_params],
                       'DAPI': [self.clean_dna_, self.remove_outliers, self.median_control,
-                               self.calc_bl_sd, self.calc_mean_median, self.dr_params],
+                               self.calc_mean_median, self.dr_params],
                       '8OHG': [self.clean_dna_, self.remove_outliers, self.median_control,
-                               self.calc_bl_sd, self.calc_mean_median, self.dr_params],
+                               self.calc_mean_median, self.dr_params],
                       'H2AX': [self.clean_dna_, self.remove_outliers, self.median_control,
-                               self.calc_bl_sd, self.calc_mean_median, self.dr_params]}
+                               self.calc_mean_median, self.dr_params]}
 
         self.checked_btn = {}
 
@@ -171,7 +165,6 @@ class Toxpi(OWWidget):
         self.remove_outliers.setVisible(False)
         self.subtract_blanks.setVisible(False)
         self.median_control.setVisible(False)
-        self.calc_bl_sd.setVisible(False)
         self.calc_mean_median.setVisible(False)
         self.clean_dna_.setVisible(False)
         self.casp_clean.setVisible(False)
@@ -204,9 +197,6 @@ class Toxpi(OWWidget):
         elif todo == 'subtract':
             self.data_container_copy[selected_endpoint][1].subtract_blank(
                 self.data_container_copy[selected_endpoint][0].normalized_df)
-        elif todo == 'sd_blank':
-            # can remove it
-            self.data_container_copy[selected_endpoint][1].calc_blank_sd()
         elif todo == 'mean_median':
             self.data_container_copy[selected_endpoint][1].calc_mean_median()
         elif todo == 'dr_param':
@@ -302,4 +292,5 @@ class Toxpi(OWWidget):
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
+
     WidgetPreview(Toxpi).run()
