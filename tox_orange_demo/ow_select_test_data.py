@@ -27,11 +27,8 @@ class TestData(OWWidget):
         super().__init__()
 
         self.directory_names = test_data.get_dirs()
-        print(self.directory_names)
         self.files_from_tmp = test_data.get_files_from_dir('hts_metadata_tmp')
-        print(self.files_from_tmp)
         self.test_data_dirs = ['raw_data', 'raw_data_imaging']
-        print(self.test_data_dirs)
         self.package_path = test_data.loc
 
         box = gui.widgetBox(self.controlArea, self.name)
@@ -85,7 +82,6 @@ class TestData(OWWidget):
         self.data = []
         for file in selected_files:
             full_path = os.path.join(self.package_path, 'hts_metadata_tmp', file)
-            print(full_path)
             self.data.append(full_path)
         self.create_output(self.data)
 
