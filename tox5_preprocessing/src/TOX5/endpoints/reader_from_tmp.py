@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+import warnings
 from tox5_preprocessing.src.TOX5.misc.utils import *
 
 
@@ -20,7 +21,8 @@ class MetaDataReaderTmp:
         for k, v in df_names.iterrows():
             self.data_container.metadata[k] = {'material': v.iloc[0], 'concentration': v.iloc[2]}
             if v.iloc[0] in sbet.index:
-                self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet.loc[v.iloc[0], 'BET surface in m²/g'])
+                if not pd.isna(sbet.loc[v.iloc[0], 'BET surface in m²/g']):
+                    self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet.loc[v.iloc[0], 'BET surface in m²/g'])
 
         self.data_container.water_keys = [key for key, value in self.data_container.metadata.items()
                                           if value['material'] in materials_to_check]
@@ -33,10 +35,20 @@ class MetaDataReaderTmp:
 
     def recalculate_dose_from_sbet(self, well_volume, cell_growth_area):
         # Recalculate material dose (ug/ml), based on SBET in cm2/cm2
+        missing_sbet = set()
         for key, value in self.data_container.metadata.items():
             if "concentration" in value and 'SBET' in value:
                 value['concentration'] = value['SBET'] / 100 * (
-                            value['concentration'] / (1000 / well_volume)) / cell_growth_area
+                        value['concentration'] / (1000 / well_volume)) / cell_growth_area
+            else:
+                missing_sbet.add(value['material'])
+
+        if missing_sbet:
+            joined = ', '.join(missing_sbet)
+            warnings.warn(f'Missing SBET for {joined}', Warning)
+
+
+warnings.simplefilter("always", Warning)
 
 
 class DataReaderTmp:
