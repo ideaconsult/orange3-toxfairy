@@ -4,7 +4,7 @@
 		<node id="0" name="Multifiles" qualified_name="tox_orange_demo.ow_mylti_files.MultifileNames" project_name="TOX5-Scores" version="" title="Raw data  dirs" position="(62.0, 258.0)" />
 		<node id="1" name="Multifiles" qualified_name="tox_orange_demo.ow_mylti_files.MultifileNames" project_name="TOX5-Scores" version="" title="TMP file" position="(53.0, 556.0)" />
 		<node id="2" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(270.0, 385.0)" />
-		<node id="3" name="Tox5 Score" qualified_name="tox_orange_demo.ow_toxpi_slicing.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 Score" position="(586.0, 384.0)" />
+		<node id="3" name="Tox5 Score" qualified_name="tox_orange_demo.ow_toxpi_slicing.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 Score" position="(586.0, 385.0)" />
 		<node id="4" name="Tox5 view" qualified_name="tox_orange_demo.ow_toxpi_pie_view.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 view" position="(752.0, 386.0)" />
 		<node id="5" name="HTS preprocess" qualified_name="tox_orange_demo.ow_preprocess_new.Toxpi" project_name="TOX5-Scores" version="" title="HTS preprocess" position="(425.0, 384.0)" />
 	</nodes>
@@ -18,21 +18,21 @@
 	<annotations>
 		<arrow id="0" start="(125.0, 660.0)" end="(94.99999999999999, 595.0)" fill="#C1272D" />
 		<text id="1" type="text/plain" rect="(15.0, 660.0, 251.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select already complete Template file with metadata from select files button. The template file is already selected.</text>
-		<text id="2" type="text/plain" rect="(10.0, 54.0, 237.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select all directories with raw data from select directories button. The raw data dirs are already selected.</text>
+		<text id="2" type="text/plain" rect="(6.0, 88.0, 237.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select all directories with raw data from select directories button.</text>
 		<arrow id="3" start="(119.0, 154.00000000000003)" end="(87.0, 218.0)" fill="#C1272D" />
-		<text id="4" type="text/plain" rect="(10.0, 361.0, 143.0, 107.0)" font-family="MS Shell Dlg 2" font-size="16">The same "Multifiles" widget, renamed and used in two different scenario.</text>
+		<text id="4" type="text/plain" rect="(-100.0, 361.0, 143.0, 107.0)" font-family="MS Shell Dlg 2" font-size="16">The same "Multifiles" widget, renamed and used in two different scenario.</text>
 		<arrow id="5" start="(317.0, 274.99999999999994)" end="(271.0, 353.99999999999994)" fill="#C1272D" />
 		<arrow id="6" start="(481.0, 547.0)" end="(427.0, 446.0)" fill="#C1272D" />
 		<arrow id="7" start="(639.0, 280.00000000000006)" end="(593.0, 353.00000000000006)" fill="#C1272D" />
 		<arrow id="8" start="(838.0, 547.0)" end="(767.0, 449.0)" fill="#C1272D" />
-		<text id="9" type="text/plain" rect="(229.0, 129.0, 265.0, 141.0)" font-family="MS Shell Dlg 2" font-size="16">Read raw data for each endpoint and annotate with metadata from Template file. Recalculate dose concentration if needed.
-Just select proper dirs for each endpoint and click button Proccess.</text>
+		<text id="9" type="text/plain" rect="(202.0, 165.0, 265.0, 141.0)" font-family="MS Shell Dlg 2" font-size="16">Read raw data for each endpoint and annotate with metadata from Template file. Recalculate dose concentration if needed and click button Proccess.</text>
 		<text id="10" type="text/plain" rect="(359.0, 554.0, 339.0, 109.0)" font-family="MS Shell Dlg 2" font-size="16">Normalize and calculate dose-response metrics for each endpoint separately. 
 Select endpoint and click preprocess button separatly for each endpoint and View resulting tables from dropdown menues.</text>
-		<text id="11" type="text/plain" rect="(536.0, 169.0, 293.0, 122.0)" font-family="MS Shell Dlg 2" font-size="16">Calculate toxicity score for each material. Just click on Calculate Tox5 score button. Also try to select multiple cell lines, change transforming function  and choose different slicing pattern. </text>
+		<text id="11" type="text/plain" rect="(536.0, 169.0, 293.0, 122.0)" font-family="MS Shell Dlg 2" font-size="16">Calculate toxicity score for each material. Select multiple cell lines, choose transforming function  and choose different slicing pattern. Calculate tox5 scores.</text>
 		<text id="12" type="text/plain" rect="(744.0, 556.0, 315.0, 90.0)" font-family="MS Shell Dlg 2" font-size="16">View Tox5-score for selected materials.</text>
-		<arrow id="13" start="(52.0, 361.0)" end="(53.0, 319.0)" fill="#C1272D" />
-		<arrow id="14" start="(53.0, 467.0)" end="(51.0, 509.0)" fill="#C1272D" />
+		<arrow id="13" start="(6.0, 364.0)" end="(49.0, 321.0)" fill="#39B54A" />
+		<arrow id="14" start="(3.0, 464.0)" end="(35.0, 516.0)" fill="#39B54A" />
+		<text id="15" type="text/plain" rect="(-199.0, 24.0, 357.0, 79.0)" font-family="MS Shell Dlg 2" font-size="22">Workflow for your local data</text>
 	</annotations>
 	<thumbnail />
 	<node_properties>
@@ -162,10 +162,10 @@ VEFfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViZYwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRD
 QgHZ0MsAAwAAAAACuwAAAJEAAAOEAAACpAAAArwAAACwAAADgwAAAqMAAAAAAAAAAAZAAAACvAAA
 ALAAAAODAAACo5SMC19fdmVyc2lvbl9flEsBdS4=
 </properties>
-		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'ctg, dapi', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': '', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
 		<properties node_id="3" format="literal">{'controlAreaVisible': True, 'multi_cell_lines': [0], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xdc\x00\x00\x00&lt;\x00\x00\x043\x00\x00\x02O\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N', 'tf_1st': 'log10x_6', 'tf_auc': 'sqrt_x', 'tf_max': 'log10x_6', '__version__': 1}</properties>
 		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xaf\x00\x00\x00\x91\x00\x00\x04^\x00\x00\x02p\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o', '__version__': 1}</properties>
-		<properties node_id="5" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dataframe_view': 'Normalized', 'dose': True, 'endpoint': ['CTG', 'DAPI'], 'endpoint_': 1, 'endpoint_view': 'CTG', 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sd_bl': False, 'sub_bl': True, '__version__': 1}</properties>
+		<properties node_id="5" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dataframe_view': 'Normalized', 'dose': True, 'endpoint': ['CTG', 'DAPI'], 'endpoint_': 1, 'endpoint_view': 'CTG', 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sub_bl': True, '__version__': 1}</properties>
 	</node_properties>
 	<session_state>
 		<window_groups />
