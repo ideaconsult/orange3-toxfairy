@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme version="2.0" title="" description="">
+	<nodes>
+		<node id="0" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="Select test data" position="(47.0, 159.0)" />
+		<node id="1" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="Select test data (1)" position="(55.0, 462.0)" />
+		<node id="2" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(426.0, 302.0)" />
+		<node id="3" name="Auto-fill HTS template" qualified_name="tox_orange_demo.ow_auto_fill_tmp.AutofillTmp" project_name="TOX5-Scores" version="" title="Auto-fill HTS template" position="(223.0, 308.0)" />
+	</nodes>
+	<links>
+		<link id="0" source_node_id="0" sink_node_id="2" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="1" source_node_id="1" sink_node_id="2" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+		<link id="2" source_node_id="0" sink_node_id="3" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="3" source_node_id="1" sink_node_id="3" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+	</links>
+	<annotations>
+		<arrow id="0" start="(3.0, 74.0)" end="(43.99999999999999, 121.0)" fill="#C1272D" />
+		<text id="1" type="text/plain" rect="(-56.0, 37.0, 288.0, 64.0)" font-family="MS Shell Dlg 2" font-size="16">Select directories from test data</text>
+		<text id="2" type="text/plain" rect="(-46.0, 582.0, 275.0, 22.0)" font-family="MS Shell Dlg 2" font-size="16">Select empty Template </text>
+		<arrow id="3" start="(16.99999999999997, 572.0)" end="(60.999999999999986, 524.0)" fill="#C1272D" />
+		<arrow id="4" start="(277.0, 487.0)" end="(231.0, 365.0)" fill="#C1272D" />
+		<text id="5" type="text/plain" rect="(217.0, 499.0, 312.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Auto-fill HTS template will fill the template "files" sheet with data from selected test data directories. Open the fill template and compare with existing ready template. Complete the information in sheet "Front sheet" and "files". </text>
+		<arrow id="6" start="(545.0, 391.0)" end="(474.0, 341.0)" fill="#C1272D" />
+		<text id="7" type="text/plain" rect="(522.0, 408.0, 324.0, 66.0)" font-family="MS Shell Dlg 2" font-size="16">When you are ready with corrections and updates to new filled template, read the data.</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties node_id="0" format="pickle">gASVrgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UKIxQZDpccGhkXHBy
+b2plY3RzXHRveHBpXG9yYW5nZS10b3g1XHRveDVfcHJlcHJvY2Vzc2luZ1xzcmNcVE9YNVx0ZXN0
+X2RhdGFccmF3X2RhdGGUjFhkOlxwaGRccHJvamVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9w
+cmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3RfZGF0YVxyYXdfZGF0YV9pbWFnaW5nlGWMBWZpbGVz
+lIwHY29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoDCmHlFKU
+jAVwYXRoc5RoCWgMaAwph5RSlChLAEsBZYwRcmFkaW9CdG5TZWxlY3Rpb26USwGME3NhdmVkV2lk
+Z2V0R2VvbWV0cnmUQ0IB2dDLAAMAAAAAArsAAACRAAAE5QAAAqQAAAK8AAAAsAAABOQAAAKjAAAA
+AAAAAAAGQAAAArwAAACwAAAE5AAAAqOUjAtfX3ZlcnNpb25fX5RLAXUu
+</properties>
+		<properties node_id="1" format="pickle">gASVjgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UjI9kOlxwaGRccHJv
+amVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9wcmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3Rf
+ZGF0YVxodHNfbWV0YWRhdGFfdG1wXFRlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNf
+TUVUQURBVEFfZW1wdHkueGxzeJRhjAVmaWxlc5SMB2NvcHlyZWeUjA5fcmVjb25zdHJ1Y3RvcpST
+lIwIYnVpbHRpbnOUjARsaXN0lJOUaAsph5RSlEsAYYwFcGF0aHOUaAhoC2gLKYeUUpSMEXJhZGlv
+QnRuU2VsZWN0aW9ulEsAjBNzYXZlZFdpZGdldEdlb21ldHJ5lENCAdnQywADAAAAAAK7AAAAkQAA
+BOUAAAKkAAACvAAAALAAAATkAAACowAAAAAAAAAABkAAAAK8AAAAsAAABOQAAAKjlIwLX192ZXJz
+aW9uX1+USwF1Lg==
+</properties>
+		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': '', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xa3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="3" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\x8a\x00\x00\x00\xc5\x00\x00\x03\xab\x00\x00\x02&amp;\x00\x00\x02\x8b\x00\x00\x00\xe4\x00\x00\x03\xaa\x00\x00\x02%\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\x8b\x00\x00\x00\xe4\x00\x00\x03\xaa\x00\x00\x02%', '__version__': 1}</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>
