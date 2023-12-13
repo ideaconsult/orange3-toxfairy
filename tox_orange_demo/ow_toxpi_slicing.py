@@ -123,6 +123,7 @@ class Toxpi(OWWidget):
             self.df = concatenated_df.reset_index().rename(columns={'index': 'material'})
 
             self.load_available_cells()
+            self.multi_cell_selection.clear()
             self.multi_cell_selection.addItems(self.list_cells)
 
             self.multi_cell_lines = [0]

@@ -30,14 +30,14 @@ class Toxpi(OWWidget):
     dataframes_available = list(dataframes_available_dict.keys())
 
     endpoint = Setting([])
-    endpoint_ = Setting(-1)
+    endpoint_ = Setting(0)
     endpoint_view = Setting('')
     dataframe_view = Setting('')
 
     remove_out = Setting(True, schema_only=True)
     med_control = Setting(True, schema_only=True)
     sub_bl = Setting(True, schema_only=True)
-    casp_clean_ = Setting(True, schema_only=True)
+    casp_clean_ = Setting(False, schema_only=True)
     mean_median = Setting(True, schema_only=True)
     clean_dna = Setting(True, schema_only=True)
     dose = Setting(True, schema_only=True)
@@ -133,13 +133,15 @@ class Toxpi(OWWidget):
         if data_container:
             self.data_container = data_container
             self.endpoint = list(self.data_container.keys())
+            self.endpoints.clear()
+            self.endpoint_ = 0
             self.endpoints.addItems(self.endpoint)
+
             self.data_container_copy = copy.deepcopy(self.data_container)
             """
-            create dict with key for each available endpoint and set empty dict to store checked btn's
+                create dict with key for each available endpoint and set empty dict to store checked btn's
             """
             self.checked_btn = {key: {} for key in self.endpoint}
-            self.endpoint_ = 0
 
             for endpoint, buttons in self.rules.items():
                 endpoint_states = {}
@@ -155,29 +157,29 @@ class Toxpi(OWWidget):
 
     def load_available_btns(self):
         """
-        set available btn's with actual state  for each selected endpoint
-        the actual state is taken from self.checked_btn dict for selected endpoint
+            set available btn's with actual state  for each selected endpoint
+            the actual state is taken from self.checked_btn dict for selected endpoint
         """
+        if self.endpoint_ is not None:
+            selected_endpoint = self.endpoint[self.endpoint_]
+            self.button.setText(f'Preprocess {selected_endpoint}')
 
-        selected_endpoint = self.endpoint[self.endpoint_]
-        self.button.setText(f'Preprocess {selected_endpoint}')
+            self.remove_outliers.setVisible(False)
+            self.subtract_blanks.setVisible(False)
+            self.median_control.setVisible(False)
+            self.calc_mean_median.setVisible(False)
+            self.clean_dna_.setVisible(False)
+            self.casp_clean.setVisible(False)
 
-        self.remove_outliers.setVisible(False)
-        self.subtract_blanks.setVisible(False)
-        self.median_control.setVisible(False)
-        self.calc_mean_median.setVisible(False)
-        self.clean_dna_.setVisible(False)
-        self.casp_clean.setVisible(False)
-
-        if selected_endpoint in self.rules:
-            for btn in self.rules[selected_endpoint]:
-                btn.setVisible(True)
-                button_id = btn.objectName()
-                btn.setChecked(self.checked_btn[selected_endpoint].get(button_id, False))
+            if selected_endpoint in self.rules:
+                for btn in self.rules[selected_endpoint]:
+                    btn.setVisible(True)
+                    button_id = btn.objectName()
+                    btn.setChecked(self.checked_btn[selected_endpoint].get(button_id, False))
 
     def save_checked_btn(self):
         """
-        save actual state for each btn in self.checked_btn dict for selected endpoint
+            save actual state for each btn in self.checked_btn dict for selected endpoint
         """
         button_id = self.sender().objectName()
         button_state = self.sender().isChecked()
@@ -292,5 +294,4 @@ class Toxpi(OWWidget):
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-
     WidgetPreview(Toxpi).run()

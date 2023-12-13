@@ -43,6 +43,7 @@ class Toxpi(OWWidget):
 
     class Error(OWWidget.Error):
         no_datafiles_error = Msg("Please, load files with data")
+        file_dont_exist = Msg('Error: {}')
 
     def __init__(self):
         super().__init__()
@@ -58,8 +59,8 @@ class Toxpi(OWWidget):
         self.raw_data = pd.DataFrame()
 
         """
-        Control area with entering endpoints box, reading data and meta data box from selected dirs, 
-        and recalculation dose box.
+            Control area with entering endpoints box, reading data and meta data box from selected dirs, 
+            and recalculation dose box.
         """
 
         self.box_read = gui.widgetBox(self.controlArea, 'Read and annotate data from local directory')
@@ -87,7 +88,7 @@ class Toxpi(OWWidget):
         gui.button(self.controlArea, self, 'Process', callback=self.process, autoDefault=False)
 
         """
-        Main area with data view of chosen endpoint.
+            Main area with data view of chosen endpoint.
         """
         self.mainBox = gui.widgetBox(self.mainArea, 'Data view')
         self.combo_box_main = gui.comboBox(None, self, 'endpoint_view', label='Select endpoint',
@@ -101,19 +102,17 @@ class Toxpi(OWWidget):
     def set_pat(self, data):
         if data:
             self.data_files_path = data.metas
-            # self.Error.no_datafiles_error.clear()
-            self.endpoint_names()
         else:
             self.data_files_path = None
+        self.endpoint_names()
 
     @Inputs.meta_data_input
     def set_file(self, meta_data):
         if meta_data:
             self.annot_file = meta_data.metas
-            # self.Error.no_datafiles_error.clear()
-            self.endpoint_names()
         else:
             self.annot_file = None
+        self.endpoint_names()
 
     def toggle_recalculation(self):
         if self.recalculate:
@@ -130,8 +129,6 @@ class Toxpi(OWWidget):
             self.radioBtns.setParent(None)
 
     def endpoint_names(self):
-        # if (self.annot_file and self.data_files_path) or (self.annot_file.any() and self.data_files_path.any()):
-        #     self.Error.no_datafiles_error.clear()
         if self.annot_file is None or self.data_files_path is None:
             self.Error.no_datafiles_error()
         else:
@@ -143,10 +140,11 @@ class Toxpi(OWWidget):
                 self.endpoints_list = [x.upper() for x in self.endpoints_list]
                 self.remove_existing_widgets()
 
-            if all(item != '' for item in self.endpoints_list):
-                self.chose_dir()
-        # else:
-        #     self.Error.no_datafiles_error()
+                if all(item != '' for item in self.endpoints_list):
+                    self.chose_dir()
+            else:
+                self.selected_values_dict = {}
+                self.remove_existing_widgets()
 
     def chose_dir(self):
         self.selected_values_dict = {}
@@ -179,43 +177,54 @@ class Toxpi(OWWidget):
             self.box_dir.layout().itemAt(i).widget().deleteLater()
 
     def process(self):
-        self.output_dict = {}
-        meta_data_dict = {}
-        for key, value in self.selected_values_dict.items():
-            test_data = HTS(key)
-            test_meta = MetaDataReaderTmp(self.annot_data, test_data)
-            test_meta.read_meta_data()
-            test_read = DataReaderTmp(self.annot_data, value, test_data)
-            test_read.read_data()
+        if not self.selected_values_dict or self.annot_file is None or self.data_files_path is None:
+            self.Error.no_datafiles_error()
+        else:
+            self.Error.no_datafiles_error.clear()
 
-            if self.recalculate:
+            self.Error.file_dont_exist.clear()
+            self.output_dict = {}
+            meta_data_dict = {}
+            for key, value in self.selected_values_dict.items():
+                test_data = HTS(key)
+                test_meta = MetaDataReaderTmp(self.annot_data, test_data)
+                test_meta.read_meta_data()
+                test_read = DataReaderTmp(self.annot_data, value, test_data)
+                try:
+                    test_read.read_data()
+                except Exception as e:
+                    self.Error.file_dont_exist(str(e))
 
-                if self.radioBtnSelection == 0:
+                if self.recalculate:
+                    if self.radioBtnSelection == 0:
+                        self.Warning.warning_func.clear()
+                        test_meta.recalculate_dose_from_cell_growth(float(self.well_volume_line.text()),
+                                                                    float(self.cell_growth_area_line.text()))
+                    elif self.radioBtnSelection == 1:
+                        self.Warning.warning_func.clear()
+                        test_meta.recalculate_dose_from_sbet(float(self.well_volume_line.text()),
+                                                             float(self.cell_growth_area_line.text()))
+                    elif self.radioBtnSelection == 2:
+                        self.Warning.warning_func()
+                else:
                     self.Warning.warning_func.clear()
-                    test_meta.recalculate_dose_from_cell_growth(float(self.well_volume_line.text()),
-                                                                float(self.cell_growth_area_line.text()))
-                elif self.radioBtnSelection == 1:
-                    self.Warning.warning_func.clear()
-                    test_meta.recalculate_dose_from_sbet(float(self.well_volume_line.text()),
-                                                         float(self.cell_growth_area_line.text()))
-                elif self.radioBtnSelection == 2:
-                    self.Warning.warning_func()
 
-            self.output_dict[key] = [test_data]
-            meta_data_dict = test_data.metadata
+                self.output_dict[key] = [test_data]
+                meta_data_dict = test_data.metadata
 
-        df_meta_data = pd.DataFrame(meta_data_dict)
+            df_meta_data = pd.DataFrame(meta_data_dict)
+            transposed_df = df_meta_data.T
 
-        self.combo_box_main.clear()
-        self.combo_box_main.addItems(self.endpoints_list)
-        self.endpoint_view = self.endpoints_list[0]
-        self.mainBox.layout().addWidget(self.combo_box_main)
-        self.mainBox.layout().addWidget(self.view_table)
+            self.combo_box_main.clear()
+            self.combo_box_main.addItems(self.endpoints_list)
+            self.endpoint_view = self.endpoints_list[0]
+            self.mainBox.layout().addWidget(self.combo_box_main)
+            self.mainBox.layout().addWidget(self.view_table)
 
-        self.view()
+            self.view()
 
-        self.Outputs.data_dict.send(self.output_dict)
-        self.Outputs.meta_data_table.send(table_from_frame(df_meta_data))
+            self.Outputs.data_dict.send(self.output_dict)
+            self.Outputs.meta_data_table.send(table_from_frame(transposed_df, force_nominal=True))
 
     def view(self):
         output_dict_copy = copy.deepcopy(self.output_dict)
@@ -261,4 +270,5 @@ class Toxpi(OWWidget):
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
+
     WidgetPreview(Toxpi).run()
