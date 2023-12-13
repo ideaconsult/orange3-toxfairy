@@ -103,7 +103,7 @@ class DataReaderTmp:
                 df_tmp = df_tmp.rename_axis(None, axis=1)
                 df_result = df_tmp
         else:
-            raise FileNotFoundError(f"File '{full_file_path}' does not exist.")
+            raise FileNotFoundError(f"File '{full_file_path}' does not exist for {self.data.endpoint} endpoint.")
         return df_result
 
     def read_data(self):
