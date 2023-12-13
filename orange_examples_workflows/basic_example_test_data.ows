@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme version="2.0" title="" description="">
+	<nodes>
+		<node id="0" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(270.0, 385.0)" />
+		<node id="1" name="Tox5 Score" qualified_name="tox_orange_demo.ow_toxpi_slicing.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 Score" position="(587.0, 384.0)" />
+		<node id="2" name="Tox5 view" qualified_name="tox_orange_demo.ow_toxpi_pie_view.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 view" position="(752.0, 386.0)" />
+		<node id="3" name="HTS preprocess" qualified_name="tox_orange_demo.ow_preprocess_new.Toxpi" project_name="TOX5-Scores" version="" title="HTS preprocess" position="(425.0, 383.0)" />
+		<node id="4" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="Raw data dirs" position="(56.0, 249.0)" />
+		<node id="5" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="TMP file" position="(52.0, 550.0)" />
+		<node id="6" name="Data Table" qualified_name="Orange.widgets.data.owtable.OWTable" project_name="Orange3" version="" title="Data Table" position="(355.0, 513.0)" />
+	</nodes>
+	<links>
+		<link id="0" source_node_id="1" sink_node_id="2" source_channel="tox data" sink_channel="Table" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
+		<link id="1" source_node_id="0" sink_node_id="3" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_dict" sink_channel_id="data_container" />
+		<link id="2" source_node_id="3" sink_node_id="1" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container" />
+		<link id="3" source_node_id="4" sink_node_id="0" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="4" source_node_id="5" sink_node_id="0" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+		<link id="5" source_node_id="0" sink_node_id="6" source_channel="Meta data" sink_channel="Data" enabled="true" source_channel_id="meta_data_table" sink_channel_id="data" />
+	</links>
+	<annotations>
+		<arrow id="0" start="(125.0, 660.0)" end="(94.99999999999999, 595.0)" fill="#C1272D" />
+		<text id="1" type="text/plain" rect="(15.0, 660.0, 251.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select already complete Template file with metadata from select files button. The template file is already selected.</text>
+		<text id="2" type="text/plain" rect="(10.0, 54.0, 237.0, 88.0)" font-family="MS Shell Dlg 2" font-size="16">Select all directories with raw data from select directories button. The raw data dirs are already selected.</text>
+		<arrow id="3" start="(119.0, 154.00000000000003)" end="(87.0, 218.0)" fill="#C1272D" />
+		<text id="4" type="text/plain" rect="(-92.0, 379.0, 225.0, 78.0)" font-family="MS Shell Dlg 2" font-size="16">The same "Select test data" widget, renamed and used in two different scenario.</text>
+		<arrow id="5" start="(317.0, 274.99999999999994)" end="(271.0, 353.99999999999994)" fill="#C1272D" />
+		<arrow id="6" start="(475.0, 479.0)" end="(427.0, 446.0)" fill="#C1272D" />
+		<arrow id="7" start="(639.0, 280.00000000000006)" end="(593.0, 353.00000000000006)" fill="#C1272D" />
+		<arrow id="8" start="(806.0, 495.0)" end="(767.0, 449.0)" fill="#C1272D" />
+		<text id="9" type="text/plain" rect="(229.0, 129.0, 265.0, 141.0)" font-family="MS Shell Dlg 2" font-size="16">Read raw data for each endpoint and annotate with metadata from Template file. Recalculate dose concentration if needed.
+Just select proper dirs for each endpoint and click button Proccess.</text>
+		<text id="10" type="text/plain" rect="(433.0, 497.0, 339.0, 109.0)" font-family="MS Shell Dlg 2" font-size="16">Normalize and calculate dose-response metrics for each endpoint separately. 
+Select endpoint and click preprocess button separatly for each endpoint and View resulting tables from dropdown menues.</text>
+		<text id="11" type="text/plain" rect="(536.0, 169.0, 293.0, 122.0)" font-family="MS Shell Dlg 2" font-size="16">Calculate toxicity score for each material. Just click on Calculate Tox5 score button. Also try to select multiple cell lines, change transforming function  and choose different slicing pattern. </text>
+		<text id="12" type="text/plain" rect="(812.0, 503.0, 315.0, 37.0)" font-family="MS Shell Dlg 2" font-size="16">View Tox5-score for selected materials.</text>
+		<arrow id="13" start="(-5.0, 362.0)" end="(46.0, 312.0)" fill="#39B54A" />
+		<arrow id="14" start="(-4.0, 466.99999999999994)" end="(37.0, 521.9999999999999)" fill="#39B54A" />
+		<arrow id="15" start="(381.0, 622.0)" end="(365.0, 562.0)" fill="#C1272D" />
+		<text id="16" type="text/plain" rect="(326.0, 650.0, 314.0, 39.0)" font-family="MS Shell Dlg 2" font-size="16">View the recalculated doses</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties node_id="0" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'ctg, dapi', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="1" format="literal">{'controlAreaVisible': True, 'multi_cell_lines': [0], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xdc\x00\x00\x00&lt;\x00\x00\x043\x00\x00\x02O\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N', 'tf_1st': 'log10x_6', 'tf_auc': 'sqrt_x', 'tf_max': 'log10x_6', '__version__': 1}</properties>
+		<properties node_id="2" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xaf\x00\x00\x00\x91\x00\x00\x04^\x00\x00\x02p\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o', '__version__': 1}</properties>
+		<properties node_id="3" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dataframe_view': 'Normalized', 'dose': True, 'endpoint': ['CTG', 'DAPI'], 'endpoint_': 0, 'endpoint_view': 'CTG', 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sub_bl': True, '__version__': 1}</properties>
+		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'data': ['d:\\phd\\projects\\toxpi\\orange-tox5\\tox5_preprocessing\\src\\TOX5\\test_data\\raw_data', 'd:\\phd\\projects\\toxpi\\orange-tox5\\tox5_preprocessing\\src\\TOX5\\test_data\\raw_data_imaging'], 'files': [], 'paths': [0, 1], 'radioBtnSelection': 1, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\xbb\x00\x00\x00\x91\x00\x00\x04\xe5\x00\x00\x02\xa4\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3', '__version__': 1}</properties>
+		<properties node_id="5" format="literal">{'controlAreaVisible': True, 'data': ['d:\\phd\\projects\\toxpi\\orange-tox5\\tox5_preprocessing\\src\\TOX5\\test_data\\hts_metadata_tmp\\TestDataRecordingForm_harmless_HTS_METADATA_ready.xlsx'], 'files': [1], 'paths': [], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\xbb\x00\x00\x00\x91\x00\x00\x04\xe5\x00\x00\x02\xa4\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\xbc\x00\x00\x00\xb0\x00\x00\x04\xe4\x00\x00\x02\xa3', '__version__': 1}</properties>
+		<properties node_id="6" format="literal">{'auto_commit': True, 'color_by_class': True, 'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xe1\x00\x00\x00\xb6\x00\x00\x05-\x00\x00\x02\xc9\x00\x00\x01\xe2\x00\x00\x00\xd5\x00\x00\x05,\x00\x00\x02\xc8\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xe2\x00\x00\x00\xd5\x00\x00\x05,\x00\x00\x02\xc8', 'select_rows': True, 'show_attribute_labels': True, 'show_distributions': True, 'stored_selection': {'rows': [], 'columns': []}, 'stored_sort': [], '__version__': 1}</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>
