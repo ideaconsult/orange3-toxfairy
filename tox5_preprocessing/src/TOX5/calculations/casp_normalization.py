@@ -13,8 +13,8 @@ class CaspNormalization(CellViabilityNormalization):
     @staticmethod
     @CellViabilityNormalization.subtract_median_0h
     def subtract_blank(df, i, row_index):
-        res_of_median_control = df.loc[i, 'A1':]
-        median_0_h = df.loc[row_index, 'A1':]
+        res_of_median_control = df.loc[i, df.columns[3]:]
+        median_0_h = df.loc[row_index, df.columns[3]:]
         result = 100 + (res_of_median_control.subtract(median_0_h, fill_value=np.nan))
 
         return result
@@ -44,7 +44,7 @@ class CaspNormalization(CellViabilityNormalization):
             if not isinstance(v, str):
                 break
             tmp = df_casp[df_casp.cell_index == v]
-            row1 = df_casp.loc[v, 'A1':]
+            row1 = df_casp.loc[v, df_casp.columns[4]:]
             tmp.iloc[:, 4:] = tmp.iloc[:, 4:].apply(lambda row: row / row1, axis=1)
             df_ready.append(tmp)
 

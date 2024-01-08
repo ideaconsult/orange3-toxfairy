@@ -128,6 +128,10 @@ class MultifileNames(OWWidget, RelocatablePathsWidgetMixin):
 
     def clear_rows(self):
         selected_rows = set(index.row() for index in self.view_table.selectedIndexes())
+        # TODO: when select multiple rows I cant remove them and error occur:
+        # File "d:\phd\projects\toxpi\orange-tox5\tox_orange_demo\ow_mylti_files.py", line 134, in clear_rows
+        # self.files.remove(self.files[row])
+        # IndexError: list index out of range
 
         for row in selected_rows:
             if self.radioBtnSelection == 0:
@@ -140,4 +144,5 @@ class MultifileNames(OWWidget, RelocatablePathsWidgetMixin):
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
+
     WidgetPreview(MultifileNames).run()

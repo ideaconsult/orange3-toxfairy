@@ -27,9 +27,9 @@ class DNADamageNormalization(BasicNormalization):
                 tmp = self.data.raw_data_df.groupby(['cells', 'time']).get_group((cell, time))
                 dapi_idx = tmp[tmp['Description'] == 'DAPI'].index.values
                 for i in dapi_idx:
-                    a = tmp.loc[i:i + 2, 'A1':].apply(DNADamageNormalization.correct_from_dapi)
+                    a = tmp.loc[i:i + 2, tmp.columns[4]:].apply(DNADamageNormalization.correct_from_dapi)
                     new_df = pd.concat([new_df, a])
-                tmp2 = tmp.loc[dapi_idx, 'A1':].apply(DNADamageNormalization.correct_all_dapi)
+                tmp2 = tmp.loc[dapi_idx, tmp.columns[4]:].apply(DNADamageNormalization.correct_all_dapi)
                 new_df.loc[tmp2.index, :] = tmp2[:]
         new_df = new_df.sort_index(ascending=True)
         add_endpoint_parameters(new_df, self.data.raw_data_df['replicates'],
