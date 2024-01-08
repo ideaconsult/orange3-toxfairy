@@ -7,7 +7,6 @@ from itertools import product
 import re
 import warnings
 
-
 warnings.filterwarnings('ignore')
 
 
@@ -21,10 +20,14 @@ class TOX5:
         self.__transformed_data_r = []
         self.__transformed_data = []
         self.__tox5_scores = pd.DataFrame()
-        self.__all_slice_names = list((self.data.loc[:, self.data.columns.str.startswith(tuple(self.cell))]).keys())
+        self.__all_slice_names = []
+
+        self.slice_names = []
+        self.slices = []
 
     @property
     def all_slice_names(self):
+        self.__all_slice_names = list((self.data.loc[:, self.data.columns.str.startswith(tuple(self.cell))]).keys())
         return self.__all_slice_names
 
     @property
@@ -52,7 +55,6 @@ class TOX5:
         self.__tox5_scores = value
 
     def transform_data(self, user_transform_funcs):
-        # with ro.default_converter + pandas2ri.converter:
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             r_from_pd_df = ro.conversion.get_conversion().py2rpy(self.data)
 
@@ -102,7 +104,6 @@ class TOX5:
         ''')
         self.transformed_data_r = transforming_data(slice_names_, r_from_pd_df, user_transform_funcs_r)
 
-        # with ro.default_converter + pandas2ri.converter:
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.transformed_data = ro.conversion.get_conversion().rpy2py(self.transformed_data_r)
 
@@ -110,13 +111,11 @@ class TOX5:
         cell = set([item.split('_')[0] for item in self.all_slice_names])
         time = set([item.split('_')[1] for item in self.all_slice_names])
         endpoint = set([item.split('_')[-1] for item in self.all_slice_names])
-
-        slices_names = []
-        slices = []
+        self.slices = []
 
         if slicing_pattern == 'by_time_endpoint':
-            slices_names = [f"{cell_str}_{time_str}_{endpoint_str}" for cell_str, time_str, endpoint_str in
-                            product(cell, time, endpoint)]
+            self.slice_names = [f"{cell_str}_{time_str}_{endpoint_str}" for cell_str, time_str, endpoint_str in
+                                product(cell, time, endpoint)]
             for cell_val, time_val, endpoint_val in product(cell, time, endpoint):
                 tmp = []
                 for string in self.all_slice_names:
@@ -124,10 +123,10 @@ class TOX5:
                     if re.match(pattern, string):
                         tmp.append(string)
                 if tmp:
-                    slices.append(tmp)
+                    self.slices.append(tmp)
         elif slicing_pattern == 'by_endpoint':
-            slices_names = [f"{cell_str}_{endpoint_str}" for cell_str, endpoint_str in
-                            product(cell, endpoint)]
+            self.slice_names = [f"{cell_str}_{endpoint_str}" for cell_str, endpoint_str in
+                                product(cell, endpoint)]
             for cell_val, endpoint_val in product(cell, endpoint):
                 tmp = []
                 for string in self.all_slice_names:
@@ -135,16 +134,15 @@ class TOX5:
                     if re.match(pattern, string):
                         tmp.append(string)
                 if tmp:
-                    slices.append(tmp)
+                    self.slices.append(tmp)
 
-        return slices_names, slices
-
-    def calculate_tox5_scores(self, slices_pattern='by_time_endpoint', manual_slicing=False):
+    def calculate_tox5_scores(self, manual_slicing=False):
         if manual_slicing:
             slices_names = self.manual_names
             slices = self.manual_slices
         else:
-            slices_names, slices = self.generate_auto_slices(slices_pattern)
+            slices_names = self.slice_names
+            slices = self.slices
 
         slices_names_r = robjects.StrVector(slices_names)
         slices_r = ListVector([(str(i), x) for i, x in enumerate(slices)])
@@ -168,6 +166,5 @@ class TOX5:
 
         result = calculate_scores(self.transformed_data_r, slices_names_r, slices_r)
 
-        # with ro.default_converter + pandas2ri.converter:
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.tox5_scores = ro.conversion.get_conversion().rpy2py(result)

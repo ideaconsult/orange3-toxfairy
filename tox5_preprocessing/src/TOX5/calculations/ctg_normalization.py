@@ -14,8 +14,8 @@ class CTGNormalization(CellViabilityNormalization):
     @staticmethod
     @CellViabilityNormalization.subtract_median_0h
     def subtract_blank(df, i, row_index):
-        res_of_median_control = df.loc[i, 'A1':]
-        median_0_h = df.loc[row_index, 'A1':]
+        res_of_median_control = df.loc[i, df.columns[3]:]
+        median_0_h = df.loc[row_index, df.columns[3]:]
         result = res_of_median_control.subtract(median_0_h, fill_value=np.nan)
         return result
 
