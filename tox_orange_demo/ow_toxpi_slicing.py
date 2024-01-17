@@ -159,6 +159,8 @@ class Toxpi(OWWidget):
         self.df_copy = self.df.copy(deep=True)
         self.tox5.data = self.df
 
+        self.Error.clear()
+
         self.main.layout().addWidget(self.box_manual_s)
         if self.radioBtnSelection == 2:
             self.tox5.data = self.df
@@ -204,7 +206,7 @@ class Toxpi(OWWidget):
         self.manage_slicing_pattern()
 
     def create_auto_slices(self):
-        # self.tox5 = TOX5(self.df, self.multi_cell_lines_items)
+        self.tox5.cell = self.multi_cell_lines_items
         if self.radioBtnSelection == 0:
             self.tox5.generate_auto_slices()
         elif self.radioBtnSelection == 1:
