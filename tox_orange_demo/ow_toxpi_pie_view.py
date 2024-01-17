@@ -10,6 +10,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from TOX5.misc.utils import plot_tox_rank_pie
 
 
 class Toxpi(OWWidget):
@@ -42,6 +43,7 @@ class Toxpi(OWWidget):
         if table:
             self.table = table
             self.load_available_materials()
+            self.combo.clear()
             self.combo.addItems(self.list_materials)
         else:
             self.table = None
@@ -52,38 +54,16 @@ class Toxpi(OWWidget):
         self.list_materials = list(materials)
 
     def plot_tox_rank(self):
+        if not self.table:
+            return
+
         df = table_to_frame(self.table, include_metas=True)
+
         materials = [self.list_materials[index] for index in self.selected_cell]
-
-        self.figure.clear()
-        plt.subplots_adjust(hspace=0.2)
-        plt.suptitle("Toxpi Ranked materials", fontsize=10, y=0.95)
-
-        columns = 4
-        rows = len(materials) // columns + (len(materials) % columns > 0)
-
-        for n, i in enumerate(materials):
-            rank = (df[df['Material'] == i].iloc[:, 2]).values[0]
-            label = list(df[df['Material'] == i].iloc[:, 4:])
-
-            data_tox = df[df['Material'] == i].iloc[:, 4:].values.flatten().tolist()
-            width = 2 * np.pi / len(label)
-            angle = np.linspace(0.0, 2 * np.pi, len(label), endpoint=False)
-            colors = cm.get_cmap('plasma', len(label)).colors
-
-            ax = plt.subplot(rows, columns, n + 1, projection='polar')
-            bars = ax.bar(angle, data_tox, width=width, bottom=0.02, color=colors, alpha=0.6, edgecolor='grey')
-            ax.set_ylim(0, 1)
-            # ax.set_theta_zero_location('N')
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.grid(False)
-            ax.spines['polar'].set_color('grey')
-            plt.title(f"{i} {rank.round(2)}", fontsize=8)
-            if n == 0:
-                ax.legend(bars, label, bbox_to_anchor=(-0.1, 1.4), fontsize='small')
+        self.figure, legend = plot_tox_rank_pie(df, materials, self.figure)
 
         self.canvas.draw()
+        legend.show()
 
     def save_figure(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Image", "",

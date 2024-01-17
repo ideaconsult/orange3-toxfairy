@@ -2,6 +2,10 @@ import pandas as pd
 import os
 import glob
 import warnings
+import numpy as np
+from matplotlib import cm
+import matplotlib.pyplot as plt
+import math
 
 
 # TODO: to be removed
@@ -69,6 +73,79 @@ def generate_annotation_file(directories, template_path):
 
     if error_message:
         warnings.warn(error_message, Warning)
+
+
+def plot_tox_rank_pie(df, materials=None, figure=None):
+    """
+    Plot Tox5-score materials using a pie plot.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing Toxpi data. It should have the following columns:
+      - 'index': indexes.
+      - 'Material': The material names.
+      - 'toxpi_score': Toxpi scores for the materials.
+      - 'rnk': Ranks associated with the materials.
+      - 'slices': Values for different slices of each material.
+    - materials (list or None, optional): List of materials to plot. If None, all unique materials in the DataFrame are used.
+    - figure (matplotlib.figure.Figure or None, optional): The Figure object to use for the plot. If None, a new Figure is created.
+      Used in Orange canvas to plot.
+
+    Returns:
+    - tuple of matplotlib.figure.Figure: The main figure with pie view of each material and a separate figure for the legend.
+
+    Example:
+    ```
+    # Plot Tox5-score materials with default options
+    main_fig, legend_fig = plot_tox_rank_pie(df)
+
+    # Optionally specify materials and existing Figure
+    selected_materials = ['Material1', 'Material2']
+    existing_figure = plt.figure()
+    main_fig, legend_fig = plot_tox_rank_pie(df, materials=selected_materials, figure=existing_figure)
+    ```
+    """
+    if figure is None:
+        figure = plt.figure(tight_layout=True)
+
+    figure.clear()
+    plt.subplots_adjust(hspace=0.2)
+    plt.suptitle("Toxpi Ranked materials", fontsize=10, y=0.95)
+
+    if materials is None:
+        materials = df['Material'].unique().tolist()
+
+    columns = math.ceil(len(materials) / 5)
+
+    rows = len(materials) // columns + (len(materials) % columns > 0)
+
+    legend_handles = []
+    labels = df.columns[4:].tolist()
+
+    for n, i in enumerate(materials):
+        rank = (df[df['Material'] == i].iloc[:, 2]).values[0]
+        data_tox = df[df['Material'] == i].iloc[:, 4:].values.flatten().tolist()
+        width = 2 * np.pi / len(labels)
+        angle = np.linspace(0.0, 2 * np.pi, len(labels), endpoint=False)
+        colors = cm.get_cmap('plasma', len(labels)).colors
+
+        ax = plt.subplot(rows, columns, n + 1, projection='polar')
+        bars = ax.bar(angle, data_tox, width=width, bottom=0.02, color=colors, alpha=0.6, edgecolor='grey')
+        ax.set_ylim(0, 1)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.grid(False)
+        ax.spines['polar'].set_color('grey')
+        plt.title(f"{i} {rank.round(2)}", fontsize=8)
+
+        legend_handles.extend(bars)
+
+    legend_figure = plt.figure()
+    legend_handles = legend_handles[len(labels):]
+
+    plt.legend(legend_handles, labels, loc='center', fontsize='small', ncol=4, mode='expand')
+    plt.axis('off')
+
+    return figure, legend_figure
 
 
 warnings.simplefilter("always", Warning)
