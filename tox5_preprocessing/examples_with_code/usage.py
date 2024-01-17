@@ -9,8 +9,8 @@ from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 from TOX5.misc.utils import generate_annotation_file
 
 # print(pd.__version__)
-# pd.set_option('display.max_columns', None)
-# pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
 directories = [
     'D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\data\\Misvik high throughput screening data\\Screen1-4_CTG_Caspase_raw_data',
@@ -106,9 +106,7 @@ df = pd.concat([casp_data.dose_response_df,
 df = df.reset_index().rename(columns={'index': 'material'})
 # print(df)
 
-
-
-## TODO: TOX5 attr df -> list of endpoint dfs
+## TODO: TOX5 attr df -> list with HTS objects and concat them as previous few rows with concat
 ## Create TOX5 object with concat dataframes from all endpoints dose-response params., and filter it for choosen cell lines
 ## This part integrate ToxpiR library
 tox5 = TOX5(df, ['A549', 'BEAS-2B'])
@@ -125,7 +123,24 @@ print('................................ Transformed data .......................
 print(tox5.transformed_data)
 
 ## Create slices automatically: by_endpoint, by_time_endpoint, or mannualy
-tox5.calculate_tox5_scores('by_endpoint')
+tox5.generate_auto_slices()
+tox5.calculate_tox5_scores()
 # tox5.calculate_tox5_scores()## default by_time_endpoint
 print('..... TOX5 scores for CTG, CASP and DAPI, for cell lines A549, BEAS-2B and slices by endpoint .................')
 print(tox5.tox5_scores)
+#
+#
+# tox5.tox5_scores.to_csv('D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\scored_data_original.csv')
+# scored_df = pd.read_csv('D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\scored_data_original.csv')
+# print(scored_df)
+
+from TOX5.misc.utils import plot_tox_rank_pie
+import matplotlib.pyplot as plt
+
+materials = ['4NQO', 'MMC', 'Bleom', 'NANOFIL 9', 'BENTONITE', 'NRCWE-058']
+figure, legend = plot_tox_rank_pie(tox5.tox5_scores, materials)
+## show all materials
+# figure, legend = plot_tox_rank_pie(tox5.tox5_scores)
+
+plt.show()
+legend.show()
