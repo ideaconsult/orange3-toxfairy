@@ -118,38 +118,50 @@ print(unique_cells)
 unique_materials = set(item['material'] for item in ctg_data.metadata.values())
 print(unique_materials)
 
-dict_effect_list = {}
-effect_list: List[Union[EffectRecord, EffectArray]] = []
-protocol_app_list: List[ProtocolApplication] = []
-papp_ctg = ProtocolApplication(
-    protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='CTG'),
-    effects=effect_list)
-
-# for example for other endpoints
-papp_dapi = ProtocolApplication(
-    protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='DAPI'),
-    effects=effect_list)
-
-protocol_app_list.append(papp_ctg)
-protocol_app_list.append(papp_dapi)
+dict_subs_records = {}
+# effect_list_ctg: List[Union[EffectRecord, EffectArray]] = []
+# effect_list_dapi: List[Union[EffectRecord, EffectArray]] = []
+# protocol_app_list: List[ProtocolApplication] = []
+# papp_ctg = ProtocolApplication(
+#     protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='CTG'),
+#     effects=effect_list_ctg)
+#
+# # for example for other endpoints
+# papp_dapi = ProtocolApplication(
+#     protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='DAPI'),
+#     effects=effect_list_dapi)
+#
+# protocol_app_list.append(papp_ctg)
+# protocol_app_list.append(papp_dapi)
 
 
 # only for raw data for CTG endpoint from object ctg_data
 for cell in unique_cells:
     df = ctg_data.raw_data_df[ctg_data.raw_data_df['cells'] == cell]
     annotate_data(df, ctg_data.metadata)
-
     df1 = df.iloc[:, :3]
     for material in unique_materials:
-        dict_effect_list[f"{cell}_{material}"] = SubstanceRecord(name=material)
-        dict_effect_list[f"{cell}_{material}"].study = protocol_app_list
+        dict_subs_records[f"{cell}_{material}"] = SubstanceRecord(name=material)
+        protocol_app_list: List[ProtocolApplication] = []
+        effect_list_ctg: List[Union[EffectRecord, EffectArray]] = []
+        effect_list_dapi: List[Union[EffectRecord, EffectArray]] = []
+
+        papp_ctg = ProtocolApplication(
+            protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='CTG'),
+            effects=effect_list_ctg)
+
+        papp_dapi = ProtocolApplication(
+            protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="cell viability"), endpoint='DAPI'),
+            effects=effect_list_dapi)
+
+        protocol_app_list.append(papp_ctg)
+        protocol_app_list.append(papp_dapi)
+
+        dict_subs_records[f"{cell}_{material}"].study = protocol_app_list
         # print(dict_effect_list[f"{i}_{n}"].study)
 
         fl = df.loc[:, df.loc['material'] == material]
         result = pd.concat([df1, fl], axis=1)
-        # print('new cell and new material')
-        # print(i)
-        # print(n)
 
         df_processed = result.iloc[:-2, 3:]
         np_array = df_processed.values.ravel()
@@ -179,19 +191,18 @@ for cell in unique_cells:
                          )
         # effect_list.append(ea)
 
-        for pa in dict_effect_list[f"{cell}_{material}"].study:
-            print('.............next protocol app...............')
+        for pa in dict_subs_records[f"{cell}_{material}"].study:
             pa.parameters = {'E.cell_type': {'text': cell}}
-            print(pa.parameters)
             if pa.protocol.endpoint == 'CTG':
                 pa.effects.append(ea)
-                print(pa.effects)
 
 
         # dict_effect_list[f"{cell}_{n}"] = ea
 
-# for key, value in dict_effect_list.items():
-#     print(f'............ new study for {key}...............')
-#     print(value)
-#     print('\n')
-#     break
+for key, value in dict_subs_records.items():
+    print(f'............ new study for {key}...............')
+    print(value)
+    print('\n')
+
+
+
