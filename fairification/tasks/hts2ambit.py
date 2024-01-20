@@ -118,7 +118,7 @@ def htsdf2ambit(result_df,endpoint,substance_owner="HARMLESS",dataprovider="Misv
                 )
                     
             for time in tmp_cell["time"].unique(): 
-                tmp_cell_time = tmp_cell.loc[tmp_cell["time"]==time]
+                tmp_cell_time = tmp_cell.loc[tmp_cell["time"]==time].sort_values(by=["concentration"], ascending=True)
                 data_dict: Dict[str, ValueArray] = {
                         'CONCENTRATION': ValueArray(values=tmp_cell_time["concentration"].values, unit='ug/ml')
                         ,'E.EXPOSURE_TIME': ValueArray(values=tmp_cell_time["time"].values, unit=tmp_cell_time["time_unit"].unique()[0])
