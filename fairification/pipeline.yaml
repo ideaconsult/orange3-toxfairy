@@ -1,0 +1,12 @@
+tasks:
+
+  - source: tasks/hts2ambit.py
+    product:
+      nb: "{{folder_output}}/hts2ambit.ipynb"
+      data: "{{folder_output}}/hts2ambit"
+
+    params:
+      folder_input: "{{folder_input}}"
+      files_input: "{{files_input}}"
+      metadata_template: "{{metadata_template}}"
+

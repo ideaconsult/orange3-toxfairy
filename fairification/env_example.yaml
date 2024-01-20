@@ -1,0 +1,4 @@
+folder_input: "Misvik high throughput screening data"
+files_input: "Screen1-4_CTG_Caspase_raw_data,Screen1-4_imaging data"
+folder_output: "products"    
+metadata_template: "TestDataRecordingForm_harmless_HTS_METADATA.xlsx"
