@@ -133,11 +133,11 @@ def htsdf2ambit(result_df,endpoint,substance_owner="HARMLESS",dataprovider="Misv
                 #tmp_cell_time = tmp_cell.loc[tmp_cell["time"]==time].sort_values(by=["concentration"], ascending=True)
             data_dict: Dict[str, ValueArray] = {
                     'CONCENTRATION': ValueArray(values=concentration_values, unit='ug/ml')
-                    ,'E.EXPOSURE_TIME': ValueArray(values=time_values, unit=time_unit_values[0])
+                    ,'E.EXPOSURE_TIME': ValueArray(values=time_values, unit=time_unit_values[0].lower())
                     ,'REPLICATE': ValueArray(values=replicates_values)
                     #,"well" :  ValueArray(values=np.array(['' if (x is None ) else x.encode('ascii', errors='ignore') for x in tmp_cell_time["row"].values]))
                 }
-            ea = EffectArray(endpoint=endpoint, unit="", endpointtype='RAW_DATA',
+            ea = EffectArray(endpoint=endpoint.upper(), unit="", endpointtype='RAW_DATA',
                                 signal=ValueArray(values=result_array, unit=''),
                                 axes=data_dict
                                 )                   
