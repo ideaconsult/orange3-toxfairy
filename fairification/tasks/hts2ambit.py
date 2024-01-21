@@ -101,9 +101,8 @@ def htsdf2ambit(result_df,endpoint,substance_owner="HARMLESS",dataprovider="Misv
         substance = SubstanceRecord(name=material,ownerName=substance_owner)
         substance.study = []
         tmp = result_df.loc[result_df["material"]==material]
-
         for cell in tmp["cells"].unique():
-            tmp_cell = tmp.loc[tmp["cells"]==cell]
+            slice = tmp.loc[tmp["cells"]==cell]
             papp = ProtocolApplication(
                     protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="ENM_0000068_SECTION"), endpoint=endpoint),
                     effects=[])
@@ -116,31 +115,45 @@ def htsdf2ambit(result_df,endpoint,substance_owner="HARMLESS",dataprovider="Misv
                 prefix="TOX5",
                 meta =  {'E.cell_type': cell }
                 )
-                    
-            for time in tmp_cell["time"].unique(): 
-                tmp_cell_time = tmp_cell.loc[tmp_cell["time"]==time].sort_values(by=["concentration"], ascending=True)
-                data_dict: Dict[str, ValueArray] = {
-                        'CONCENTRATION': ValueArray(values=tmp_cell_time["concentration"].values, unit='ug/ml')
-                        ,'E.EXPOSURE_TIME': ValueArray(values=tmp_cell_time["time"].values, unit=tmp_cell_time["time_unit"].unique()[0])
-                        ,'REPLICATE': ValueArray(values=tmp_cell_time["replicates"].values)
-                        #,"well" :  ValueArray(values=np.array(['' if (x is None ) else x.encode('ascii', errors='ignore') for x in tmp_cell_time["row"].values]))
-                    }
-                ea = EffectArray(endpoint=endpoint, unit="", endpointtype='RAW_DATA',
-                                    signal=ValueArray(values=tmp_cell_time["values"].values, unit=''),
-                                    axes=data_dict
-                                    )                   
-                papp.effects.append(ea)
+            # Creating a 3D array
+            concentration_values = np.sort(slice['concentration'].unique())
+            time_values = np.sort(slice['time'].unique())
+            replicates_values = np.sort(slice['replicates'].unique())
+
+            time_unit_values = np.sort(slice['time_unit'].unique())
+            #Reshaping the values into a 3D array
+            result_array = np.zeros((len(concentration_values), len(time_values), len(replicates_values)))
+            for index, row in slice.iterrows():
+                conc_idx = np.where(concentration_values == row['concentration'])[0][0]
+                time_idx = np.where(time_values == row['time'])[0][0]
+                rep_idx = np.where(replicates_values == row['replicates'])[0][0]
+                result_array[conc_idx, time_idx, rep_idx] = row['values']
+
+
+                #tmp_cell_time = tmp_cell.loc[tmp_cell["time"]==time].sort_values(by=["concentration"], ascending=True)
+            data_dict: Dict[str, ValueArray] = {
+                    'CONCENTRATION': ValueArray(values=concentration_values, unit='ug/ml')
+                    ,'E.EXPOSURE_TIME': ValueArray(values=time_values, unit=time_unit_values[0])
+                    ,'REPLICATE': ValueArray(values=replicates_values)
+                    #,"well" :  ValueArray(values=np.array(['' if (x is None ) else x.encode('ascii', errors='ignore') for x in tmp_cell_time["row"].values]))
+                }
+            ea = EffectArray(endpoint=endpoint, unit="", endpointtype='RAW_DATA',
+                                signal=ValueArray(values=result_array, unit=''),
+                                axes=data_dict
+                                )                   
+            papp.effects.append(ea)
             substance.i5uuid  = "{}-{}".format("TOX5",uuid.uuid5(uuid.NAMESPACE_OID,material))                
             substance.study.append(papp)
-            if plot:
-                plt.figure()
-                fig = px.scatter(tmp, x='concentration', y='values', color='material',
-                    facet_col='time', facet_row='cells', labels={'values': 'Values', 'concentration': 'Concentration'})
+        if plot:
+            plt.figure()
+            fig = px.scatter(tmp, x='concentration', y='values', color='material',
+                facet_col='time', facet_row='cells', labels={'values': 'Values', 'concentration': 'Concentration'})
 
                 # Update layout and show the plot
-                fig.update_layout(title='Concentration vs Values Faceted Plot', height=800, width=800)
-                fig.show()
+            fig.update_layout(title='Concentration vs Values Faceted Plot', height=800, width=800)
+            fig.show()
         substance_records.append(substance) 
+
     return substance_records  
 
 
