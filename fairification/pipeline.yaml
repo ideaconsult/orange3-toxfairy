@@ -10,3 +10,9 @@ tasks:
       files_input: "{{files_input}}"
       metadata_template: "{{metadata_template}}"
 
+
+  - source: tasks/processed2ambit.py
+    product:
+      nb: "{{folder_output}}/processed2ambit.ipynb"
+
+

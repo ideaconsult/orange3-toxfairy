@@ -8,15 +8,8 @@ metadata_template: None
 # -
 
 import pandas as pd
-import re
-from TOX5.calculations.casp_normalization import CaspNormalization
-from TOX5.calculations.ctg_normalization import CTGNormalization
-from TOX5.calculations.dapi_normalization import DapiNormalization
-from TOX5.calculations.dose_response import DoseResponse
-from TOX5.calculations.tox5 import TOX5
 from TOX5.endpoints.hts_data_container import HTS
 from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
-from TOX5.misc.utils import generate_annotation_file, annotate_data
 import os.path
 import uuid
 import pickle
@@ -66,14 +59,10 @@ with open(os.path.join(product["data"],"metadata.pkl"), 'wb') as pickle_file:
     pickle.dump(_config, pickle_file)    
 
 
-from typing import List
-import pprint
-import json
-from pynanomapper.datamodel.ambit import EffectRecord, EffectResult, EffectArray, ValueArray, Protocol, \
-    EndpointCategory, ProtocolApplication, Study, SubstanceRecord, Substances
+from pynanomapper.datamodel.ambit import  EffectArray, ValueArray, Protocol, \
+    EndpointCategory, ProtocolApplication,  SubstanceRecord, Substances
 from pynanomapper.datamodel.ambit import configure_papp
-from typing import Dict, Optional, Union
-import numpy as np
+from typing import Dict
 
 
 # pd.set_option('display.max_columns', None)
@@ -103,6 +92,11 @@ def htsdf2ambit(result_df,endpoint,substance_owner="HARMLESS",dataprovider="Misv
         tmp = result_df.loc[result_df["material"]==material]
         for cell in tmp["cells"].unique():
             slice = tmp.loc[tmp["cells"]==cell]
+            # one ProtocolApplication per endpoint. 
+            # instead we can one protocol app per all 5 endpoints
+            # and use NeXus SUBENTRY for endpoint: (optional) NXsubentry Group of multiple application definitions for “multi-modal” (e.g. SAXS/WAXS) measurements.
+            # but ambit data model does not support it (yet)
+            # m/b structure NeXus hierarchy as investigation, not endpoint category?
             papp = ProtocolApplication(
                     protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="ENM_0000068_SECTION"), endpoint=endpoint),
                     effects=[])
@@ -163,7 +157,6 @@ from pynanomapper.datamodel.nexus_writer import to_nexus
 
 
 
-
 for endpoint in _config:
     print(endpoint)
     substance_records = []
@@ -180,4 +173,3 @@ for endpoint in _config:
     nxroot.save(os.path.join(product["data"],"{}.nxs".format(endpoint)),mode="w")
     
 
-#htsendpoint2ambit('ctg',_data)
