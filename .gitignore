@@ -1,5 +1,12 @@
 ########################################################################################################################
 
+### orange-tox5
+# Program output
+products/
+
+# Local environment
+env.yaml
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
