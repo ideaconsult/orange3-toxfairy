@@ -30,7 +30,6 @@ template_test = metadata_template
 directories = [os.path.join(folder_input, file) for file in files_input.split(",")]
 print(directories)
 
-
 def convert_to_native_types(obj):
     if isinstance(obj, np.int64):
         return int(obj)
@@ -98,14 +97,9 @@ for endpoint in _config:
         _data[endpoint] = normalize_data(_data[endpoint], _data[endpoint].endpoint)
 
     _config[endpoint]["metadata"] = _data[endpoint].metadata
-    # _config[endpoint]["data"] = os.path.join(product["data"], "{}.txt".format(endpoint))
-    # _data[endpoint].raw_data_df.to_csv(_config[endpoint]["data"], sep="\t", index=None)
-    ## test
-    ## _data[endpoint].raw_data_df.to_hdf(os.path.join(product["data"],"hts.h5"), key=endpoint, mode=_mode)
-    # _mode = 'a'
 
     # save data in separate files
-    for df_name, df in zip(["raw_data", "normalized_data", "median_data", "dose-metrics_data"],
+    for df_name, df in zip(["raw_data", "normalized_data", "median_data", "dose-response_data"],
                            [_data[endpoint].raw_data_df, _data[endpoint].normalized_df,
                             _data[endpoint].median_df, _data[endpoint].dose_response_df]):
         file_name = os.path.join(product["data"], "{}_{}.txt".format(endpoint, df_name))
@@ -148,12 +142,15 @@ def hts2df(raw_data_df, metadata, endpoint='ctg', result_type='raw_data'):
                             value_name='values')
         df = pd.DataFrame(metadata.values(), index=metadata.keys())
         result_df = pd.merge(df, melted_df, left_index=True, right_on='row')
-        pattern = r'(?P<time>\d+)(?P<time_unit>[A-Za-z]+)'
         result_df["endpoint"] = endpoint
         result_df['cells'] = result_df['index'].str.split('_').str[0]
-        result_df[['time', 'time_unit']] = result_df['index'].str.extract(pattern)
+        result_df['time_'] = result_df['index'].str.split('_').str[1]
+        result_df['time'] = result_df['time_'].str.extract(r'(\d+)').astype(int)
+        result_df['time_unit'] = result_df['time_'].str.extract(r'([a-zA-Z]+)')
+
         result_df['time'] = result_df['time'].astype(int)
         result_df = result_df.drop('index', axis=1)
+        result_df = result_df.drop('time_', axis=1)
 
     elif result_type == 'dose_response_data':
         melted_df = pd.melt(raw_data_df.reset_index(), id_vars=['index'], value_vars=raw_data_df, var_name='row',
@@ -181,7 +178,7 @@ for endpoint in _config:
     res_dose_response_data = hts2df(_data[endpoint].dose_response_df, _data[endpoint].metadata, endpoint,
                                     'dose_response_data')
 
-    for df_name, df in zip(["raw_data", "normalized_data", "median_data", "dose-metrics_data"],
+    for df_name, df in zip(["raw_data", "normalized_data", "median_data", "dose-response_data"],
                            [res_raw_data, res_norm_data, res_median_data, res_dose_response_data]):
         file_name = os.path.join(product["data"], "{}_{}_melted.txt".format(endpoint, df_name))
         _config[endpoint][df_name] = file_name
