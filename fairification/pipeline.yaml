@@ -1,8 +1,18 @@
 tasks:
 
-  - source: tasks/hts2ambit.py
+#  - source: tasks/hts2ambit.py
+#    product:
+#      nb: "{{folder_output}}/hts2ambit.ipynb"
+#      data: "{{folder_output}}/hts2ambit"
+#
+#    params:
+#      folder_input: "{{folder_input}}"
+#      files_input: "{{files_input}}"
+#      metadata_template: "{{metadata_template}}"
+
+  - source: tasks/hts2ambit_norm.py
     product:
-      nb: "{{folder_output}}/hts2ambit.ipynb"
+      nb: "{{folder_output}}/hts2ambit_norm.ipynb"
       data: "{{folder_output}}/hts2ambit"
 
     params:
@@ -11,8 +21,8 @@ tasks:
       metadata_template: "{{metadata_template}}"
 
 
-  - source: tasks/processed2ambit.py
+  - source: tasks/processed2ambit_version2.py
     product:
-      nb: "{{folder_output}}/processed2ambit.ipynb"
+      nb: "{{folder_output}}/processed2ambit_2.ipynb"
 
 
