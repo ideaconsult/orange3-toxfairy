@@ -24,5 +24,6 @@ tasks:
   - source: tasks/processed2ambit_version2.py
     product:
       nb: "{{folder_output}}/processed2ambit_2.ipynb"
+      data: "{{folder_output}}/Misvik_substances.nxs"
 
 

@@ -45,7 +45,7 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
                            investigation="WP3",
                            year=2023,
                            prefix="TOX5",
-                           meta={'E.cell_type': cell}
+                           meta={'E.cell_type': cell , "E.method" : endpoint.upper() }
                            )
             if endpoint_type == 'MEDIAN':
 
@@ -132,16 +132,18 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
 
 path = upstream["hts2ambit_norm"]["data"]
 
+#if we don't remove, mode="a" will add to the file from previous run
+if os.path.exists(product["data"]):
+    os.remove(product["data"])
 
 def add_to_nxs(_config, *endpoint_types):
-
-    for endpoint_type in endpoint_types:
-        for endpoint in _config:
-            result_df = pd.read_csv(os.path.join(path, f"{endpoint}_{endpoint_type}_data_melted.txt"), sep="\t")
-            result_df = result_df.loc[:, ~result_df.columns.str.contains('^Unnamed')]
+    with nx.load(product["data"], mode="a") as nxroot:
+        for endpoint_type in endpoint_types:
+            for endpoint in _config:
+                result_df = pd.read_csv(os.path.join(path, f"{endpoint}_{endpoint_type}_data_melted.txt"), sep="\t")
+                result_df = result_df.loc[:, ~result_df.columns.str.contains('^Unnamed')]
 
             # with nx.load(os.path.join(path, "{}.nxs".format(endpoint)), mode="a") as nxroot:
-            with nx.load(os.path.join(path, "Misvik_substances.nxs"), mode="a") as nxroot:
                 substance_records = []
                 substance_records = htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS",
                                                 dataprovider="Misvik",
