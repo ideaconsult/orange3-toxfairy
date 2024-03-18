@@ -91,6 +91,7 @@ class DoseResponse:
                     filter_material = (new_df2 == i).any()
                     sub_df = new_df2.loc[:, filter_material]
                     # TODO: subdf sorted based on x
+                    sub_df = sub_df.sort_values(by=['concentration'], axis=1)
                     auc_median = []
                     conc = list(sub_df.loc['concentration'])
                     x = np.log10(conc)
