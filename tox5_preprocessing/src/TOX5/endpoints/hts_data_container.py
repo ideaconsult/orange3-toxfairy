@@ -6,6 +6,7 @@ from typing import List, Optional
 @dataclass()
 class HTS:
     endpoint: Optional[str] = field(default=None)
+    serum_used: bool = False
     metadata: dict = field(default_factory=dict)
     water_keys: List[str] = field(default_factory=list)
     raw_data_df: pd.DataFrame = pd.DataFrame()
