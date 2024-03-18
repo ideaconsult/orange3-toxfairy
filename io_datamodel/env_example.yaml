@@ -1,0 +1,5 @@
+folder_output: "products"
+enm_api_url: "https://api.ideaconsult.net/calibrate"
+enm_api_key: ""
+query: "type=citationowner&search=MISVIK"
+db: "calibrate"
