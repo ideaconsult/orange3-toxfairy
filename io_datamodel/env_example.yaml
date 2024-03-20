@@ -3,3 +3,7 @@ enm_api_url: "https://api.ideaconsult.net/calibrate"
 enm_api_key: ""
 query: "type=citationowner&search=MISVIK"
 db: "calibrate"
+
+folder_input: "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate"
+files_input: "calibrate_imaging_w,calibrate_imaging_wо"
+metadata_templates: "TestDataRecordingForm_calibrate_HTS_METADATA_w.xlsx,TestDataRecordingForm_calibrate_HTS_METADATA_wo.xlsx"
