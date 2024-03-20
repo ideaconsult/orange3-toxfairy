@@ -70,8 +70,10 @@ class DataReaderTmp:
 
     @staticmethod
     def _read_data_txt(file):
-        df = pd.read_csv(file, sep='\t', skiprows=1, usecols=[1, 2, 3, 4], header=None)
-        df = df.set_index(1).T.astype('int')
+        num_columns = len(pd.read_csv(file, sep='\t', nrows=1).columns)
+        used_cols = list(range(1, num_columns)) if num_columns > 1 else None
+        df = pd.read_csv(file, sep='\t', skiprows=1, usecols=used_cols, header=None)
+        df = df.set_index(1).T.dropna(how='all').astype('int')
         return df
 
     @staticmethod
@@ -117,4 +119,4 @@ class DataReaderTmp:
 
         self.data.raw_data_df = pd.concat(tmp_results, ignore_index=True)
         self.data.raw_data_df[['time', 'cells', 'replicates']] = self.data.raw_data_df[['time', 'cells', 'replicates']]\
-            .apply(lambda col: col.str.upper().str.strip())
+            .astype(str).apply(lambda col: col.str.upper().str.strip())
