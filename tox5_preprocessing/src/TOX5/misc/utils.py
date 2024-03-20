@@ -44,6 +44,10 @@ def _extract_info_from_filename(file_name):
 
 
 def generate_annotation_file(directories, template_path):
+
+    if isinstance(directories, str):
+        directories = [directories]
+
     data_list = []
     error_message = None
 
