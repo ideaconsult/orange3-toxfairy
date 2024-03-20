@@ -31,3 +31,6 @@ tasks:
       nb: "products/read_process_hts_obj.ipynb"
     params:
       folder_output: "{{folder_output}}"
+      folder_input: "{{folder_input}}"
+      files_input: "{{files_input}}"
+      metadata_templates: "{{metadata_templates}}"
