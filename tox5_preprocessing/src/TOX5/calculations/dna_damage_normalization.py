@@ -7,37 +7,54 @@ from tox5_preprocessing.src.TOX5.misc.utils import *
 class DNADamageNormalization(BasicNormalization):
 
     @staticmethod
-    def correct_from_dapi(col):
-        if col.iloc[0] == 0:
-            col = col.shift(-2)
-        return col
+    def correct_from_dapi(df):
+        """Corrects values in columns where 'Description' contains 'DAPI'.
+            if value for DAPI is zero, that's mean no cells, so no data (NaN) for
+            other endpoints,  but keep dapi 0
+        Args:
+            df (DataFrame): Input DataFrame containing the data, sorts by cells, times and replicates
+        Returns:
+            None. The input DataFrame is modified in place.
+        """
+        dapi_idx = df['Description'].str.contains('DAPI')
+        if dapi_idx.any():
+            for col in df.columns[4:]:
+                if (df.loc[dapi_idx, col] == 0).any():
+                    df.loc[~dapi_idx, col] = np.nan
 
     @staticmethod
-    def correct_all_dapi(col):
-        median_dapi = col.median()
-        if median_dapi > 50:
-            col = col.replace(0, np.nan)
-        return col
+    def correct_dapi(df):
+        """Remove DAPI if imaging has failed, which mean replicates have clearly more cells.
+        Corrects 0 DAPI values in columns where median value for 'DAPI' samples is > 50.
+        Args:
+            df (DataFrame): Input DataFrame containing the data, sorts by cells and times.
+        Returns:
+            None. The input DataFrame is modified in place.
+        """
+        zero_cols = (df == 0).any()
+        for col in zero_cols[zero_cols].index:
+            dapi_median = df.loc[df['Description'].str.contains('DAPI'), col].median()
+
+            if dapi_median > 50:
+                df.loc[(df['Description'].str.contains('DAPI')) & (df[col] == 0), col] = np.nan
 
     def clean_dna_raw(self):
+        """Clean DNA raw data.
+        Sorts, corrects 'Description' containing 'DAPI', and corrects values based on 'DAPI' median.
+        Returns:
+            None. The input DataFrame is modified in place.
+        """
         new_df = pd.DataFrame()
 
         for idx1, cell in enumerate(self.data.raw_data_df['cells'].unique()):
             for idx2, time in enumerate(self.data.raw_data_df['time'].unique()):
                 tmp = self.data.raw_data_df.groupby(['cells', 'time']).get_group((cell, time))
-                dapi_idx = tmp[tmp['Description'] == 'DAPI'].index.values
-                for i in dapi_idx:
-                    a = tmp.loc[i:i + 2, tmp.columns[4]:].apply(DNADamageNormalization.correct_from_dapi)
-                    new_df = pd.concat([new_df, a])
-                tmp2 = tmp.loc[dapi_idx, tmp.columns[4]:].apply(DNADamageNormalization.correct_all_dapi)
-                new_df.loc[tmp2.index, :] = tmp2[:]
+                for idx3, repl in enumerate(tmp['replicates'].unique()):
+                    tmp_replicate = tmp[tmp['replicates'] == repl]
+                    DNADamageNormalization.correct_from_dapi(tmp_replicate)
+                    new_df = pd.concat([new_df, tmp_replicate])
+                DNADamageNormalization.correct_dapi(new_df)
         new_df = new_df.sort_index(ascending=True)
-        add_endpoint_parameters(new_df, self.data.raw_data_df['replicates'],
-                                self.data.raw_data_df['time'],
-                                self.data.raw_data_df['cells'])
-        new_df.insert(3, "description", self.data.raw_data_df['Description'])
-
         self.data.raw_data_df = new_df
-        self.data.raw_data_df = self.data.raw_data_df[self.data.raw_data_df['description'] == self.data.endpoint] \
-            .reset_index(drop=True).drop(['description'], axis=1)
-
+        self.data.raw_data_df = self.data.raw_data_df[self.data.raw_data_df['Description'] == self.data.endpoint] \
+            .reset_index(drop=True).drop(['Description'], axis=1)
