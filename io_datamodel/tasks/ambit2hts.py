@@ -66,7 +66,7 @@ for substance in substances.substance:
                     if serum:
                         df_data_w.append({
                             'cells': cell,
-                            'replicate': replicate,
+                            'replicates': replicate,
                             # 'time': time_value,
                             'time': (re.sub(r'\s+', '', time)).upper(),
                             'result': result,
@@ -75,7 +75,7 @@ for substance in substances.substance:
                     else:
                         df_data_wo.append({
                             'cells': cell,
-                            'replicate': replicate,
+                            'replicates': replicate,
                             # 'time': time_value,
                             'time': (re.sub(r'\s+', '', time)).upper(),
                             'result': result,
@@ -88,14 +88,14 @@ for substance in substances.substance:
 df_w = pd.DataFrame(df_data_w)
 df_wo = pd.DataFrame(df_data_wo)
 
-pivot_df_w = df_w.pivot_table(index=['cells', 'replicate', 'time'],
+pivot_df_w = df_w.pivot_table(index=['cells', 'replicates', 'time'],
                               columns='well',
                               values='result',
                               aggfunc='first')
 
 pivot_df_w.reset_index(inplace=True)
 
-pivot_df_wo = df_wo.pivot_table(index=['cells', 'replicate', 'time'],
+pivot_df_wo = df_wo.pivot_table(index=['cells', 'replicates', 'time'],
                                 columns='well',
                                 values='result',
                                 aggfunc='first')
