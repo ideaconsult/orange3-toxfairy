@@ -26,11 +26,28 @@ tasks:
     params:
       folder_output: "{{folder_output}}"
 
-  - source: tasks/process_hts_obj_test.py
+  - source: tasks/process_hts_obj.py
     product:
       nb: "products/read_process_hts_obj.ipynb"
+      data: "{{folder_output}}/processed_hts_obj"
     params:
       folder_output: "{{folder_output}}"
       folder_input: "{{folder_input}}"
       files_input: "{{files_input}}"
       metadata_templates: "{{metadata_templates}}"
+
+  - source: tasks/metl_df.py
+    product:
+      nb: "products/test.ipynb"
+      data: "{{folder_output}}/melted_hts_obj"
+
+  - source: tasks/processed2ambit.py
+    product:
+      nb: "products/processed2ambit_nb.ipynb"
+      data: "{{folder_output}}/Calibrate_substances.nxs"
+
+
+  - source: tasks/tox5_scoring.py
+    product:
+      nb: "products/tox5_scoring.ipynb"
+      data: "{{folder_output}}/ready_data"

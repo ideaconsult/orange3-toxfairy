@@ -8,12 +8,6 @@ product = None
 db = None
 # -
 
-# # for testing outside of pipeline
-# enm_api_url = "https://api.ideaconsult.net/calibrate"
-# db = "calibrate"
-# query = "type=citationowner&search=MISVIK"
-# enm_api_key = ''
-
 from pynanomapper import aa
 import os, os.path
 import requests
