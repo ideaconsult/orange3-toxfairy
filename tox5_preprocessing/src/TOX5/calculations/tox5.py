@@ -136,6 +136,15 @@ class TOX5:
                 if tmp:
                     self.slices.append(tmp)
 
+    def add_weight(self, weight_factor, parameter):
+        # parameter could be one of this: MAX, AUC, 1st_3SD, 1st_2SD
+        cols_to_duplicate = [col for col in self.data.columns if parameter in col]
+
+        for i in range(2, weight_factor + 1):
+            for col in cols_to_duplicate:
+                new_col_name = f'{col}_w{i}'
+                self.data[new_col_name] = self.data[col]
+
     def calculate_tox5_scores(self, manual_slicing=False):
         if manual_slicing:
             slices_names = self.manual_names
