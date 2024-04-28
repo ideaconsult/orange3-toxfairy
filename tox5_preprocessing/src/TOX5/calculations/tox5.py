@@ -1,9 +1,11 @@
 import pandas as pd
+import numpy as np
 from rpy2 import robjects
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
 from itertools import product
+from sklearn.utils import resample
 import re
 import warnings
 
@@ -186,3 +188,48 @@ class TOX5:
 
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.tox5_scores = ro.conversion.get_conversion().rpy2py(result)
+
+    def ci_slices(self, n_boot=1000, ci_level=0.95):
+        ci_intervals = {}
+
+        for group_name, group_columns in zip(self.slice_names, self.slices):
+            group_data = self.transformed_data[group_columns]
+            bootstrap_scores = []
+
+            for _ in range(n_boot):
+                resampled_data = resample(group_data, replace=True)
+                statistic = np.mean(resampled_data)
+                bootstrap_scores.append(statistic)
+
+            # Compute confidence intervals
+            # calculate the tail probability
+            ci_low = np.percentile(bootstrap_scores, (1 - ci_level) / 2 * 100) #2.5%
+            ci_high = np.percentile(bootstrap_scores, (1 + ci_level) / 2 * 100) #97.5%
+            ci_intervals[group_name] = [ci_low, ci_high]
+
+        df = pd.DataFrame.from_dict(ci_intervals, orient='index', columns=['low_ci', 'high_ci']).reset_index()
+        df.rename(columns={'index': 'slice'}, inplace=True)
+
+        return ci_intervals, df
+
+    def ci_scores(self, n_boot=1000, ci_level=0.95):
+        ci_intervals = {}
+        for index, row in self.tox5_scores.iloc[:, 3:].iterrows():
+            bootstrap_scores = []
+
+            for _ in range(n_boot):
+                resampled_row = resample(row, replace=True)
+                statistic = np.mean(resampled_row)
+                bootstrap_scores.append(statistic)
+
+            ci_low = np.percentile(bootstrap_scores, (1 - ci_level) / 2 * 100)
+            ci_high = np.percentile(bootstrap_scores, (1 + ci_level) / 2 * 100)
+
+            material = self.tox5_scores.at[index, 'Material']
+            ci_intervals[material] = [ci_low, ci_high]
+
+        df = pd.DataFrame.from_dict(ci_intervals, orient='index', columns=['low_ci', 'high_ci']).reset_index()
+        df.rename(columns={'index': 'slice'}, inplace=True)
+
+        return ci_intervals, df
+    
