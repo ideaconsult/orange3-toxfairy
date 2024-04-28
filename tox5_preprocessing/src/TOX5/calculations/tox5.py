@@ -107,10 +107,19 @@ class TOX5:
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             self.transformed_data = ro.conversion.get_conversion().rpy2py(self.transformed_data_r)
 
+    @staticmethod
+    def _extract_endpoint(item):
+        suffix_pattern = re.compile(r'(.+)(_w\d+)$')
+        match = suffix_pattern.search(item)
+        if match:
+            # If a suffix is found, extract the part just before it
+            item = match.group(1)
+        return item.split('_')[-1]
+
     def generate_auto_slices(self, slicing_pattern='by_time_endpoint'):
         cell = set([item.split('_')[0] for item in self.all_slice_names])
         time = set([item.split('_')[1] for item in self.all_slice_names])
-        endpoint = set([item.split('_')[-1] for item in self.all_slice_names])
+        endpoint = set([TOX5._extract_endpoint(item) for item in self.all_slice_names])
         self.slices = []
 
         if slicing_pattern == 'by_time_endpoint':
