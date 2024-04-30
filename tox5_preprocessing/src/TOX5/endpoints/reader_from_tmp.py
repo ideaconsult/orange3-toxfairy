@@ -13,7 +13,8 @@ class MetaDataReaderTmp:
     def read_meta_data(self):
         df_names = pd.read_excel(self.template, sheet_name='Front sheet', skiprows=4, index_col=0,
                                  usecols=lambda col: not col.startswith('Unnamed'))
-        materials_to_check = ['water', 'Dispersant', 'dispersant', 'another_material']
+        # TODO: more generic way to find water or blanks keys
+        materials_to_check = ['water', 'Dispersant', 'dispersant', '0.05% BSA water, 30ul EtOH', 'another_material']
 
         sbet = pd.read_excel(self.template, sheet_name='Materials', usecols=['ERM identifiers', 'BET surface in m²/g'])
         sbet.set_index('ERM identifiers', inplace=True)
