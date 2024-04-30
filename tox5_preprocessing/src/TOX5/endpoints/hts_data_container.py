@@ -20,8 +20,13 @@ class HTS:
             self.endpoint = self.endpoint.upper()
 
     def filtrate_data(self, df, materials: List[str] = None, cells: List[str] = None):
+        if materials is None:
+            materials = []
+        if cells is None:
+            cells = []
+
         self.metadata = {key: value for key, value in self.metadata.items()
-                         if value.get('material') in materials or key in self.water_keys}
+                         if not materials or value.get('material') in materials or key in self.water_keys}
 
         if df is self.raw_data_df or df is self.normalized_df:
             if 'Description' in df.columns:
@@ -32,8 +37,9 @@ class HTS:
             columns_to_keep = [col for col in columns_to_keep if col in df.columns]
 
             filtered_df = df[columns_to_keep]
-            mask_data_cells = filtered_df['cells'].isin(cells)
-            filtered_df = filtered_df[mask_data_cells]
+            if cells:
+                mask_data_cells = filtered_df['cells'].isin(cells)
+                filtered_df = filtered_df[mask_data_cells]
             filtered_df.reset_index(drop=True, inplace=True)
 
             if df is self.raw_data_df:
@@ -44,7 +50,8 @@ class HTS:
             columns_to_keep = list(self.metadata.keys())
             columns_to_keep = [col for col in columns_to_keep if col in df.columns]
             filtered_df = df[columns_to_keep]
-            filtered_df = filtered_df[filtered_df.index.str.split('_').str[0].isin(cells)]
+            if cells:
+                filtered_df = filtered_df[filtered_df.index.str.split('_').str[0].isin(cells)]
             if df is self.mean_df:
                 self.mean_df = filtered_df
             else:
@@ -53,6 +60,7 @@ class HTS:
         elif df is self.dose_response_df:
             mask_dose_resp_materials = df.index.isin(materials)
             filtered_df = df[mask_dose_resp_materials]
-            mask_dose_resp_cells = filtered_df.columns.str.contains('|'.join(cells))
-            filtered_df = filtered_df.loc[:, mask_dose_resp_cells]
+            if cells:
+                mask_dose_resp_cells = filtered_df.columns.str.contains('|'.join(cells))
+                filtered_df = filtered_df.loc[:, mask_dose_resp_cells]
             self.dose_response_df = filtered_df
