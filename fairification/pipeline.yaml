@@ -9,6 +9,8 @@ tasks:
       folder_input: "{{folder_input}}"
       files_input: "{{files_input}}"
       metadata_template: "{{metadata_template}}"
+      filtrate_by_material: "{{filtrate_by_material}}"
+      filtrate_by_cells: "{{filtrate_by_cells}}"
 
 
   - source: tasks/processed2ambit.py

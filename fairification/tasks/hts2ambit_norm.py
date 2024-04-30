@@ -5,6 +5,8 @@ product = None
 folder_input: None
 files_input: None
 metadata_template: None
+filtrate_by_material: None
+filtrate_by_cells: None
 
 # -
 
@@ -28,7 +30,16 @@ os.makedirs(product["data"], exist_ok=True)
 
 template_test = metadata_template
 directories = [os.path.join(folder_input, file) for file in files_input.split(",")]
-print(directories)
+if not filtrate_by_material:
+    materials = None
+else:
+    materials = [material for material in filtrate_by_material.split(",")]
+
+if not filtrate_by_cells:
+    cells = None
+else:
+    cells = [cell for cell in filtrate_by_cells.split(",")]
+
 
 def convert_to_native_types(obj):
     if isinstance(obj, np.int64):
@@ -45,7 +56,7 @@ def create_datacontainer(endpoint, directory):
     _meta.read_meta_data()
     data_reader = DataReaderTmp(template_test, directory, _data)
     data_reader.read_data()
-
+    _data.filtrate_data(_data.raw_data_df, materials=materials, cells=cells)
     return _data
 
 
@@ -90,6 +101,7 @@ _mode = "w"
 # loop to create datacontainer for each endpoint and normalize data
 for endpoint in _config:
     _data[endpoint] = create_datacontainer(endpoint, _config[endpoint]["dir"])
+    print(_data[endpoint].metadata)
     if _data[endpoint].endpoint == 'CASP':
         _data[endpoint] = normalize_data(_data[endpoint], _data[endpoint].endpoint, _data['ctg'].mean_df,
                                          _data['dapi'].mean_df)
@@ -110,7 +122,6 @@ for endpoint in _config:
 
 with open(os.path.join(product["data"], "metadata.pkl"), 'wb') as pickle_file:
     pickle.dump(_config, pickle_file)
-
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
