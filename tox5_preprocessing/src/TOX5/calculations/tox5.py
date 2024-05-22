@@ -5,9 +5,11 @@ from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
 from itertools import product
-from sklearn.utils import resample
+from scipy.stats import bootstrap
 import re
 import warnings
+
+from sklearn.utils import resample
 
 warnings.filterwarnings('ignore')
 
@@ -20,7 +22,7 @@ class TOX5:
         self.manual_slices = manual_slices
 
         self.__transformed_data_r = []
-        self.__transformed_data = []
+        self.__transformed_data = pd.DataFrame()
         self.__tox5_scores = pd.DataFrame()
         self.__all_slice_names = []
 
@@ -191,45 +193,44 @@ class TOX5:
 
     def ci_slices(self, n_boot=1000, ci_level=0.95):
         ci_intervals = {}
+        unique_materials = self.transformed_data['Material'].unique()
+        for material in unique_materials:
+            material_data = self.transformed_data[self.transformed_data['Material'] == material]
 
-        for group_name, group_columns in zip(self.slice_names, self.slices):
-            group_data = self.transformed_data[group_columns]
-            bootstrap_scores = []
+            ci_intervals[material] = {}
 
-            for _ in range(n_boot):
-                resampled_data = resample(group_data, replace=True)
-                statistic = np.mean(resampled_data)
-                bootstrap_scores.append(statistic)
+            for group_name, group_columns in zip(self.slice_names, self.slices):
+                group_data = material_data[group_columns]
+                results = bootstrap(group_data.values, statistic=np.mean, n_resamples=n_boot, confidence_level=ci_level,
+                                    random_state=42, method="percentile")
+                ci_low, ci_high = results.confidence_interval
+                ci_intervals[material][group_name] = [ci_low, ci_high]
 
-            # Compute confidence intervals
-            # calculate the tail probability
-            ci_low = np.percentile(bootstrap_scores, (1 - ci_level) / 2 * 100) #2.5%
-            ci_high = np.percentile(bootstrap_scores, (1 + ci_level) / 2 * 100) #97.5%
-            ci_intervals[group_name] = [ci_low, ci_high]
-
-        df = pd.DataFrame.from_dict(ci_intervals, orient='index', columns=['low_ci', 'high_ci']).reset_index()
-        df.rename(columns={'index': 'slice'}, inplace=True)
-
-        return ci_intervals, df
+        return ci_intervals
 
     def ci_scores(self, n_boot=1000, ci_level=0.95):
+        if 'low_ci' in self.tox5_scores.columns:
+            self.tox5_scores = self.tox5_scores.drop(columns=['low_ci'])
+
+        if 'high_ci' in self.tox5_scores.columns:
+            self.tox5_scores = self.tox5_scores.drop(columns=['high_ci'])
         ci_intervals = {}
-        for index, row in self.tox5_scores.iloc[:, 3:].iterrows():
-            bootstrap_scores = []
 
-            for _ in range(n_boot):
-                resampled_row = resample(row, replace=True)
-                statistic = np.mean(resampled_row)
-                bootstrap_scores.append(statistic)
+        unique_materials = self.tox5_scores['Material'].unique()
+        for material in unique_materials:
+            material_data = self.tox5_scores[self.tox5_scores['Material'] == material]
 
-            ci_low = np.percentile(bootstrap_scores, (1 - ci_level) / 2 * 100)
-            ci_high = np.percentile(bootstrap_scores, (1 + ci_level) / 2 * 100)
+            ci_intervals[material] = {}
+            tmp_data = material_data.iloc[:, 3:].values
 
-            material = self.tox5_scores.at[index, 'Material']
+            results = bootstrap(tmp_data, statistic=np.mean, n_resamples=n_boot, confidence_level=ci_level,
+                                random_state=42, method="percentile")
+            ci_low, ci_high = results.confidence_interval
             ci_intervals[material] = [ci_low, ci_high]
 
         df = pd.DataFrame.from_dict(ci_intervals, orient='index', columns=['low_ci', 'high_ci']).reset_index()
-        df.rename(columns={'index': 'slice'}, inplace=True)
+        df.rename(columns={'index': 'Material'}, inplace=True)
+        df_combined = pd.merge(self.tox5_scores, df, on='Material')
+        self.tox5_scores = df_combined
 
         return ci_intervals, df
-    
