@@ -33,9 +33,10 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
             # but ambit data model does not support it (yet)
             # m/b structure NeXus hierarchy as investigation, not endpoint category?
             if serum_used:
-                serum = '10% fetal bovine serum (Biowest S181B-500)'
+                serum = 'LHC-9 Thermo-Fisher Scientific / Gibco #12680013 supplemented with 10% fetal bovine serum ' \
+                        '(Biowest S181B-500) for duration of the nanomaterial exposure'
             else:
-                serum = 'without serum'
+                serum = 'LHC-9 Thermo-Fisher Scientific / Gibco #12680013 supplemented'
             papp = ProtocolApplication(
                 protocol=Protocol(topcategory="TOX", category=EndpointCategory(code="ENM_0000068_SECTION"),
                                   endpoint=endpoint), effects=[])
@@ -154,7 +155,7 @@ def add_to_nxs(_config, *endpoint_types):
                                             sep="\t")
                     result_df = result_df.loc[:, ~result_df.columns.str.contains('^Unnamed')]
                     substance_records = []
-                    substance_records = htsdf2ambit(result_df, endpoint, substance_owner="CALIBRATE",
+                    substance_records = htsdf2ambit(result_df, endpoint, substance_owner="caLIBRAte",
                                                     dataprovider="Misvik",
                                                     substance_records=substance_records,
                                                     endpoint_type=endpoint_type.upper(),
