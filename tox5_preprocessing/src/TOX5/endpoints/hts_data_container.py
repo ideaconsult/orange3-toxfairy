@@ -7,6 +7,7 @@ from typing import List, Optional
 class HTS:
     endpoint: Optional[str] = field(default=None)
     serum_used: bool = False
+    assay_type: Optional[str] = field(default=None)
     metadata: dict = field(default_factory=dict)
     water_keys: List[str] = field(default_factory=list)
     raw_data_df: pd.DataFrame = pd.DataFrame()
@@ -18,6 +19,9 @@ class HTS:
     def __post_init__(self):
         if self.endpoint is not None:
             self.endpoint = self.endpoint.upper()
+
+        if self.assay_type is not None and self.assay_type not in {"imaging", "viability"}:
+            raise ValueError(f"Invalid assay_type: {self.assay_type}. Allowed values are 'imaging' or 'viability'.")
 
     def filtrate_data(self, df, materials: List[str] = None, cells: List[str] = None):
         if materials is None:
