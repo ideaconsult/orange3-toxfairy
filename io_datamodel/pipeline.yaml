@@ -1,9 +1,10 @@
 tasks:
 
-  - source: tasks/extract_data.py
+  - source: tasks/ambit_data2HTS_obj.py
     product:
       nb: "products/extract_data.ipynb"
-      data: "{{folder_output}}/substances_data"
+      data_json: "{{folder_output}}/substances_data"
+      data_obj: "{{folder_output}}/substances_data_hts"
 
     params:
       folder_output: "{{folder_output}}"
@@ -11,43 +12,55 @@ tasks:
       enm_api_key: "{{enm_api_key}}"
       query: "{{query}}"
       db: "{{db}}"
+      endpoint: "{{endpoint}}"
+      serum_used: "{{serum_used}}"
 
-  - source: tasks/nexus.py
+  - source: tasks/local_data2HTS_obj.py
     product:
-      nb: "{{folder_output}}/write_to_nexus.ipynb"
-    params:
-      folder_output: "{{folder_output}}"
-      query: "{{query}}"
-
-  - source: tasks/ambit2hts.py
-    product:
-      nb: "products/ambit2hts_tox5.ipynb"
-      data: "{{folder_output}}/substances_hts_obj"
-    params:
-      folder_output: "{{folder_output}}"
-
-  - source: tasks/process_hts_obj.py
-    product:
-      nb: "products/read_process_hts_obj.ipynb"
-      data: "{{folder_output}}/processed_hts_obj"
+      nb: "products/read_local_hts_obj.ipynb"
+      data: "{{folder_output}}/substances_data_hts_local"
     params:
       folder_output: "{{folder_output}}"
       folder_input: "{{folder_input}}"
       files_input: "{{files_input}}"
       metadata_templates: "{{metadata_templates}}"
 
-  - source: tasks/metl_df.py
-    product:
-      nb: "products/test.ipynb"
-      data: "{{folder_output}}/melted_hts_obj"
-
-  - source: tasks/processed2ambit.py
-    product:
-      nb: "products/processed2ambit_nb.ipynb"
-      data: "{{folder_output}}/Calibrate_substances.nxs"
-
-
-  - source: tasks/tox5_scoring.py
-    product:
-      nb: "products/tox5_scoring.ipynb"
-      data: "{{folder_output}}/ready_data"
+#  - source: tasks/nexus.py
+#    product:
+#      nb: "{{folder_output}}/write_to_nexus.ipynb"
+#    params:
+#      folder_output: "{{folder_output}}"
+#      query: "{{query}}"
+#
+#  - source: tasks/ambit2hts.py
+#    product:
+#      nb: "products/ambit2hts_tox5.ipynb"
+#      data: "{{folder_output}}/substances_hts_obj"
+#    params:
+#      folder_output: "{{folder_output}}"
+#
+#  - source: tasks/process_hts_obj.py
+#    product:
+#      nb: "products/read_process_hts_obj.ipynb"
+#      data: "{{folder_output}}/processed_hts_obj"
+#    params:
+#      folder_output: "{{folder_output}}"
+#      folder_input: "{{folder_input}}"
+#      files_input: "{{files_input}}"
+#      metadata_templates: "{{metadata_templates}}"
+#
+#  - source: tasks/metl_df.py
+#    product:
+#      nb: "products/test.ipynb"
+#      data: "{{folder_output}}/melted_hts_obj"
+#
+#  - source: tasks/processed2ambit.py
+#    product:
+#      nb: "products/processed2ambit_nb.ipynb"
+#      data: "{{folder_output}}/Calibrate_substances.nxs"
+#
+#
+#  - source: tasks/tox5_scoring.py
+#    product:
+#      nb: "products/tox5_scoring.ipynb"
+#      data: "{{folder_output}}/ready_data"
