@@ -37,6 +37,7 @@ def generate_tox5_scores(pickle_hts_data, keys, user_selected_transform_function
     df = df.reset_index().rename(columns={'index': 'material'})
 
     tox5 = TOX5(df, ['BEAS-2B'])
+    tox5.add_weight(3, '1st_3SD')
     tox5.transform_data(user_selected_transform_functions)
     tox5.generate_auto_slices()
     tox5.calculate_tox5_scores()

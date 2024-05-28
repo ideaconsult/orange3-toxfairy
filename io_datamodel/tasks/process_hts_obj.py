@@ -1,4 +1,7 @@
 # + tags=["parameters"]
+from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
+from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
+
 upstream = ["ambit2hts"]
 product = None
 folder_output = None
@@ -30,7 +33,7 @@ def pickle_obj(pkl_file):
     return data
 
 
-def create_data_container(endpoint, directory=None, tmp=None, serum=False, pkl_file=None):
+def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=False, pkl_file=None):
     _data = None
     if not pkl_file:
         _data = HTS(endpoint)
@@ -42,35 +45,54 @@ def create_data_container(endpoint, directory=None, tmp=None, serum=False, pkl_f
     else:
         _data = pickle_obj(pkl_file)
     _data.serum_used = serum
+    _data.assay_type = assay_type
 
     return _data
 
 
-def normalize_data(_data, endpoint='ctg', ctg_data_mean=None, dapi_data_mean=None):
-    if endpoint.lower() == 'ctg':
-        ctg_normalizer = CTGNormalization(_data)
-        ctg_normalizer.remove_outliers_by_quantiles()
-        ctg_normalizer.median_control(_data.normalized_df)
-        ctg_normalizer.subtract_blank(_data.normalized_df)
-        ctg_normalizer.calc_mean_median()
-    elif "dapi" in endpoint.lower():
-        dapi_normalizer = DapiNormalization(_data)
-        dapi_normalizer.clean_dna_raw()
-        dapi_normalizer.remove_outliers_by_quantiles()
-        dapi_normalizer.median_control(_data.normalized_df)
-        # dapi_normalizer.calc_mean_median()
-    elif endpoint.lower() == 'casp':
-        casp_normalizer = DapiNormalization(_data)
-        casp_normalizer.clean_dna_raw()
-        casp_normalizer.remove_outliers_by_quantiles()
-        casp_normalizer.median_control(_data.normalized_df)
-        casp_normalizer.calc_mean_median()
-    elif endpoint.lower() == 'h2ax' or endpoint.lower() == '8ohg':
-        h2ax_normalizer = OHGH2AXNormalization(_data)
-        h2ax_normalizer.clean_dna_raw()
-        h2ax_normalizer.remove_outliers_by_quantiles()
-        h2ax_normalizer.median_control(_data.normalized_df)
-        h2ax_normalizer.calc_mean_median()
+def normalize_data(_data, endpoint='ctg', assay_type = "viability", ctg_data_mean=None, dapi_data_mean=None):
+    if assay_type == "viability":
+        normalizer = CellViabilityNormalization(_data)
+        normalizer.remove_outliers_by_quantiles()
+
+        if endpoint.lower() == 'ctg':
+            normalizer.percentage_effect_from_median_control(_data.normalized_df)
+            normalizer.subtract_blank(_data.normalized_df)
+        if endpoint.lower() == 'casp':
+            normalizer.percentage_of_median_control(_data.normalized_df)
+            normalizer.subtract_blank_as_percent(_data.normalized_df)
+            normalizer.normalize_data_to_cell_count(ctg_data_mean, dapi_data_mean)
+        normalizer.calc_mean_median()
+
+    elif assay_type == "imaging":
+        normalizer = DNADamageNormalization(_data)
+        normalizer.clean_dna_raw()
+        normalizer.remove_outliers_by_quantiles()
+        if "dapi" in endpoint.lower():
+            normalizer.percentage_effect_from_median_control(_data.normalized_df)
+        if endpoint.lower() == 'h2ax' or endpoint.lower() == '8ohg':
+            normalizer.percentage_of_median_control(_data.normalized_df)
+        if endpoint.lower() == 'casp':
+            normalizer.percentage_effect_from_median_control(_data.normalized_df)
+        normalizer.calc_mean_median()
+
+
+def combine_hts_objects(hts_obj1: HTS, hts_obj2: HTS, endpoint_name: str) -> HTS:
+    # Combine the normalized_df DataFrames
+    combined_df = pd.concat(
+        [hts_obj1.normalized_df.groupby(['replicates', 'time', 'cells']).mean(),
+         hts_obj2.normalized_df.groupby(['replicates', 'time', 'cells']).mean()]
+    )
+
+    average_df = combined_df.groupby(['replicates', 'time', 'cells']).mean()
+    average_df.reset_index(inplace=True)
+
+    hts_obj1.normalized_df = average_df
+    hts_obj1.endpoint = endpoint_name
+    normalizer = DNADamageNormalization(hts_obj1)
+    normalizer.calc_mean_median()
+
+    return hts_obj1
 
 
 def process_all_hts_obj(hts_obj_dict):
@@ -78,19 +100,28 @@ def process_all_hts_obj(hts_obj_dict):
 
     for endpoint, obj in hts_obj_dict.items():
         if endpoint == "dapiB":
-            normalize_data(obj, obj.endpoint)
+            normalize_data(obj, obj.endpoint, obj.assay_type)
+            hts_obj_dict['dapiA'] = combine_hts_objects(hts_obj_dict['dapiA'], hts_obj_dict['dapiB'], 'DAPI')
+            # normalizer = DNADamageNormalization(hts_obj_dict['dapiA'])
+            # normalizer.calc_mean_median()
 
-            combined_df = pd.concat(
-                [hts_obj_dict['dapiB'].normalized_df.groupby(['replicates', 'time', 'cells']).mean(),
-                 hts_obj_dict['dapiA'].normalized_df.groupby(['replicates', 'time', 'cells']).mean()])
-            average_df = combined_df.groupby(['replicates', 'time', 'cells']).mean()
-            average_df.reset_index(inplace=True)
-            hts_obj_dict['dapiA'].normalized_df = average_df
-            norm = DapiNormalization(hts_obj_dict['dapiA'])
-            norm.calc_mean_median()
-            hts_obj_dict['dapiA'].endpoint = 'DAPI'
+
+            # combined_df = pd.concat(
+            #     [hts_obj_dict['dapiB'].normalized_df.groupby(['replicates', 'time', 'cells']).mean(),
+            #      hts_obj_dict['dapiA'].normalized_df.groupby(['replicates', 'time', 'cells']).mean()])
+            # average_df = combined_df.groupby(['replicates', 'time', 'cells']).mean()
+            # average_df.reset_index(inplace=True)
+            #
+            # hts_obj_dict['dapiA'].normalized_df = average_df
+            # norm = DNADamageNormalization(hts_obj_dict['dapiA'])
+            # norm.calc_mean_median()
+            # hts_obj_dict['dapiA'].endpoint = 'DAPI'
         else:
-            normalize_data(obj, obj.endpoint)
+            normalize_data(obj, obj.endpoint, obj.assay_type)
+            print(endpoint)
+            print(obj.endpoint)
+            print(obj.assay_type)
+            print(obj.normalized_df)
 
     del hts_obj_dict['dapiB']
 
@@ -109,19 +140,20 @@ def pkl_hts_obj(hts_obj):
 templates = [os.path.join(folder_input, file) for file in metadata_templates.split(",")]
 directories = [os.path.join(folder_input, file) for file in files_input.split(",")]
 
-_config_w = {"ctg": {"pkl_file": "ctg_data_w.pkl"},
-             "dapiA": {"dir": directories[0], "tmp": templates[0]},
-             "dapiB": {"dir": directories[0], "tmp": templates[0]},
-             "casp": {"dir": directories[0], "tmp": templates[0]},
-             "h2ax": {"dir": directories[0], "tmp": templates[0]},
-             "8ohg": {"dir": directories[0], "tmp": templates[0]}}
+_config_w = {"ctg": {"pkl_file": "ctg_data_w.pkl", "assay_type": 'viability'},
+             "dapiA": {"dir": directories[0], "tmp": templates[0],  "assay_type": 'imaging'},
+             "dapiB": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
+             "casp": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
+             "h2ax": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
+             "8ohg": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'}
+             }
 
-_config_wo = {"ctg": {"pkl_file": "ctg_data_wo.pkl"},
-              "dapiA": {"dir": directories[1], "tmp": templates[1]},
-              "dapiB": {"dir": directories[1], "tmp": templates[1]},
-              "casp": {"dir": directories[1], "tmp": templates[1]},
-              "h2ax": {"dir": directories[1], "tmp": templates[1]},
-              "8ohg": {"dir": directories[1], "tmp": templates[1]}}
+_config_wo = {"ctg": {"pkl_file": "ctg_data_wo.pkl",  "assay_type": 'viability'},
+              "dapiA": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
+              "dapiB": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
+              "casp": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
+              "h2ax": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
+              "8ohg": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'}}
 
 _data_w = {}
 for endpoint, config_data in _config_w.items():
@@ -129,8 +161,9 @@ for endpoint, config_data in _config_w.items():
     tmp = config_data.get("tmp", None)
     pkl_file = config_data.get("pkl_file", None)
     serum = config_data.get("serum", True)
+    assay_type = config_data.get("assay_type", None)
 
-    _data_w[endpoint] = create_data_container(endpoint, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
+    _data_w[endpoint] = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
 
 _data_wo = {}
 for endpoint, config_data in _config_wo.items():
@@ -138,8 +171,9 @@ for endpoint, config_data in _config_wo.items():
     tmp = config_data.get("tmp", None)
     pkl_file = config_data.get("pkl_file", None)
     serum = config_data.get("serum", False)
+    assay_type = config_data.get("assay_type", None)
 
-    _data_wo[endpoint] = create_data_container(endpoint, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
+    _data_wo[endpoint] = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
 
 process_all_hts_obj(_data_w)
 process_all_hts_obj(_data_wo)
