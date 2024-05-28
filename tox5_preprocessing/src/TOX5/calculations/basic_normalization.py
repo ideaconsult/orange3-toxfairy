@@ -31,6 +31,16 @@ class BasicNormalization:
             df.drop('median control', axis=1, inplace=True)
         return wrapper
 
+    @staticmethod
+    @percent_of_media_control
+    def percentage_effect_from_median_control(row):
+        return (1 - row.div(row['median control'])) * 100
+
+    @staticmethod
+    @percent_of_media_control
+    def percentage_of_median_control(row):
+        return (row.div(row['median control'])) * 100
+
     def calc_blank_sd(self):
         self.data.normalized_df['median'] = self.data.normalized_df[self.data.water_keys].median(axis=1)
         self.data.normalized_df['std'] = self.data.normalized_df[self.data.water_keys].std(axis=1)
