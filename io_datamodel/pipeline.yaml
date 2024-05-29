@@ -8,12 +8,8 @@ tasks:
 
     params:
       folder_output: "{{folder_output}}"
-      enm_api_url: "{{enm_api_url}}"
-      enm_api_key: "{{enm_api_key}}"
-      query: "{{query}}"
-      db: "{{db}}"
-      endpoint: "{{endpoint}}"
-      serum_used: "{{serum_used}}"
+      config_file: "{{config_file}}"
+      config_key: "{{config_key}}"
 
   - source: tasks/local_data2HTS_obj.py
     product:
@@ -21,9 +17,8 @@ tasks:
       data: "{{folder_output}}/substances_data_hts_local"
     params:
       folder_output: "{{folder_output}}"
-      folder_input: "{{folder_input}}"
-      files_input: "{{files_input}}"
-      metadata_templates: "{{metadata_templates}}"
+      config_file: "{{config_file}}"
+      config_key: "{{config_key}}"
 
 #  - source: tasks/nexus.py
 #    product:
@@ -39,25 +34,28 @@ tasks:
 #    params:
 #      folder_output: "{{folder_output}}"
 #
-#  - source: tasks/process_hts_obj.py
-#    product:
-#      nb: "products/read_process_hts_obj.ipynb"
-#      data: "{{folder_output}}/processed_hts_obj"
-#    params:
-#      folder_output: "{{folder_output}}"
-#      folder_input: "{{folder_input}}"
-#      files_input: "{{files_input}}"
-#      metadata_templates: "{{metadata_templates}}"
+  - source: tasks/process_hts_obj.py
+    product:
+      nb: "products/read_process_hts_obj.ipynb"
+      data: "{{folder_output}}/processed_hts_obj"
+    params:
+      folder_output: "{{folder_output}}"
+      config_file: "{{config_file}}"
+      config_key: "{{config_key}}"
+
 #
-#  - source: tasks/metl_df.py
-#    product:
-#      nb: "products/test.ipynb"
-#      data: "{{folder_output}}/melted_hts_obj"
+  - source: tasks/metl_df.py
+    product:
+      nb: "products/test.ipynb"
+      data: "{{folder_output}}/melted_hts_obj"
 #
-#  - source: tasks/processed2ambit.py
-#    product:
-#      nb: "products/processed2ambit_nb.ipynb"
-#      data: "{{folder_output}}/Calibrate_substances.nxs"
+  - source: tasks/processed2ambit.py
+    product:
+      nb: "products/processed2ambit_nb.ipynb"
+      data: "{{folder_output}}/Calibrate_substances_2.nxs"
+    params:
+      config_file: "{{config_file}}"
+      config_key: "{{config_key}}"
 #
 #
 #  - source: tasks/tox5_scoring.py

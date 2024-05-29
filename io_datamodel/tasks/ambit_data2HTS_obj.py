@@ -1,14 +1,9 @@
 # + tags=["parameters"]
 upstream = None
-enm_api_url = None
-enm_api_key = None
 folder_output = None
-query = None
 product = None
-db = None
-endpoint = None
-serum_used = None
-assay_type = None
+config_file = None
+config_key = None
 # -
 
 from pynanomapper import aa
@@ -21,8 +16,32 @@ import json
 import re
 import pickle
 from TOX5.endpoints.hts_data_container import HTS
+import sys
 
 os.makedirs(product["data_json"], exist_ok=True)
+
+
+def loadconfig(config_file, config_key, subkey="extract"):
+    with open(config_file) as f:
+        cfg = json.load(f)
+    return cfg[config_key][subkey]
+
+
+def run_task(config_for_db):
+    if not config_for_db:
+        sys.exit(0)
+
+
+extract_config = loadconfig(config_file, config_key, "extract_from_db")
+
+run_task(extract_config)
+
+enm_api_url = extract_config['enm_api_url']
+db = extract_config['db']
+query = extract_config['query']
+serum_used = extract_config['serum_used']
+assay_type = extract_config['assay_type']
+endpoint = extract_config['endpoint']
 
 
 def substances2json(url_db, auth, pjson):
@@ -79,7 +98,7 @@ with open(os.path.join(product["data_json"], "substances_obj.json"), 'w') as jso
 
 # Create HTS objects from Ambit substances
 
-def ambit_subs2hts_obj(ambit_substances, assay_type, serum_used=False):
+def ambit_subs2hts_obj(ambit_substances, assay_type, endpoint, serum_used=False):
     metadata = {}
     df_data_w = []
     df_data_wo = []
@@ -167,11 +186,10 @@ def ambit_subs2hts_obj(ambit_substances, assay_type, serum_used=False):
         return _data_wo
 
 
-
 # Save HTS objects
 os.makedirs(product["data_obj"], exist_ok=True)
 if serum_used:
-    _data_w, _data_wo = ambit_subs2hts_obj(substances, assay_type=assay_type, serum_used=True)
+    _data_w, _data_wo = ambit_subs2hts_obj(substances, assay_type=assay_type, endpoint=endpoint, serum_used=True)
     print(_data_wo)
     print(_data_w)
     with open(os.path.join(product["data_obj"], f'{endpoint}_data_w.pkl'), 'wb') as f:
@@ -183,4 +201,3 @@ else:
     _data_wo = ambit_subs2hts_obj(substances, assay_type=assay_type, serum_used=False)
     with open(os.path.join(product["data_obj"], f'{endpoint}_data_wo.pkl'), 'wb') as f:
         pickle.dump(_data_wo, f)
-

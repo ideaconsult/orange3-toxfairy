@@ -1,6 +1,8 @@
 # + tags=["parameters"]
 upstream = ["metl_df"]
 product = None
+config_file = None
+config_key = None
 # -
 
 import os.path
@@ -13,8 +15,10 @@ from pynanomapper.datamodel.ambit import configure_papp
 from typing import Dict
 import numpy as np
 import uuid
+import json
 
-_config = {"ctg": {}, "dapi": {}, "casp": {}, 'h2ax': {}, '8ohg': {}}
+# _config = {"ctg": {}, "dapi": {}, "casp": {}, 'h2ax': {}, '8ohg': {}}
+# _config = ["ctg", "dapi", "casp", 'h2ax', '8ohg']
 
 
 def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="Misvik", substance_records=[],
@@ -139,7 +143,7 @@ if os.path.exists(product["data"]):
     os.remove(product["data"])
 
 
-def add_to_nxs(_config, *endpoint_types):
+def add_to_nxs(_config, substance_owner, data_provider, *endpoint_types):
     with nx.load(product["data"], mode="a") as nxroot:
         for endpoint_type in endpoint_types:
             for endpoint in _config:
@@ -155,8 +159,8 @@ def add_to_nxs(_config, *endpoint_types):
                                             sep="\t")
                     result_df = result_df.loc[:, ~result_df.columns.str.contains('^Unnamed')]
                     substance_records = []
-                    substance_records = htsdf2ambit(result_df, endpoint, substance_owner="caLIBRAte",
-                                                    dataprovider="Misvik",
+                    substance_records = htsdf2ambit(result_df, endpoint, substance_owner=substance_owner,
+                                                    dataprovider=data_provider,
                                                     substance_records=substance_records,
                                                     endpoint_type=endpoint_type.upper(),
                                                     serum_used=serum_used)
@@ -165,4 +169,15 @@ def add_to_nxs(_config, *endpoint_types):
                     substances.to_nexus(nx_root=nxroot)
 
 
-add_to_nxs(_config, 'raw', 'median', 'normalized', 'dose-response')
+def loadconfig(config_file, config_key, subkey="extract"):
+    with open(config_file) as f:
+        cfg = json.load(f)
+    return cfg[config_key][subkey]
+
+
+extract_config = loadconfig(config_file, config_key, "2ambit")
+
+add_to_nxs(extract_config["endpoints"],
+           extract_config['substance_owner'],
+           extract_config['data_provider'],
+           'raw', 'median', 'normalized', 'dose-response')

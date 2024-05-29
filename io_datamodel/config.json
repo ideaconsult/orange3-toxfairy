@@ -1,0 +1,57 @@
+{"calibrate": {
+    "extract_from_db": {"enm_api_url": "https://api.ideaconsult.net/calibrate",
+                        "enm_api_key": "",
+                        "query": "type=citationowner&search=MISVIK",
+                        "db": "calibrate",
+                        "endpoint": "CTG",
+                        "assay_type": "viability",
+                        "serum_used": true
+                        },
+    "extract_from_local": {"folder_data_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate",
+                            "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate",
+                            "config": {
+                                        "config1": {
+                                                    "dir": "calibrate_imaging_wo",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_wo.xlsx",
+                                                    "assay_type": "imaging",
+                                                    "serum": false,
+                                                    "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]},
+                                        "config2": {
+                                                    "dir": "calibrate_imaging_w",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_w.xlsx",
+                                                    "assay_type": "imaging",
+                                                    "serum": true,
+                                                    "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]}
+                                      }
+                            },
+    "processing": {"endpoint_order":  ["CTG", "DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"],
+                    "tech_replicates_endpoints": ["DAPIA", "DAPIB", "DAPI"]
+                  },
+  "2ambit": {"substance_owner":  "caLIBRAte",
+              "data_provider": "Misvik",
+              "endpoints": ["ctg", "dapi", "casp", "h2ax", "8ohg"]
+            }
+    },
+
+"harmless": {
+    "extract_from_db": false,
+    "extract_from_local": {"folder_data_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\data\\Misvik high throughput screening data",
+                            "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files",
+                            "config1": {
+                                        "dir": "Screens5-8 CTG Casp_raw_data",
+                                        "tmp": "TestDataRecordingForm_harmless_HTS_METADATA_QD_screens_5_8.xlsx",
+                                        "assay_type": "viability",
+                                        "serum": false,
+                                        "endpoints": ["CASP", "CTG"]},
+                            "config2": {
+                                        "dir": "Screen5-8_imaging data",
+                                        "tmp": "TestDataRecordingForm_harmless_HTS_METADATA_QD_screens_5_8.xlsx",
+                                        "assay_type": "imaging",
+                                        "serum": false,
+                                        "endpoints": ["DAPI","H2AX", "8OHG"]}
+                            },
+    "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
+                    "tech_replicates_endpoints": "None"
+                  }
+    }
+}
