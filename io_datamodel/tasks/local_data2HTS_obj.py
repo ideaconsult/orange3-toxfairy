@@ -2,15 +2,31 @@
 upstream = None
 product = None
 folder_output = None
-folder_input = None
-files_input = None
-metadata_templates = None
+config_file = None
+config_key = None
 # -
 
 from TOX5.endpoints.hts_data_container import HTS
 from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 import os.path
 import pickle
+import json
+import sys
+
+
+def loadconfig(config_file, config_key, subkey="extract"):
+    with open(config_file) as f:
+        cfg = json.load(f)
+    return cfg[config_key][subkey]
+
+
+def run_task(config_for_local):
+    if not config_for_local:
+        sys.exit(0)
+
+
+extract_config = loadconfig(config_file, config_key, "extract_from_local")
+run_task(extract_config)
 
 
 def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=False):
@@ -40,39 +56,29 @@ def pkl_hts_obj(hts_obj):
             pickle.dump(obj, f)
 
 
-templates = [os.path.join(folder_input, file) for file in metadata_templates.split(",")]
-directories = [os.path.join(folder_input, file) for file in files_input.split(",")]
-
-
-config = {"config1": {
-    "dapiA": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-    "dapiB": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-    "casp": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-    "h2ax": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-    "8ohg": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True}
-    },
-    "config2": {
-        "dapiA": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-        "dapiB": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-        "casp": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-        "h2ax": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-        "8ohg": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False}
-    }
-}
-
-
 obj_list = []
+folder_data_input = extract_config["folder_data_input"]
+folder_tmp_input = extract_config["folder_tmp_input"]
+config = extract_config["config"]
+# print(config)
+
 for key, config_item in config.items():
-    for endpoint, config_data in config_item.items():
-        directory = config_data.get("dir", None)
-        tmp = config_data.get("tmp", None)
-        serum = config_data.get("serum", None)
-        assay_type = config_data.get("assay_type", None)
+    directory = os.path.join(folder_data_input, config_item.get("dir", ""))
+    tmp = os.path.join(folder_tmp_input, config_item.get("tmp", ""))
+    serum = config_item.get("serum", None)
+    assay_type = config_item.get("assay_type", None)
+    endpoints = config_item.get("endpoints", [])
+
+    for endpoint in endpoints:
         tmp_obj = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum)
         obj_list.append(tmp_obj)
+
+# # Example to print the resulting list of objects
+# for obj in obj_list:
+#     print(obj)
 
 os.makedirs(product["data"], exist_ok=True)
 pkl_hts_obj(obj_list)
 
-print(len(obj_list))
-print(obj_list[0])
+# print(len(obj_list))
+# print(obj_list[0])

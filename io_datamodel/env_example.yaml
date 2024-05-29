@@ -1,31 +1,4 @@
-# Extract data from Ambit database
 folder_output: "products"
-enm_api_url: "https://api.ideaconsult.net/calibrate"
-enm_api_key: ""
-query: "type=citationowner&search=MISVIK"
-db: "calibrate"
-endpoint: "CTG"
-assay_type: "viability"
-serum_used: True
-
-# Extract data from Local files
-folder_input: "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate"
-files_input: "calibrate_imaging_w,calibrate_imaging_wo"
-metadata_templates: "TestDataRecordingForm_calibrate_HTS_METADATA_w.xlsx,TestDataRecordingForm_calibrate_HTS_METADATA_wo.xlsx"
-
-
-#config: {"config1": {
-#    "dapiA": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-#    "dapiB": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-#    "casp": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-#    "h2ax": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True},
-#    "8ohg": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging', "serum": True}
-#    },
-#    "config2": {
-#        "dapiA": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-#        "dapiB": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-#        "casp": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-#        "h2ax": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False},
-#        "8ohg": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging', "serum": False}
-#    }
-#}
+config_file: "config.json"
+config_key: "calibrate"
+#config_key: "harmless"

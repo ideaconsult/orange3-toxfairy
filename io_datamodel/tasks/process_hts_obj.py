@@ -1,56 +1,61 @@
 # + tags=["parameters"]
-from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
-from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
-
-upstream = ["ambit2hts"]
+upstream = ["ambit_data2HTS_obj", "local_data2HTS_obj"]
 product = None
 folder_output = None
-folder_input = None
-files_input = None
-metadata_templates = None
+config_file = None
+config_key = None
 # -
-
-from TOX5.calculations.dapi_normalization import DapiNormalization
+from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
+from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
 from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
-from TOX5.calculations.ctg_normalization import CTGNormalization
-from TOX5.calculations.ohg_h2ax_normalization import OHGH2AXNormalization
 from TOX5.calculations.dose_response import DoseResponse
+from TOX5.calculations.basic_normalization import BasicNormalization
 import pandas as pd
 import os.path
 import pickle
+import json
 
 # Read CTG data, extracted from calibrate database and save as a pickle object, other imaging endpoint read from local files
 # Treat data with and without serum as a separate data
 # Normalize and calculate dose-response parameters
 
-path = upstream["ambit2hts"]["data"]
+path_db = upstream["ambit_data2HTS_obj"]["data_obj"]
+path_local = upstream["local_data2HTS_obj"]["data"]
+
+directories = [path_db, path_local]
+combined_dict = {"w": {}, "wo": {}}
 
 
-def pickle_obj(pkl_file):
-    with open(os.path.join(path, pkl_file), 'rb') as f:
-        data = pickle.load(f)
-    return data
+# Function to process a single directory
+def process_directory(directory):
+    if not os.listdir(directory):
+        print(f"The directory {directory} is empty.")
+        return
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".pkl"):
+            # Split the filename to categorize it
+            parts = filename.split('_')
+            if len(parts) >= 3:
+                category_key = parts[2].split('.')[0]  # Extract the part after the second underscore
+                nested_key = parts[0]  # Extract the first part before the first underscore
+                print(f"Category Key: {category_key}, Nested Key: {nested_key}")
+
+                # Read the .pkl file
+                with open(os.path.join(directory, filename), 'rb') as file:
+                    obj = pickle.load(file)
+
+                if category_key not in combined_dict:
+                    combined_dict[category_key] = {}
+
+                combined_dict[category_key][nested_key] = obj
 
 
-def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=False, pkl_file=None):
-    _data = None
-    if not pkl_file:
-        _data = HTS(endpoint)
-        _meta = MetaDataReaderTmp(tmp, _data)
-        _meta.read_meta_data()
-        data_reader = DataReaderTmp(tmp, directory, _data)
-        data_reader.read_data()
-        _data.raw_data_df = _data.raw_data_df[_data.raw_data_df['Description'] != '_']
-    else:
-        _data = pickle_obj(pkl_file)
-    _data.serum_used = serum
-    _data.assay_type = assay_type
-
-    return _data
+for directory in directories:
+    process_directory(directory)
 
 
-def normalize_data(_data, endpoint='ctg', assay_type = "viability", ctg_data_mean=None, dapi_data_mean=None):
+def normalize_data(_data, endpoint='ctg', assay_type="viability", ctg_data_mean=None, dapi_data_mean=None):
     if assay_type == "viability":
         normalizer = CellViabilityNormalization(_data)
         normalizer.remove_outliers_by_quantiles()
@@ -78,7 +83,6 @@ def normalize_data(_data, endpoint='ctg', assay_type = "viability", ctg_data_mea
 
 
 def combine_hts_objects(hts_obj1: HTS, hts_obj2: HTS, endpoint_name: str) -> HTS:
-    # Combine the normalized_df DataFrames
     combined_df = pd.concat(
         [hts_obj1.normalized_df.groupby(['replicates', 'time', 'cells']).mean(),
          hts_obj2.normalized_df.groupby(['replicates', 'time', 'cells']).mean()]
@@ -89,41 +93,42 @@ def combine_hts_objects(hts_obj1: HTS, hts_obj2: HTS, endpoint_name: str) -> HTS
 
     hts_obj1.normalized_df = average_df
     hts_obj1.endpoint = endpoint_name
-    normalizer = DNADamageNormalization(hts_obj1)
+    normalizer = BasicNormalization(hts_obj1)
     normalizer.calc_mean_median()
 
     return hts_obj1
 
 
-def process_all_hts_obj(hts_obj_dict):
+def process_all_hts_obj(hts_obj_dict, processing_order, tech_replicates_endpoints=('DAPIA', 'DAPIB', "DAPI")):
+
+    # tech_replicates_endpoints=('tech_repl0', 'tech_repl1', "combined_endpoint_name")
     # for dapi data the two technical replicates (a+b) are first averaged, then median of the four biological replicates is counted
 
-    for endpoint, obj in hts_obj_dict.items():
-        if endpoint == "dapiB":
+    tech_repl_1 = tech_replicates_endpoints[0]
+    tech_repl_2 = tech_replicates_endpoints[1]
+    new_combined_endpoint = tech_replicates_endpoints[2]
+
+    # for endpoint, obj in hts_obj_dict.items():
+    for endpoint in processing_order:
+        obj = hts_obj_dict[endpoint]
+
+        if endpoint == tech_repl_2 and hts_obj_dict[tech_repl_1].normalized_df is not None:
             normalize_data(obj, obj.endpoint, obj.assay_type)
-            hts_obj_dict['dapiA'] = combine_hts_objects(hts_obj_dict['dapiA'], hts_obj_dict['dapiB'], 'DAPI')
-            # normalizer = DNADamageNormalization(hts_obj_dict['dapiA'])
-            # normalizer.calc_mean_median()
+            hts_obj_dict[new_combined_endpoint] = combine_hts_objects(hts_obj_dict[tech_repl_1],
+                                                                      hts_obj_dict[tech_repl_2], new_combined_endpoint)
 
-
-            # combined_df = pd.concat(
-            #     [hts_obj_dict['dapiB'].normalized_df.groupby(['replicates', 'time', 'cells']).mean(),
-            #      hts_obj_dict['dapiA'].normalized_df.groupby(['replicates', 'time', 'cells']).mean()])
-            # average_df = combined_df.groupby(['replicates', 'time', 'cells']).mean()
-            # average_df.reset_index(inplace=True)
-            #
-            # hts_obj_dict['dapiA'].normalized_df = average_df
-            # norm = DNADamageNormalization(hts_obj_dict['dapiA'])
-            # norm.calc_mean_median()
-            # hts_obj_dict['dapiA'].endpoint = 'DAPI'
+        elif endpoint == 'CASP' and obj.assay_type == 'imaging':
+            if hts_obj_dict['DAPI'].mean_df is not None and hts_obj_dict['CTG'].mean_df is not None:
+                normalize_data(obj, obj.endpoint, obj.assay_type,
+                               ctg_data_mean=hts_obj_dict['DAPI'].mean_df,
+                               dapi_data_mean=hts_obj_dict['CTG'].mean_df)
         else:
             normalize_data(obj, obj.endpoint, obj.assay_type)
-            print(endpoint)
-            print(obj.endpoint)
-            print(obj.assay_type)
-            print(obj.normalized_df)
+        dose_response = DoseResponse(obj)
+        dose_response.dose_response_parameters()
 
-    del hts_obj_dict['dapiB']
+    del hts_obj_dict[tech_repl_1]
+    del hts_obj_dict[tech_repl_2]
 
 
 def pkl_hts_obj(hts_obj):
@@ -137,56 +142,18 @@ def pkl_hts_obj(hts_obj):
             pickle.dump(obj, f)
 
 
-templates = [os.path.join(folder_input, file) for file in metadata_templates.split(",")]
-directories = [os.path.join(folder_input, file) for file in files_input.split(",")]
+def loadconfig(config_file, config_key, subkey="extract"):
+    with open(config_file) as f:
+        cfg = json.load(f)
+    return cfg[config_key][subkey]
 
-_config_w = {"ctg": {"pkl_file": "ctg_data_w.pkl", "assay_type": 'viability'},
-             "dapiA": {"dir": directories[0], "tmp": templates[0],  "assay_type": 'imaging'},
-             "dapiB": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
-             "casp": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
-             "h2ax": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'},
-             "8ohg": {"dir": directories[0], "tmp": templates[0], "assay_type": 'imaging'}
-             }
 
-_config_wo = {"ctg": {"pkl_file": "ctg_data_wo.pkl",  "assay_type": 'viability'},
-              "dapiA": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
-              "dapiB": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
-              "casp": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
-              "h2ax": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'},
-              "8ohg": {"dir": directories[1], "tmp": templates[1], "assay_type": 'imaging'}}
-
-_data_w = {}
-for endpoint, config_data in _config_w.items():
-    directory = config_data.get("dir", None)
-    tmp = config_data.get("tmp", None)
-    pkl_file = config_data.get("pkl_file", None)
-    serum = config_data.get("serum", True)
-    assay_type = config_data.get("assay_type", None)
-
-    _data_w[endpoint] = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
-
-_data_wo = {}
-for endpoint, config_data in _config_wo.items():
-    directory = config_data.get("dir", None)
-    tmp = config_data.get("tmp", None)
-    pkl_file = config_data.get("pkl_file", None)
-    serum = config_data.get("serum", False)
-    assay_type = config_data.get("assay_type", None)
-
-    _data_wo[endpoint] = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum, pkl_file=pkl_file)
-
-process_all_hts_obj(_data_w)
-process_all_hts_obj(_data_wo)
-
-for key, obj in _data_w.items():
-    _dose_params = DoseResponse(obj)
-    _dose_params.dose_response_parameters()
-
-for key, obj in _data_wo.items():
-    _dose_params = DoseResponse(obj)
-    _dose_params.dose_response_parameters()
+extract_config = loadconfig(config_file, config_key, "processing")
+print(tuple(extract_config["tech_replicates_endpoints"]))
 
 os.makedirs(product["data"], exist_ok=True)
 
-pkl_hts_obj(_data_wo)
-pkl_hts_obj(_data_w)
+for key, objs in combined_dict.items():
+    process_all_hts_obj(objs, processing_order=extract_config["endpoint_order"],
+                        tech_replicates_endpoints=tuple(extract_config["tech_replicates_endpoints"]))
+    pkl_hts_obj(objs)
