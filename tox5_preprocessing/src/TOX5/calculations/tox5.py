@@ -25,6 +25,9 @@ class TOX5:
         self.__transformed_data = pd.DataFrame()
         self.__tox5_scores = pd.DataFrame()
         self.__all_slice_names = []
+        self.__ci_slices = {}
+        self.__ci_scores = {}
+        self.__ci_scores_df = pd.DataFrame()
 
         self.slice_names = []
         self.slices = []
@@ -38,25 +41,25 @@ class TOX5:
     def transformed_data_r(self):
         return self.__transformed_data_r
 
-    @transformed_data_r.setter
-    def transformed_data_r(self, value):
-        self.__transformed_data_r = value
-
     @property
     def transformed_data(self):
         return self.__transformed_data
-
-    @transformed_data.setter
-    def transformed_data(self, value):
-        self.__transformed_data = value
 
     @property
     def tox5_scores(self):
         return self.__tox5_scores
 
-    @tox5_scores.setter
-    def tox5_scores(self, value):
-        self.__tox5_scores = value
+    @property
+    def ci_slices(self):
+        return self.__ci_slices
+
+    @property
+    def ci_scores(self):
+        return self.__ci_scores
+
+    @property
+    def ci_scores_df(self):
+        return self.__ci_scores_df
 
     def transform_data(self, user_transform_funcs):
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
@@ -106,10 +109,10 @@ class TOX5:
                     return (as.data.frame((sort(results)), id.name = "Material", score.name = "toxpi_score", rank.name = "rnk"))
             }
         ''')
-        self.transformed_data_r = transforming_data(slice_names_, r_from_pd_df, user_transform_funcs_r)
+        self.__transformed_data_r = transforming_data(slice_names_, r_from_pd_df, user_transform_funcs_r)
 
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
-            self.transformed_data = ro.conversion.get_conversion().rpy2py(self.transformed_data_r)
+            self.__transformed_data = ro.conversion.get_conversion().rpy2py(self.transformed_data_r)
 
     @staticmethod
     def _extract_endpoint(item):
@@ -189,48 +192,44 @@ class TOX5:
         result = calculate_scores(self.transformed_data_r, slices_names_r, slices_r)
 
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
-            self.tox5_scores = ro.conversion.get_conversion().rpy2py(result)
+            self.__tox5_scores = ro.conversion.get_conversion().rpy2py(result)
 
-    def ci_slices(self, n_boot=1000, ci_level=0.95):
-        ci_intervals = {}
+    def calc_ci_slices(self, n_boot=1000, ci_level=0.95):
         unique_materials = self.transformed_data['Material'].unique()
         for material in unique_materials:
             material_data = self.transformed_data[self.transformed_data['Material'] == material]
 
-            ci_intervals[material] = {}
+            self.__ci_slices[material] = {}
 
             for group_name, group_columns in zip(self.slice_names, self.slices):
                 group_data = material_data[group_columns]
                 results = bootstrap(group_data.values, statistic=np.mean, n_resamples=n_boot, confidence_level=ci_level,
                                     random_state=42, method="percentile")
                 ci_low, ci_high = results.confidence_interval
-                ci_intervals[material][group_name] = [ci_low, ci_high]
+                self.__ci_slices[material][group_name] = [ci_low, ci_high]
 
-        return ci_intervals
-
-    def ci_scores(self, n_boot=1000, ci_level=0.95):
+    def calc_ci_scores(self, n_boot=1000, ci_level=0.95):
         if 'low_ci' in self.tox5_scores.columns:
-            self.tox5_scores = self.tox5_scores.drop(columns=['low_ci'])
+            self.__tox5_scores = self.tox5_scores.drop(columns=['low_ci'])
 
         if 'high_ci' in self.tox5_scores.columns:
-            self.tox5_scores = self.tox5_scores.drop(columns=['high_ci'])
-        ci_intervals = {}
+            self.__tox5_scores = self.tox5_scores.drop(columns=['high_ci'])
+        self.__ci_scores = {}
 
         unique_materials = self.tox5_scores['Material'].unique()
         for material in unique_materials:
             material_data = self.tox5_scores[self.tox5_scores['Material'] == material]
 
-            ci_intervals[material] = {}
+            self.__ci_scores[material] = {}
             tmp_data = material_data.iloc[:, 3:].values
 
             results = bootstrap(tmp_data, statistic=np.mean, n_resamples=n_boot, confidence_level=ci_level,
                                 random_state=42, method="percentile")
             ci_low, ci_high = results.confidence_interval
-            ci_intervals[material] = [ci_low, ci_high]
+            self.__ci_scores[material] = [ci_low, ci_high]
 
-        df = pd.DataFrame.from_dict(ci_intervals, orient='index', columns=['low_ci', 'high_ci']).reset_index()
-        df.rename(columns={'index': 'Material'}, inplace=True)
-        df_combined = pd.merge(self.tox5_scores, df, on='Material')
-        self.tox5_scores = df_combined
-
-        return ci_intervals, df
+        self.__ci_scores_df = pd.DataFrame.from_dict(self.__ci_scores, orient='index',
+                                                     columns=['low_ci', 'high_ci']).reset_index()
+        self.__ci_scores_df.rename(columns={'index': 'Material'}, inplace=True)
+        df_combined = pd.merge(self.tox5_scores, self.__ci_scores_df, on='Material')
+        self.__tox5_scores = df_combined
