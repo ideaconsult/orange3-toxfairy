@@ -239,11 +239,11 @@ class Toxpi(OWWidget):
 
     def compute_bootstrap_ci(self):
         if self.tox5.transformed_data is not None:
-            ci_slices = self.tox5.ci_slices()
-            self.Outputs.ci_slices_dict.send(ci_slices)
+            self.tox5.calc_ci_slices()
+            self.Outputs.ci_slices_dict.send(self.tox5.ci_slices)
 
         if self.tox5.tox5_scores is not None:
-            _, _ = self.tox5.ci_scores()
+            self.tox5.calc_ci_scores()
 
             orange_table = table_from_frame(self.tox5.tox5_scores, force_nominal=True)
             self.Outputs.dataframe_tox.send(orange_table)
