@@ -125,7 +125,7 @@ def _create_color_map(labels, colored_by='endpoint'):
 
 
 def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', transparency_bars=0.6, linewidth=0.2,
-                      conf_intervals=None, ci_low_color="#ff5c33", ci_high_color="#ff5c33", pies_per_col=2):
+                      conf_intervals=None, ci_low_color="#ff5c33", ci_high_color="#ff5c33", pies_per_col=5, legend_cols=2):
     """
     Plot Tox5-score materials using a pie plot.
 
@@ -158,7 +158,7 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
     if 'high_ci' in df.columns:
         df = df.drop(columns=['high_ci'])
 
-    if materials is None:
+    if not materials:
         materials = df['Material'].unique().tolist()
 
     columns = math.ceil(len(materials) / pies_per_col)  # /5
@@ -175,6 +175,7 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
 
     for n, i in enumerate(materials):
         rank = (df[df['Material'] == i].iloc[:, 2]).values[0]
+        score = (df[df['Material'] == i].iloc[:, 1]).values[0]
         data_tox = df[df['Material'] == i].iloc[:, 3:].values.flatten().tolist()
 
         # Sort data_tox based on the sorted labels
@@ -205,14 +206,14 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
         ax.set_yticks([0.2, 0.5, 1.0])
         # ax.grid(False)
         ax.spines['polar'].set_color('grey')
-        plt.title(f"{i} {rank.round(2)}", fontsize=8)
+        plt.title(f"{i} {score.round(2)}", fontsize=8)
 
         legend_handles.extend(bars)
 
     legend_figure = plt.figure()
     legend_handles = legend_handles[:len(labels_sorted)]
 
-    plt.legend(legend_handles, labels_sorted, loc='center', fontsize='small', ncol=4, mode='expand')
+    plt.legend(legend_handles, labels_sorted, loc='center', fontsize='small', ncol=legend_cols, mode='expand')
     plt.axis('off')
 
     return figure, legend_figure
