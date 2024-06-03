@@ -27,13 +27,6 @@ tasks:
 #      folder_output: "{{folder_output}}"
 #      query: "{{query}}"
 #
-#  - source: tasks/ambit2hts.py
-#    product:
-#      nb: "products/ambit2hts_tox5.ipynb"
-#      data: "{{folder_output}}/substances_hts_obj"
-#    params:
-#      folder_output: "{{folder_output}}"
-#
   - source: tasks/process_hts_obj.py
     product:
       nb: "products/read_process_hts_obj.ipynb"
