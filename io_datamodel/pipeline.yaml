@@ -5,7 +5,6 @@ tasks:
       nb: "products/extract_data.ipynb"
       data_json: "{{folder_output}}/substances_data"
       data_obj: "{{folder_output}}/substances_data_hts"
-
     params:
       folder_output: "{{folder_output}}"
       config_file: "{{config_file}}"
@@ -36,12 +35,13 @@ tasks:
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
 
-#
+
   - source: tasks/metl_df.py
     product:
       nb: "products/test.ipynb"
       data: "{{folder_output}}/melted_hts_obj"
-#
+
+
   - source: tasks/processed2ambit.py
     product:
       nb: "products/processed2ambit_nb.ipynb"
