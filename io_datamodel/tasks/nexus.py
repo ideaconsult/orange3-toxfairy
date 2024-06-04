@@ -1,8 +1,9 @@
 # + tags=["parameters"]
-upstream = ["extract_data"]
+upstream = ["ambit_data2HTS_obj"]
 product = None
 folder_output = None
-query = None
+config_file = None
+config_key = None
 # -
 
 from pynanomapper.datamodel.nexus_writer import to_nexus
@@ -12,7 +13,17 @@ import nexusformat.nexus.tree as nx
 import json
 import uuid
 
-path = upstream["extract_data"]["data"]
+def loadconfig(config_file, config_key, subkey="extract"):
+    with open(config_file) as f:
+        cfg = json.load(f)
+    return cfg[config_key][subkey]
+
+
+extract_config = loadconfig(config_file, config_key, "extract_from_db")
+query = extract_config['query']
+
+
+path = upstream["ambit_data2HTS_obj"]["data_json"]
 json_path = os.path.join(path, "substances_obj.json")
 with open(json_path, 'r') as json_file:
     pjson = json.load(json_file)

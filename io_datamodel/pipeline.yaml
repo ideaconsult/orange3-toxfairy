@@ -19,13 +19,14 @@ tasks:
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
 
-#  - source: tasks/nexus.py
-#    product:
-#      nb: "{{folder_output}}/write_to_nexus.ipynb"
-#    params:
-#      folder_output: "{{folder_output}}"
-#      query: "{{query}}"
-#
+  - source: tasks/nexus.py
+    product:
+      nb: "{{folder_output}}/write_to_nexus.ipynb"
+    params:
+      folder_output: "{{folder_output}}"
+      config_file: "{{config_file}}"
+      config_key: "{{config_key}}"
+
   - source: tasks/process_hts_obj.py
     product:
       nb: "products/read_process_hts_obj.ipynb"
