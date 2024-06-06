@@ -19,6 +19,12 @@ from TOX5.endpoints.hts_data_container import HTS
 import sys
 
 os.makedirs(product["data_json"], exist_ok=True)
+os.makedirs(product["data_obj"], exist_ok=True)
+
+if os.path.exists(product["data_obj"]):
+    files = os.listdir(product["data_obj"])
+    for file in files:
+        os.remove(os.path.join(product["data_obj"], file))
 
 
 def loadconfig(config_file, config_key, subkey="extract"):
@@ -187,7 +193,8 @@ def ambit_subs2hts_obj(ambit_substances, assay_type, endpoint, serum_used=False)
 
 
 # Save HTS objects
-os.makedirs(product["data_obj"], exist_ok=True)
+# os.makedirs(product["data_obj"], exist_ok=True)
+
 if serum_used:
     _data_w, _data_wo = ambit_subs2hts_obj(substances, assay_type=assay_type, endpoint=endpoint, serum_used=True)
     print(_data_wo)

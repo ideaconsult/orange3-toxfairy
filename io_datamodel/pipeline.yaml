@@ -46,7 +46,7 @@ tasks:
   - source: tasks/processed2ambit.py
     product:
       nb: "products/processed2ambit_nb.ipynb"
-      data: "{{folder_output}}/Calibrate_substances_2.nxs"
+      data: "{{folder_output}}/calibrate_substances.nxs"
     params:
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
