@@ -37,7 +37,8 @@ def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=
     _meta.read_meta_data()
     data_reader = DataReaderTmp(tmp, directory, _data)
     data_reader.read_data()
-    _data.raw_data_df = _data.raw_data_df[_data.raw_data_df['Description'] != '_']
+    if _data.assay_type == "imaging":
+        _data.raw_data_df = _data.raw_data_df[_data.raw_data_df['Description'] != '_']
 
     _data.serum_used = serum
     _data.assay_type = assay_type
@@ -78,6 +79,12 @@ for key, config_item in config.items():
 #     print(obj)
 
 os.makedirs(product["data"], exist_ok=True)
+
+if os.path.exists(product["data"]):
+    files = os.listdir(product["data"])
+    for file in files:
+        os.remove(os.path.join(product["data"], file))
+
 pkl_hts_obj(obj_list)
 
 # print(len(obj_list))

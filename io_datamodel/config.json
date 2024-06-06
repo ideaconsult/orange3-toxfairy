@@ -25,7 +25,9 @@
                                       }
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"],
-                    "tech_replicates_endpoints": ["DAPIA", "DAPIB", "DAPI"]
+                    "tech_replicates_endpoints": ["DAPIA", "DAPIB", "DAPI"],
+                    "filtrate_materials": [],
+                    "filtrate_cells": []
                   },
     "2ambit": {"substance_owner":  "caLIBRAte",
               "data_provider": "Misvik",
@@ -44,17 +46,17 @@
               "bootstrap_CIs": true
               },
     "plotting": {"materials": [],
-                  "colored_param": "time",
+                  "colored_param": "endpoint",
                   "ci_low_color": "#ff5c33",
                   "ci_high_color":"#ff5c33"
                 }
     },
 
-"harmless": {
+"harmless_screen_5-8": {
     "extract_from_db": false,
     "extract_from_local": {"folder_data_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\data\\Misvik high throughput screening data",
                             "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files",
-                            "config1": {
+                            "config": {"config1": {
                                         "dir": "Screens5-8 CTG Casp_raw_data",
                                         "tmp": "TestDataRecordingForm_harmless_HTS_METADATA_QD_screens_5_8.xlsx",
                                         "assay_type": "viability",
@@ -66,11 +68,81 @@
                                         "assay_type": "imaging",
                                         "serum": false,
                                         "endpoints": ["DAPI","H2AX", "8OHG"]}
+                                        }
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
-                    "tech_replicates_endpoints": "None"
-                  }
+                    "tech_replicates_endpoints": [],
+                    "filtrate_materials": ["PL-QD-CF  (no disp)","PL-QD-OA (poor disp)", "5-FU", "4NQO", "MMC", "Bleom"],
+                    "filtrate_cells": []
+                  },
+    "2ambit": {"substance_owner":  "HARMLESS",
+              "data_provider": "Misvik",
+              "endpoints": ["ctg", "dapi", "casp", "h2ax", "8ohg"]
+              },
+    "scoring": {"cells": ["BEAS-2B", "A549", "THP-1", "HepG2"],
+                "transform_functions": {
+                                        "1st": "log10x_6",
+                                        "auc": "sqrt_x",
+                                        "max": "log10x_6"
+                                        },
+              "auto_slices": "by_time_endpoint",
+              "manual_slices": false,
+              "manual_names": false,
+              "add_weight": [3, "1st_3SD"],
+              "bootstrap_CIs": true
+              },
+    "plotting": {"materials": ["MMC", "PL-QD-CF  (no disp)", "PL-QD-OA (poor disp)"],
+                  "colored_param": "endpoint",
+                  "ci_low_color": "#ff5c33",
+                  "ci_high_color":"#ff5c33"
+                }
     },
+
+"harmless_screen_1-4": {
+    "extract_from_db": false,
+    "extract_from_local": {"folder_data_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\data\\Misvik high throughput screening data",
+                            "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files",
+                            "config": {"config1": {
+                                        "dir": "Screen1-4_CTG_Caspase_raw_data",
+                                        "tmp": "TestDataRecordingForm_harmless_HTS_METADATA.xlsx",
+                                        "assay_type": "viability",
+                                        "serum": false,
+                                        "endpoints": ["CASP", "CTG"]},
+                            "config2": {
+                                        "dir": "Screen1-4_imaging data",
+                                        "tmp": "TestDataRecordingForm_harmless_HTS_METADATA.xlsx",
+                                        "assay_type": "imaging",
+                                        "serum": false,
+                                        "endpoints": ["DAPI","H2AX", "8OHG"]}
+                                        }
+                            },
+    "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
+                    "tech_replicates_endpoints": [],
+                    "filtrate_materials": [],
+                    "filtrate_cells": []
+                  },
+    "2ambit": {"substance_owner":  "HARMLESS",
+              "data_provider": "Misvik",
+              "endpoints": ["ctg", "dapi", "casp", "h2ax", "8ohg"]
+              },
+    "scoring": {"cells": ["BEAS-2B", "A549", "THP-1", "HepG2"],
+                "transform_functions": {
+                                        "1st": "log10x_6",
+                                        "auc": "sqrt_x",
+                                        "max": "log10x_6"
+                                        },
+              "auto_slices": "by_time_endpoint",
+              "manual_slices": false,
+              "manual_names": false,
+              "add_weight": [3, "1st_3SD"],
+              "bootstrap_CIs": true
+              },
+    "plotting": {"materials": [],
+                  "colored_param": "endpoint",
+                  "ci_low_color": "#ff5c33",
+                  "ci_high_color":"#ff5c33"
+                }
+  },
 
 
 

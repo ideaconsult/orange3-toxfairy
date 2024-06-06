@@ -79,6 +79,10 @@ def hts2df(raw_data_df, metadata, endpoint='ctg', result_type='raw_data'):
 
 
 os.makedirs(product["data"], exist_ok=True)
+if os.path.exists(product["data"]):
+    files = os.listdir(product["data"])
+    for file in files:
+        os.remove(os.path.join(product["data"], file))
 
 for key_endpoint, obj in pickle_hts_data.items():
     endpoint = obj.endpoint

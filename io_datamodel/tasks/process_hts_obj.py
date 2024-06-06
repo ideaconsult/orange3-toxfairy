@@ -99,14 +99,23 @@ def combine_hts_objects(hts_obj1: HTS, hts_obj2: HTS, endpoint_name: str) -> HTS
     return hts_obj1
 
 
-def process_all_hts_obj(hts_obj_dict, processing_order, tech_replicates_endpoints=('DAPIA', 'DAPIB', "DAPI")):
+def process_all_hts_obj(hts_obj_dict, processing_order, tech_replicates_endpoints,
+                        filtrate_by_materials=None, filtrate_by_cells=None):
 
-    # tech_replicates_endpoints=('tech_repl0', 'tech_repl1', "combined_endpoint_name")
+    # tech_replicates_endpoints=['tech_repl0', 'tech_repl1', "combined_endpoint_name"]
     # for dapi data the two technical replicates (a+b) are first averaged, then median of the four biological replicates is counted
 
-    tech_repl_1 = tech_replicates_endpoints[0]
-    tech_repl_2 = tech_replicates_endpoints[1]
-    new_combined_endpoint = tech_replicates_endpoints[2]
+    if filtrate_by_materials or filtrate_by_cells:
+        for obj_key, obj in hts_obj_dict.items():
+            obj.filtrate_data(obj.raw_data_df, filtrate_by_materials, filtrate_by_cells)
+
+    tech_repl_1 = None
+    tech_repl_2 = None
+    new_combined_endpoint = None
+    if tech_replicates_endpoints:
+        tech_repl_1 = tech_replicates_endpoints[0]
+        tech_repl_2 = tech_replicates_endpoints[1]
+        new_combined_endpoint = tech_replicates_endpoints[2]
 
     # for endpoint, obj in hts_obj_dict.items():
     for endpoint in processing_order:
@@ -116,8 +125,9 @@ def process_all_hts_obj(hts_obj_dict, processing_order, tech_replicates_endpoint
             normalize_data(obj, obj.endpoint, obj.assay_type)
             hts_obj_dict[new_combined_endpoint] = combine_hts_objects(hts_obj_dict[tech_repl_1],
                                                                       hts_obj_dict[tech_repl_2], new_combined_endpoint)
+            hts_obj_dict[new_combined_endpoint].endpoint = new_combined_endpoint
 
-        elif endpoint == 'CASP' and obj.assay_type == 'imaging':
+        elif endpoint == 'CASP' and obj.assay_type == 'viability':
             if hts_obj_dict['DAPI'].mean_df is not None and hts_obj_dict['CTG'].mean_df is not None:
                 normalize_data(obj, obj.endpoint, obj.assay_type,
                                ctg_data_mean=hts_obj_dict['DAPI'].mean_df,
@@ -127,8 +137,9 @@ def process_all_hts_obj(hts_obj_dict, processing_order, tech_replicates_endpoint
         dose_response = DoseResponse(obj)
         dose_response.dose_response_parameters()
 
-    del hts_obj_dict[tech_repl_1]
-    del hts_obj_dict[tech_repl_2]
+    if tech_replicates_endpoints:
+        del hts_obj_dict[tech_repl_1]
+        del hts_obj_dict[tech_repl_2]
 
 
 def pkl_hts_obj(hts_obj):
@@ -149,11 +160,20 @@ def loadconfig(config_file, config_key, subkey="extract"):
 
 
 extract_config = loadconfig(config_file, config_key, "processing")
-print(tuple(extract_config["tech_replicates_endpoints"]))
+filtrate_materials = extract_config["filtrate_materials"]
+filtrate_cells = extract_config["filtrate_cells"]
+print(extract_config["tech_replicates_endpoints"])
+print(filtrate_materials)
+print(filtrate_cells)
 
 os.makedirs(product["data"], exist_ok=True)
+if os.path.exists(product["data"]):
+    files = os.listdir(product["data"])
+    for file in files:
+        os.remove(os.path.join(product["data"], file))
 
 for key, objs in combined_dict.items():
-    process_all_hts_obj(objs, processing_order=extract_config["endpoint_order"],
-                        tech_replicates_endpoints=tuple(extract_config["tech_replicates_endpoints"]))
-    pkl_hts_obj(objs)
+    if objs:
+        process_all_hts_obj(objs, extract_config["endpoint_order"], extract_config["tech_replicates_endpoints"],
+                            filtrate_materials, filtrate_cells)
+        pkl_hts_obj(objs)
