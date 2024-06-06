@@ -12,6 +12,8 @@ import pynanomapper.datamodel.ambit as m2n
 import nexusformat.nexus.tree as nx
 import json
 import uuid
+import sys
+
 
 def loadconfig(config_file, config_key, subkey="extract"):
     with open(config_file) as f:
@@ -19,9 +21,14 @@ def loadconfig(config_file, config_key, subkey="extract"):
     return cfg[config_key][subkey]
 
 
-extract_config = loadconfig(config_file, config_key, "extract_from_db")
-query = extract_config['query']
+def run_task(config_for_db):
+    if not config_for_db:
+        sys.exit(0)
 
+
+extract_config = loadconfig(config_file, config_key, "extract_from_db")
+run_task(extract_config)
+query = extract_config['query']
 
 path = upstream["ambit_data2HTS_obj"]["data_json"]
 json_path = os.path.join(path, "substances_obj.json")
