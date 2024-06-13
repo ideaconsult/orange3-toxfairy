@@ -22,8 +22,11 @@ class MetaDataReaderTmp:
         for k, v in df_names.iterrows():
             self.data_container.metadata[k] = {'material': v.iloc[0], 'concentration': v.iloc[2]}
             if v.iloc[0] in sbet.index:
-                if not pd.isna(sbet.loc[v.iloc[0], 'BET surface in m²/g']):
-                    self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet.loc[v.iloc[0], 'BET surface in m²/g'])
+                sbet_value = sbet.loc[v.iloc[0], 'BET surface in m²/g']
+                if isinstance(sbet_value, str):
+                    continue
+                if not pd.isna(sbet_value):
+                    self.data_container.metadata[k]['SBET'] = pd.to_numeric(sbet_value)
 
         self.data_container.water_keys = [key for key, value in self.data_container.metadata.items()
                                           if value['material'] in materials_to_check]
