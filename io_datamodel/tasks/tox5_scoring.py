@@ -39,6 +39,7 @@ path = upstream["process_hts_obj"]["data"]
 pickle_hts_data = load_pickles_from_directory(path)
 
 # for combining data
+# TODO: make combining data more generic
 pickle_hts_data_patrols = load_pickles_from_directory(
     'D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\processed_hts_obj')
 for key, obj in pickle_hts_data.items():
