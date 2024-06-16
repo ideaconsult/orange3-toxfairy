@@ -1,4 +1,6 @@
 folder_output: "products"
 config_file: "config.json"
-config_key: "calibrate"
-#config_key: "harmless"
+#config_key: "calibrate"
+config_key: "harmless_screen_5-8"
+#config_key: "harmless_screen_1-4"
+#config_key: "patrols"

@@ -13,43 +13,43 @@ tasks:
   - source: tasks/local_data2HTS_obj.py
     product:
       nb: "products/read_local_hts_obj.ipynb"
-      data: "{{folder_output}}/substances_data_hts_local"
+      data: "{{folder_output}}/{{config_key}}/substances_data_hts_local"
     params:
       folder_output: "{{folder_output}}"
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
 
-  - source: tasks/nexus.py
-    product:
-      nb: "{{folder_output}}/write_to_nexus.ipynb"
-    params:
-      folder_output: "{{folder_output}}"
-      config_file: "{{config_file}}"
-      config_key: "{{config_key}}"
+#  - source: tasks/nexus.py
+#    product:
+#      nb: "{{folder_output}}/write_to_nexus.ipynb"
+#    params:
+#      folder_output: "{{folder_output}}"
+#      config_file: "{{config_file}}"
+#      config_key: "{{config_key}}"
 
   - source: tasks/process_hts_obj.py
     product:
       nb: "products/read_process_hts_obj.ipynb"
-      data: "{{folder_output}}/processed_hts_obj"
+      data: "{{folder_output}}/{{config_key}}/processed_hts_obj"
     params:
       folder_output: "{{folder_output}}"
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
 
 
-  - source: tasks/metl_df.py
-    product:
-      nb: "products/test.ipynb"
-      data: "{{folder_output}}/melted_hts_obj"
+#  - source: tasks/metl_df.py
+#    product:
+#      nb: "products/test.ipynb"
+#      data: "{{folder_output}}/melted_hts_obj"
 
 
-  - source: tasks/processed2ambit.py
-    product:
-      nb: "products/processed2ambit_nb.ipynb"
-      data: "{{folder_output}}/calibrate_substances.nxs"
-    params:
-      config_file: "{{config_file}}"
-      config_key: "{{config_key}}"
+#  - source: tasks/processed2ambit.py
+#    product:
+#      nb: "products/processed2ambit_nb.ipynb"
+#      data: "{{folder_output}}/calibrate_substances.nxs"
+#    params:
+#      config_file: "{{config_file}}"
+#      config_key: "{{config_key}}"
 
 
   - source: tasks/tox5_scoring.py
