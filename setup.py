@@ -11,12 +11,12 @@ INSTALL_REQUIRES = [
     'orange3~=3.0',
     'orange_widget_base',
     'pandas',
-    # 'pandas',
     'PyQt5',
     'rpy2',
     'scikit_learn',
     'scipy',
-    'setuptools'
+    'setuptools',
+    'plotly'
 ]
 
 PACKAGES = ["tox_orange_demo"]
