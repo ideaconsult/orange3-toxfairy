@@ -38,6 +38,7 @@ dependencies:
   - scikit-learn
   - scipy
   - setuptools
+  - plotly
   - pip:
     - -e tox5_preprocessing
     - -e .
