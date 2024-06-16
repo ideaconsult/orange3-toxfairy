@@ -3,12 +3,13 @@ import os
 import glob
 import warnings
 import numpy as np
-from matplotlib import cm, patches
+# from matplotlib import cm, patches
 import matplotlib.pyplot as plt
 import math
-
-# TODO: to be removed
-from matplotlib.colors import ListedColormap
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+import plotly.express as px
 
 
 def add_annot_data(df, material, concentration, code):
@@ -87,6 +88,14 @@ def _create_color_map(labels, colored_by='endpoint'):
     colored by chosen parameter.
 
     """
+
+    def rgba_to_hex(rgba):
+        """
+        Convert an RGBA list to a HEX color string.
+        """
+        r, g, b, a = [int(c * 255) for c in rgba[:4]]
+        return f'#{r:02x}{g:02x}{b:02x}'
+
     cmap_galery = ['Purples', 'Greens', 'Blues', 'Oranges', 'Reds', 'Greys',
                    'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
                    'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
@@ -121,11 +130,18 @@ def _create_color_map(labels, colored_by='endpoint'):
                 continue
 
     colors = [color_palette_dict[label] for label in labels]
-    return colors
+
+    for label, rgba in color_palette_dict.items():
+        color_palette_dict[label] = rgba_to_hex(rgba)
+
+    colors_hex = [color_palette_dict[label] for label in labels]
+
+    return colors, colors_hex
 
 
 def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', transparency_bars=0.6, linewidth=0.2,
-                      conf_intervals=None, ci_low_color="#ff5c33", ci_high_color="#ff5c33", pies_per_col=5, legend_cols=2):
+                      conf_intervals=None, ci_low_color="#ff5c33", ci_high_color="#ff5c33", pies_per_col=5,
+                      legend_cols=2):
     """
     Plot Tox5-score materials using a pie plot.
 
@@ -170,7 +186,7 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
     labels_sorted = sorted(labels, key=lambda x: x.split('_')[{'cells': 0, 'time': 1, 'endpoint': 2}[colored_param]])
 
     # Create colormap
-    colors = _create_color_map(labels_sorted, colored_by=colored_param)
+    colors, _ = _create_color_map(labels_sorted, colored_by=colored_param)
     legend_handles = []
 
     for n, i in enumerate(materials):
@@ -217,6 +233,180 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
     plt.axis('off')
 
     return figure, legend_figure
+
+
+def plot_tox_rank_pie_interactive(df, materials=None, output_directory=None, pies_per_col=4, pie_size=800,
+                                  colored_param='cells',
+                                  conf_intervals=None, transparency_bars=0.8, linewidth=1,
+                                  ci_low_color='blue', ci_high_color='red'):
+    if 'low_ci' in df.columns:
+        df = df.drop(columns=['low_ci'])
+
+    if 'high_ci' in df.columns:
+        df = df.drop(columns=['high_ci'])
+
+    if not materials:
+        materials = df['Material'].unique().tolist()
+
+    columns = math.ceil(len(materials) / pies_per_col)
+    rows = len(materials) // columns + (len(materials) % columns > 0)
+
+    figure = make_subplots(
+        rows=rows,
+        cols=columns,
+        specs=[[{'type': 'polar'} for _ in range(columns)] for _ in range(rows)],
+        subplot_titles=[f"{i}" for i in materials]
+    )
+
+    labels = df.columns[3:].tolist()
+    labels_sorted = sorted(labels, key=lambda x: x.split('_')[{'cells': 0, 'time': 1, 'endpoint': 2}[colored_param]])
+    colors, colors_hex = _create_color_map(labels_sorted, colored_by=colored_param)
+    legend_handles = []
+
+    for n, i in enumerate(materials):
+        row = (n // columns) + 1
+        col = (n % columns) + 1
+
+        rank = (df[df['Material'] == i].iloc[:, 2]).values[0]
+        score = (df[df['Material'] == i].iloc[:, 1]).values[0]
+        data_tox = df[df['Material'] == i].iloc[:, 3:].values.flatten().tolist()
+        data_tox_sorted = [data_tox[labels.index(label)] for label in labels_sorted]
+
+        angle = np.linspace(0.0, 360.0, len(labels_sorted), endpoint=False)
+        width = 360.0 / len(labels_sorted)
+
+        customdata = np.stack([labels_sorted, [score] * len(labels_sorted)], axis=-1)
+        figure.add_trace(go.Barpolar(
+            r=data_tox_sorted,
+            theta=angle,
+            width=width,
+            marker_color=colors_hex,
+            opacity=transparency_bars,
+            marker_line_color='grey',
+            marker_line_width=linewidth,
+            customdata=customdata,
+            hovertemplate='<b>Label:</b> %{customdata[0]}<br>' +
+                          '<i>Score:</i> %{r:.2f}<br>',
+            # name=f"{i} - {score}",
+            showlegend=False
+        ), row, col)
+
+        if conf_intervals:
+            conf_r = [conf_intervals[i][label][1] - conf_intervals[i][label][0] for label in labels_sorted]
+            conf_base = [conf_intervals[i][label][0] for label in labels_sorted]
+
+            figure.add_trace(go.Barpolar(
+                r=conf_r,
+                theta=angle,
+                width=width,
+                base=conf_base,
+                marker_color='grey',
+                opacity=0.3,
+                hoverinfo='none',
+                showlegend=False
+            ), row=row, col=col)
+
+            for j, label in enumerate(labels_sorted):
+                if label in conf_intervals[i]:
+                    conf_interval = conf_intervals[i][label]
+                    figure.add_trace(go.Scatterpolar(
+                        r=[conf_interval[0], conf_interval[0]],
+                        theta=[angle[j] - width / 2, angle[j] + width / 2],
+                        mode='lines',
+                        line=dict(color=ci_low_color, width=2),
+                        hoverinfo="r",
+                        showlegend=False
+                    ), row=row, col=col)
+                    figure.add_trace(go.Scatterpolar(
+                        r=[conf_interval[1], conf_interval[1]],
+                        theta=[angle[j] - width / 2, angle[j] + width / 2],
+                        mode='lines',
+                        line=dict(color=ci_high_color, width=2),
+                        hoverinfo='r',
+                        showlegend=False
+                    ), row=row, col=col)
+
+        for n, i in enumerate(materials):
+            score = (df[df['Material'] == i].iloc[:, 1]).values[0]
+            figure.layout.annotations[n].update(text=f"{i} ({score:.2f})")
+
+        figure.update_polars(radialaxis=dict(range=[0, 1], tickvals=[0.2, 0.5, 1.0]))
+        figure.update_layout(title=f"Toxpi Ranked materials", font=dict(size=10))
+        legend_handles.append(labels_sorted)
+
+    figure.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                range=[0, 1],
+                tickvals=[0.2, 0.5, 1.0]
+            )
+        ),
+        title="Toxpi Ranked materials",
+        height=rows * pie_size,
+        width=columns * pie_size,
+        # legend=dict(
+        #     traceorder='normal',
+        #     x=-0.2,  # Position to the left outside the plotting area
+        #     y=0.5,
+        #     xanchor='right',
+        #     yanchor='middle',
+        #     orientation='v',  # Vertical orientation
+        #     itemsizing='trace'
+        # ),
+        margin=dict(l=200, r=50, t=100, b=100)  # Adjust margins to avoid overlap
+    )
+
+    figure.update_polars(
+        angularaxis=dict(
+            tickmode='array',
+            tickvals=angle,
+            ticktext=[''] * len(angle)  # Empty tick labels
+        )
+    )
+
+    for label, color in zip(labels_sorted, colors_hex):
+        figure.add_trace(go.Scatterpolar(
+            r=[None],
+            theta=[None],
+            mode='markers',
+            marker=dict(color=color),
+            showlegend=True,
+            name=label
+        ))
+
+    figure.update_layout(dragmode='pan')
+    if output_directory:
+        figure_html_file = os.path.join(output_directory, 'tox_rank_polar_interactive.html')
+        pio.write_html(figure, figure_html_file, auto_open=False)
+
+    return figure
+
+
+def plot_topsis(df, marker_resize=0.8, output_directory=None):
+    fig = px.scatter(x=df['Ranking'], y=df.index,
+                     title='TOPSIS Ranking by Material',
+                     labels={'x': 'Rank', 'y': 'Material'},
+                     template='plotly_white',
+                     hover_name=df.index,
+                     color=df['Ranking'],
+                     color_continuous_scale='viridis',
+                     width=800, height=600
+                     )
+
+    max_rank = df['Ranking'].max()
+    marker_sizes = (max_rank - df['Ranking'] + 1) * marker_resize
+    fig.update_traces(marker=dict(size=marker_sizes,
+                                  line=dict(width=2, color='DarkSlateGrey')))
+
+    fig.update_layout(
+        font=dict(size=12)
+    )
+
+    if output_directory:
+        figure_html_file = os.path.join(output_directory, 'tox_rank_topsis.html')
+        pio.write_html(fig, figure_html_file, auto_open=False)
+
+    return fig
 
 
 warnings.simplefilter("always", Warning)

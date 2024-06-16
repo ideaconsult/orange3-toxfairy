@@ -1,4 +1,6 @@
 # + tags=["parameters"]
+from TOX5.calculations.topsis_ranking import topsis_scoring
+
 upstream = ["process_hts_obj"]
 product = None
 config_file = None
@@ -11,7 +13,7 @@ import pickle
 from matplotlib import pyplot as plt
 import json
 from TOX5.calculations.tox5 import TOX5
-from TOX5.misc.utils import plot_tox_rank_pie
+from TOX5.misc.utils import plot_tox_rank_pie, plot_tox_rank_pie_interactive, plot_topsis
 
 
 def load_pickles_from_directory(directory):
@@ -35,6 +37,15 @@ def loadconfig(config_file, config_key, subkey="extract"):
 
 path = upstream["process_hts_obj"]["data"]
 pickle_hts_data = load_pickles_from_directory(path)
+
+# for combining data
+pickle_hts_data_patrols = load_pickles_from_directory(
+    'D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\processed_hts_obj')
+for key, obj in pickle_hts_data.items():
+    df_combined = pd.concat([obj.dose_response_df, pickle_hts_data_patrols[key].dose_response_df])
+    df_combined = df_combined.drop(['0.05% BSA water, 30ul EtOH', 'water'])
+    obj.dose_response_df = df_combined
+
 without_serum = []
 with_serum = []
 for key in pickle_hts_data.keys():
@@ -79,6 +90,14 @@ def generate_tox5_scores(pickle_hts_data, keys, cells: [], transform_functions: 
     return tox5.tox5_scores, tox5.ci_slices, tox5.ci_scores, tox5.ci_scores_df
 
 
+def rank_with_topsis(pickle_hts_data, keys):
+    df = pd.concat([pickle_hts_data[key].dose_response_df for key in keys], axis=1)
+    df = df.reset_index().rename(columns={'index': 'material'})
+    sorted_df = topsis_scoring(df)
+    return sorted_df
+
+
+
 cells = extract_config['cells']
 user_selected_transform_functions = extract_config['transform_functions']
 bootstrap_ci = extract_config['bootstrap_CIs']
@@ -113,8 +132,22 @@ if without_serum:
         scores_wo.to_excel(writer, sheet_name='scores')
         df_ci.to_excel(writer, sheet_name='scores_cis')
 
+    # test with topsis
+    sorted_df = rank_with_topsis(pickle_hts_data, without_serum)
+    file_name_topsis = os.path.join(product["data"], "ranked_topsis.xlsx")
+    with pd.ExcelWriter(file_name_topsis) as writer:
+        sorted_df.to_excel(writer)
+
+    # plot topsis
+    fig_topsis = plot_topsis(sorted_df, marker_resize=7, output_directory=product["data"])
+
+
     figure, legend = plot_tox_rank_pie(scores_wo, conf_intervals=ci_slices, colored_param=colored_param,
                                        materials=materials, ci_low_color=ci_color_low, ci_high_color=ci_color_up)
+
+    fig = plot_tox_rank_pie_interactive(scores_wo, colored_param=colored_param, conf_intervals=ci_slices,
+                                        output_directory=product["data"], materials=materials)
+
     figure_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_wo.pdf")
     figure.savefig(figure_file_name_pdf, format='pdf', bbox_inches='tight')
     legend_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_legend_wo.pdf")
@@ -122,7 +155,3 @@ if without_serum:
 
     plt.show()
     legend.show()
-
-
-
-
