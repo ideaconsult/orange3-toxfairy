@@ -3,13 +3,18 @@ import os
 import glob
 import warnings
 import numpy as np
-# from matplotlib import cm, patches
 import matplotlib.pyplot as plt
 import math
 import plotly.graph_objects as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
 import plotly.express as px
+from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+from scipy.spatial.distance import pdist, squareform
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+from sklearn.cluster import KMeans
+import itertools
 
 
 def add_annot_data(df, material, concentration, code):
@@ -96,7 +101,7 @@ def _create_color_map(labels, colored_by='endpoint'):
         r, g, b, a = [int(c * 255) for c in rgba[:4]]
         return f'#{r:02x}{g:02x}{b:02x}'
 
-    cmap_galery = ['Purples', 'Greens', 'Blues', 'Oranges', 'Reds', 'Greys',
+    cmap_galery = ['Purples', 'Greens', 'Blues', 'Oranges', 'Greys', 'Reds',
                    'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
                    'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
 
@@ -168,11 +173,11 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
     plt.subplots_adjust(hspace=0.2)
     plt.suptitle("Toxpi Ranked materials", fontsize=10, y=0.95)
 
-    if 'low_ci' in df.columns:
-        df = df.drop(columns=['low_ci'])
-
-    if 'high_ci' in df.columns:
-        df = df.drop(columns=['high_ci'])
+    # if 'low_ci' in df.columns:
+    #     df = df.drop(columns=['low_ci'])
+    #
+    # if 'high_ci' in df.columns:
+    #     df = df.drop(columns=['high_ci'])
 
     if not materials:
         materials = df['Material'].unique().tolist()
@@ -238,13 +243,7 @@ def plot_tox_rank_pie(df, materials=None, figure=None, colored_param='cells', tr
 def plot_tox_rank_pie_interactive(df, materials=None, output_directory=None, pies_per_col=4, pie_size=800,
                                   colored_param='cells',
                                   conf_intervals=None, transparency_bars=0.8, linewidth=1,
-                                  ci_low_color='blue', ci_high_color='red'):
-    if 'low_ci' in df.columns:
-        df = df.drop(columns=['low_ci'])
-
-    if 'high_ci' in df.columns:
-        df = df.drop(columns=['high_ci'])
-
+                                  ci_low_color='blue', ci_high_color='red', file_name='tox_pie_interactive'):
     if not materials:
         materials = df['Material'].unique().tolist()
 
@@ -376,36 +375,284 @@ def plot_tox_rank_pie_interactive(df, materials=None, output_directory=None, pie
 
     figure.update_layout(dragmode='pan')
     if output_directory:
-        figure_html_file = os.path.join(output_directory, 'tox_rank_polar_interactive.html')
+        figure_html_file = os.path.join(output_directory, f'{file_name}.html')
         pio.write_html(figure, figure_html_file, auto_open=False)
 
     return figure
 
 
-def plot_topsis(df, marker_resize=0.8, output_directory=None):
-    fig = px.scatter(x=df['Ranking'], y=df.index,
-                     title='TOPSIS Ranking by Material',
-                     labels={'x': 'Rank', 'y': 'Material'},
-                     template='plotly_white',
-                     hover_name=df.index,
-                     color=df['Ranking'],
-                     color_continuous_scale='viridis',
-                     width=800, height=600
-                     )
+def _generate_colors(num_colors):
+    color_palette = [
+        '#FFA500',  # Orange
+        '#FF00FF',  # Pink
+        '#00FFFF',  # Cyan
+        '#FFFF00',  # Yellow
+        '#800080',  # Purple
+        '#FFD700',  # Gold
+        '#FF1493',  # Deep Pink
+        '#4B0082',  # Indigo
+        '#8B0000',  # Dark Red (but distinct from pure red)
+        '#8A2BE2',  # Blue Violet
+        '#FF4500',  # Orange Red
+        '#DA70D6',  # Orchid
+        '#EEE8AA',  # Pale Goldenrod
+        '#DDA0DD',  # Plum
+        '#BC8F8F',  # Rosy Brown
+        '#4682B4',  # Steel Blue
+        '#D8BFD8',  # Thistle
+        '#FF6347',  # Tomato
+        '#40E0D0',  # Turquoise
+    ]
 
-    max_rank = df['Ranking'].max()
-    marker_sizes = (max_rank - df['Ranking'] + 1) * marker_resize
-    fig.update_traces(marker=dict(size=marker_sizes,
-                                  line=dict(width=2, color='DarkSlateGrey')))
+    color_palette_iter = itertools.cycle(color_palette)
+    hex_colors = [next(color_palette_iter) for _ in range(num_colors)]
+
+    return hex_colors
+
+
+def plot_ranked_material(df, x_name, y_name, materials,
+                         negative_controls=None, positive_controls=None, substance_types=None,
+                         x_ci_dict=None, y_ci_dict=None,
+                         marker_resize=0.8,
+                         output_directory=None, file_name='tox_ranking'):
+    category_colors = {'Material': 'blue', 'Negative Control': 'green', 'Positive Control': 'red'}
+    default_color = 'blue'
+    unique_materials = list(set(df[materials]))
+    legend_labels = {material: 'Material' for material in unique_materials}
+    legend_colors = {'Material': default_color}
+
+    if positive_controls or negative_controls or substance_types:
+        num_groups = len(substance_types) if substance_types else 0
+        color_palette = _generate_colors(num_groups)
+        color_palette_iter = itertools.cycle(color_palette)
+
+        if substance_types:
+            for group in substance_types.keys():
+                if group not in category_colors:
+                    category_colors[group] = next(color_palette_iter)
+
+        for material in unique_materials:
+            if negative_controls and material in negative_controls:
+                legend_labels[material] = 'Negative Control'
+            elif positive_controls and material in positive_controls:
+                legend_labels[material] = 'Positive Control'
+            elif substance_types:
+                for group in substance_types:
+                    if material in substance_types[group]:
+                        legend_labels[material] = group
+                        break
+
+        legend_colors.update({value: category_colors[value] for value in set(legend_labels.values())})
+
+    fig = go.Figure()
+    unique_groups = set(legend_labels.values())
+    for group in unique_groups:
+        fig.add_trace(go.Scatter(
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(size=marker_resize, color=legend_colors[group]),
+            legendgroup=group,
+            showlegend=True,
+            name=group
+        ))
+
+    if y_name == 'Material':
+        sorted_materials = df.sort_values(by=x_name)[materials].unique()
+        y_mapping = {material: i for i, material in enumerate(sorted_materials)}
+        df['y_mapped'] = df[materials].map(y_mapping)
+        y_values = df['y_mapped']
+        y_tickvals = list(y_mapping.values())
+        y_ticktext = list(y_mapping.keys())
+    else:
+        y_values = df[y_name]
+        y_tickvals = df[y_name].unique()
+        y_ticktext = df[y_name].unique()
+
+    for material in unique_materials:
+        material_df = df[df[materials] == material]
+
+        error_x, error_x_minus = None, None
+        error_y, error_y_minus = None, None
+
+        if x_ci_dict:
+            error_x = material_df[x_ci_dict[0]] - material_df[x_name]
+            error_x_minus = material_df[x_name] - material_df[x_ci_dict[1]]
+        if y_ci_dict:
+            error_y = material_df[y_ci_dict[0]] - material_df[y_name]
+            error_y_minus = material_df[y_name] - material_df[y_ci_dict[1]]
+
+        fig.add_trace(go.Scatter(
+            x=material_df[x_name],
+            # y=material_df[y_name],
+            y=y_values[material_df.index],
+            mode='markers',
+            name=legend_labels[material],
+            marker=dict(size=marker_resize, opacity=0.8, line=dict(width=1, color='DarkSlateGrey')),
+            error_x=dict(type='data', array=error_x, arrayminus=error_x_minus, visible=True,
+                         thickness=1.5, width=1.5, color='gray'),
+            error_y=dict(type='data', array=error_y, arrayminus=error_y_minus, visible=True,
+                         thickness=1.5, width=1.5, color='gray'),
+            hovertext=material_df[materials],
+            hovertemplate=f'{materials}: {material}<br>{x_name}: %{{x}}<br>{y_name}: %{{y}}<extra></extra>',
+            marker_color=legend_colors[legend_labels[material]],
+            showlegend=False
+        ))
+
+    x_axis = None
+    y_axis = None
+
+    if y_name == 'Material':
+        if x_name == 'rnk':
+            x_axis = dict(autorange=True)
+            y_axis = dict(autorange='reversed', tickmode='array', tickvals=y_tickvals, ticktext=y_ticktext)
+        elif x_name == 'toxpi_score':
+            x_axis = dict(autorange='reversed')
+            y_axis = dict(autorange=True, tickmode='array', tickvals=y_tickvals, ticktext=y_ticktext)
+
+    elif y_name == 'rnk' and x_name == 'toxpi_score':
+        x_axis = dict(autorange='reversed')
+        y_axis = dict(autorange='reversed', tickmode='array', tickvals=y_tickvals, ticktext=y_ticktext)
+
+    elif y_name == 'toxpi_score' and x_name == 'rnk':
+        x_axis = dict(autorange=True)
+        y_axis = dict(autorange=True, tickmode='array', tickvals=y_tickvals, ticktext=y_ticktext)
+
+    else:
+        x_axis = dict(autorange=True)
+        y_axis = dict(autorange='reversed', tickmode='array', tickvals=y_tickvals, ticktext=y_ticktext)
 
     fig.update_layout(
-        font=dict(size=12)
+        title='Material ranking',
+        xaxis_title=x_name,
+        yaxis_title=y_name,
+        font=dict(size=12),
+        yaxis=y_axis,
+        xaxis=x_axis,
+        template='plotly_white',
+        width=1100, height=800
     )
 
     if output_directory:
-        figure_html_file = os.path.join(output_directory, 'tox_rank_topsis.html')
+        figure_html_file = os.path.join(output_directory, f'{file_name}.html')
         pio.write_html(fig, figure_html_file, auto_open=False)
 
+    return fig
+
+
+def _find_threshold_for_n_clusters(Z, num_clusters):
+    distances = Z[:, 2]
+    max_distance = distances.max()
+    for threshold in np.linspace(0, max_distance, 1000):
+        clusters = fcluster(Z, t=threshold, criterion='distance')
+        if len(np.unique(clusters)) == num_clusters:
+            return threshold
+    return max_distance
+
+
+def _clusters_by_elbow(features):
+    cluster_range = range(2, 21)
+    inertia_values = []
+    for n_clusters in cluster_range:
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+        kmeans.fit(features)
+        inertia_values.append(kmeans.inertia_)
+    first_derivative = np.diff(inertia_values)
+    second_derivative = np.diff(first_derivative)
+    elbow_index = np.argmin(second_derivative)
+    optimal_clusters = cluster_range[elbow_index]
+    return optimal_clusters
+
+
+def _clusters_by_silhouette(features):
+    silhouette_scores = []
+    cluster_range = range(2, 21)
+
+    for n_clusters in cluster_range:
+        agglomerative = AgglomerativeClustering(n_clusters=n_clusters)
+        cluster_labels = agglomerative.fit_predict(features)
+
+        silhouette_avg = silhouette_score(features, cluster_labels)
+        silhouette_scores.append(silhouette_avg)
+    max_index = np.argmax(silhouette_scores)
+
+    optimal_clusters = cluster_range[max_index]
+    return optimal_clusters
+
+
+def h_clustering(features, labels, metric='euclidean', method='ward', clusters='elbow', output_directory=None,
+                 file_name='dendogram'):
+    """
+    Perform hierarchical clustering on the provided features and labels.
+    Metrics could be euclidean, cityblock, cosine, hamming, minkowski
+    Methods could be ward, single, complete, average, centroid, median, weighted
+    Clusters could be elbow, silhouette or int in range 1 to 20
+
+    Metrics Explanation
+
+    Silhouette Score: Range: [−1,1] Measures how similar an object is to its own cluster compared to other clusters.
+    A score closer to 1 indicates well-separated clusters, a score close to 0 indicates overlapping clusters, and a
+    score close to -1 indicates that the objects might be wrongly clustered. Higher is better.
+
+    Davies-Bouldin Score: [0,∞) Measures the average similarity ratio of each cluster with its most similar cluster.
+    Lower values indicate better clustering because the clusters are more distinct from each other. Lower is better.
+
+    Calinski-Harabasz Score: [0,∞) Measures the ratio of the sum of between-cluster dispersion to within-cluster dispersion.
+    Higher values indicate that clusters are well-separated and compact. Higher is better.
+    """
+
+    distance_matrix = pdist(features, metric=metric)
+    linked = linkage(distance_matrix, method=method)
+    if clusters == 'elbow':
+        num_clusters = _clusters_by_elbow(features)
+    elif clusters == 'silhouette':
+        num_clusters = _clusters_by_silhouette(features)
+    elif isinstance(clusters, int) and 2 <= clusters <= 20:
+        num_clusters = clusters
+    else:
+        raise ValueError("Invalid value for 'clusters'. Must be 'elbow', 'silhouette', or an integer between 2 and 20.")
+
+    # Obtain flat clusters
+    cluster_labels = fcluster(linked, num_clusters, criterion='maxclust')
+
+    silhouette_avg = silhouette_score(features, cluster_labels, metric=metric)
+    davies_bouldin_avg = davies_bouldin_score(features, cluster_labels)
+    calinski_harabasz_avg = calinski_harabasz_score(features, cluster_labels)
+
+    threshold = _find_threshold_for_n_clusters(linked, num_clusters)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    dendrogram(
+        linked,
+        labels=labels,
+        color_threshold=threshold - 0.1,
+        above_threshold_color='black',
+        orientation='right',
+        show_contracted=True,
+        leaf_font_size=10,
+        ax=ax
+    )
+
+    ax.set_title('Hierarchical Clustering Dendrogram')
+    ax.set_xlabel('Distance')
+    ax.set_ylabel('Material')
+    ax.tick_params(axis='y', rotation=0, labelsize=8)
+    plt.tight_layout()
+
+    textstr = '\n'.join((
+        f'Silhouette Score: {silhouette_avg:.4f}',
+        f'Davies-Bouldin Score: {davies_bouldin_avg:.4f}',
+        f'Calinski-Harabasz Score: {calinski_harabasz_avg:.4f}'
+    ))
+
+    plt.gca().text(
+        0.95, 0.05, textstr, transform=plt.gca().transAxes,
+        fontsize=12, verticalalignment='bottom',
+        horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5)
+    )
+
+    if output_directory:
+        full_path = os.path.join(output_directory, file_name)
+        plt.savefig(full_path, bbox_inches='tight')
     return fig
 
 
