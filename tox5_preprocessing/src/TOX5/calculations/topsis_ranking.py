@@ -5,7 +5,7 @@ import numpy as np
 
 
 def topsis_scoring(df):
-    data = df
+    data = df.copy()
     data.set_index('material', inplace=True)
     # check for NaN values
     columns_with_nan = data.columns[data.isna().any()].tolist()
@@ -13,7 +13,7 @@ def topsis_scoring(df):
         # Logic to fill NaN values:
         # 1st NaN values will be fill with 9999 based on idea that high value mean low toxic effect
         # AUC NAN values will be fill with 0 based on idea that low value mean low overall effect
-        columns_to_process = data.columns[data.columns.str.contains('1st') | df.columns.str.contains('AUC')]
+        columns_to_process = data.columns[data.columns.str.contains('1st') | data.columns.str.contains('AUC')]
         data[columns_to_process] = data[columns_to_process].fillna(
             {col: 9999 if '1st' in col else 0 for col in columns_to_process})
 
@@ -54,6 +54,7 @@ def topsis_scoring(df):
     data['Preference'] = preferences
     data['Ranking'] = ranking
     ranked = data[['Preference', 'Ranking']]
-    sorted_df = ranked.sort_values(by='Ranking', ascending=True)
+    sorted_df = ranked.sort_values(by='Ranking', ascending=True).reset_index()
+    sorted_df.rename(columns={'material': 'Material'}, inplace=True)
 
     return sorted_df
