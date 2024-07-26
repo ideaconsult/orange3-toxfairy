@@ -6,6 +6,7 @@ import rpy2.robjects as ro
 from rpy2.robjects.vectors import ListVector
 from itertools import product
 from scipy.stats import bootstrap
+from scipy.stats import rankdata
 import re
 import warnings
 
@@ -27,7 +28,8 @@ class TOX5:
         self.__all_slice_names = []
         self.__ci_slices = {}
         self.__ci_scores = {}
-        self.__ci_scores_df = pd.DataFrame()
+        self.__ci_ranks = {}
+        self.__results_ci_df = pd.DataFrame()
 
         self.slice_names = []
         self.slices = []
@@ -58,8 +60,12 @@ class TOX5:
         return self.__ci_scores
 
     @property
-    def ci_scores_df(self):
-        return self.__ci_scores_df
+    def ci_ranks(self):
+        return self.__ci_ranks
+
+    @property
+    def results_ci_df(self):
+        return self.__results_ci_df
 
     def transform_data(self, user_transform_funcs):
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
@@ -208,15 +214,32 @@ class TOX5:
                 ci_low, ci_high = results.confidence_interval
                 self.__ci_slices[material][group_name] = [ci_low, ci_high]
 
-    def calc_ci_scores(self, n_boot=1000, ci_level=0.95):
-        if 'low_ci' in self.tox5_scores.columns:
-            self.__tox5_scores = self.tox5_scores.drop(columns=['low_ci'])
+    def _generate_ci_df(self):
+        data = {
+            'Material': [],
+            'rank_ci_low': [],
+            'rank_ci_high': [],
+            'score_ci_low': [],
+            'score_ci_high': []
+        }
 
-        if 'high_ci' in self.tox5_scores.columns:
-            self.__tox5_scores = self.tox5_scores.drop(columns=['high_ci'])
+        for key in set(self.__ci_ranks.keys()).union(set(self.__ci_scores.keys())):
+            data['Material'].append(key)
+            data['rank_ci_low'].append(self.__ci_ranks.get(key, [None, None])[0])
+            data['rank_ci_high'].append(self.__ci_ranks.get(key, [None, None])[1])
+            data['score_ci_low'].append(self.__ci_scores.get(key, [None, None])[0])
+            data['score_ci_high'].append(self.__ci_scores.get(key, [None, None])[1])
+
+        df = pd.DataFrame(data)
+        filtered_tox5_scores = self.tox5_scores[['Material', 'toxpi_score', 'rnk']]
+        self.__results_ci_df = pd.merge(filtered_tox5_scores, df, on='Material', how='right')
+        self.__results_ci_df = self.__results_ci_df.sort_values(by='rnk', ascending=True).reset_index(drop=True)
+
+    def calc_ci(self, n_boot=1000, ci_level=0.95):
         self.__ci_scores = {}
 
         unique_materials = self.tox5_scores['Material'].unique()
+        rank_scores = {}
         for material in unique_materials:
             material_data = self.tox5_scores[self.tox5_scores['Material'] == material]
 
@@ -226,10 +249,31 @@ class TOX5:
             results = bootstrap(tmp_data, statistic=np.mean, n_resamples=n_boot, confidence_level=ci_level,
                                 random_state=42, method="percentile")
             ci_low, ci_high = results.confidence_interval
+            distr = results.bootstrap_distribution
+            rank_scores[material] = distr
+
             self.__ci_scores[material] = [ci_low, ci_high]
 
-        self.__ci_scores_df = pd.DataFrame.from_dict(self.__ci_scores, orient='index',
-                                                     columns=['low_ci', 'high_ci']).reset_index()
-        self.__ci_scores_df.rename(columns={'index': 'Material'}, inplace=True)
-        df_combined = pd.merge(self.tox5_scores, self.__ci_scores_df, on='Material')
-        self.__tox5_scores = df_combined
+        rankings_dict = {material: [] for material in rank_scores.keys()}
+        n_boot = len(next(iter(rank_scores.values())))
+        for i in range(n_boot):
+            sample_values = {material: rank_scores[material][i] for material in rank_scores.keys()}
+            sample_df = pd.DataFrame.from_dict(sample_values, orient='index', columns=['value'])
+            sample_df['Material'] = sample_df.index
+            sample_df['rank'] = sample_df['value'].rank(method='average', ascending=False)
+            for material in sample_df['Material']:
+                rankings_dict[material].append(sample_df.loc[material, 'rank'])
+
+        rankings_df = pd.DataFrame(rankings_dict)
+
+        ci_lower = (1 - ci_level) / 2
+        ci_upper = 1 - ci_lower
+        self.__ci_ranks = {}
+
+        for material in rankings_df.columns:
+            lower_bound = np.percentile(rankings_df[material], ci_lower * 100)
+            upper_bound = np.percentile(rankings_df[material], ci_upper * 100)
+            self.__ci_ranks[material] = [lower_bound, upper_bound]
+
+        self._generate_ci_df()
+
