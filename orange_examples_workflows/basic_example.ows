@@ -5,15 +5,16 @@
 		<node id="1" name="Multifiles" qualified_name="tox_orange_demo.ow_mylti_files.MultifileNames" project_name="TOX5-Scores" version="" title="TMP file" position="(53.0, 556.0)" />
 		<node id="2" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(270.0, 385.0)" />
 		<node id="3" name="Tox5 Score" qualified_name="tox_orange_demo.ow_toxpi_slicing.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 Score" position="(586.0, 385.0)" />
-		<node id="4" name="Tox5 view" qualified_name="tox_orange_demo.ow_toxpi_pie_view.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 view" position="(752.0, 386.0)" />
+		<node id="4" name="Tox5 view" qualified_name="tox_orange_demo.ow_toxpi_pie_view.Toxpi" project_name="TOX5-Scores" version="" title="Tox5 view" position="(754.0, 386.0)" />
 		<node id="5" name="HTS preprocess" qualified_name="tox_orange_demo.ow_preprocess_new.Toxpi" project_name="TOX5-Scores" version="" title="HTS preprocess" position="(425.0, 384.0)" />
 	</nodes>
 	<links>
 		<link id="0" source_node_id="0" sink_node_id="2" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
 		<link id="1" source_node_id="1" sink_node_id="2" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
-		<link id="2" source_node_id="3" sink_node_id="4" source_channel="tox data" sink_channel="Table" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
+		<link id="2" source_node_id="3" sink_node_id="4" source_channel="tox data" sink_channel="Tox5-scores" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
 		<link id="3" source_node_id="2" sink_node_id="5" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_dict" sink_channel_id="data_container" />
 		<link id="4" source_node_id="5" sink_node_id="3" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container" />
+		<link id="5" source_node_id="3" sink_node_id="4" source_channel="ci_4slices" sink_channel="ci_4slices" enabled="true" source_channel_id="ci_slices_dict" sink_channel_id="ci_slices" />
 	</links>
 	<annotations>
 		<arrow id="0" start="(125.0, 660.0)" end="(94.99999999999999, 595.0)" fill="#C1272D" />
@@ -162,10 +163,16 @@ VEFfdGVzdHMueGxzeJRoEU5oEk5oE2gUaBVoFGgWTnViZYwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRD
 QgHZ0MsAAwAAAAACuwAAAJEAAAOEAAACpAAAArwAAACwAAADgwAAAqMAAAAAAAAAAAZAAAACvAAA
 ALAAAAODAAACo5SMC19fdmVyc2lvbl9flEsBdS4=
 </properties>
-		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': '', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
-		<properties node_id="3" format="literal">{'controlAreaVisible': True, 'multi_cell_lines': [0], 'radioBtnSelection': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xdc\x00\x00\x00&lt;\x00\x00\x043\x00\x00\x02O\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xdd\x00\x00\x00[\x00\x00\x042\x00\x00\x02N', 'tf_1st': 'log10x_6', 'tf_auc': 'sqrt_x', 'tf_max': 'log10x_6', '__version__': 1}</properties>
-		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xaf\x00\x00\x00\x91\x00\x00\x04^\x00\x00\x02p\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xb0\x00\x00\x00\xb0\x00\x00\x04]\x00\x00\x02o', '__version__': 1}</properties>
-		<properties node_id="5" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dataframe_view': 'Normalized', 'dose': True, 'endpoint': ['CTG', 'DAPI'], 'endpoint_': 1, 'endpoint_view': 'CTG', 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sub_bl': True, '__version__': 1}</properties>
+		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'ctg, dapi, h2ax', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xd3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xd2', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="3" format="pickle">gASVJwEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjBBtdWx0aV9jZWxsX2xpbmVzlIwH
+Y29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoCCmHlFKUKEsA
+SwFljBFyYWRpb0J0blNlbGVjdGlvbpRLAIwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRDQgHZ0MsAAwAA
+AAAB3AAAADwAAAQzAAACTwAAAd0AAABbAAAEMgAAAk4AAAAAAAAAAAZAAAAB3QAAAFsAAAQyAAAC
+TpSMBnRmXzFzdJSMCGxvZzEweF82lIwGdGZfYXVjlIwGc3FydF94lIwGdGZfbWF4lIwIbG9nMTB4
+XzaUjAtfX3ZlcnNpb25fX5RLAXUu
+</properties>
+		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x00\xd7\x00\x00\x00k\x00\x00\x03\x86\x00\x00\x02J\x00\x00\x00\xd8\x00\x00\x00\x8a\x00\x00\x03\x85\x00\x00\x02I\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x00\xd8\x00\x00\x00\x8a\x00\x00\x03\x85\x00\x00\x02I', '__version__': 1}</properties>
+		<properties node_id="5" format="literal">{'casp_clean_': True, 'clean_dna': True, 'controlAreaVisible': True, 'dose': True, 'endpoint': ['CTG', 'DAPI', 'H2AX'], 'endpoint_': 2, 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x010\x00\x00\x00R\x00\x00\x05\xd9\x00\x00\x02*\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x011\x00\x00\x00q\x00\x00\x05\xd8\x00\x00\x02)', 'sub_bl': True, '__version__': 1}</properties>
 	</node_properties>
 	<session_state>
 		<window_groups />
