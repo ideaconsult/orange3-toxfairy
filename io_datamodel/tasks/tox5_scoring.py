@@ -1,6 +1,4 @@
 # + tags=["parameters"]
-from TOX5.calculations.topsis_ranking import topsis_scoring
-
 upstream = ["process_hts_obj"]
 product = None
 config_file = None
@@ -13,7 +11,9 @@ import pickle
 from matplotlib import pyplot as plt
 import json
 from TOX5.calculations.tox5 import TOX5
-from TOX5.misc.utils import plot_tox_rank_pie, plot_tox_rank_pie_interactive, plot_topsis
+from TOX5.misc.utils import plot_tox_rank_pie, plot_tox_rank_pie_interactive, plot_ranked_material, \
+    h_clustering
+from TOX5.calculations.topsis_ranking import topsis_scoring
 
 
 def load_pickles_from_directory(directory):
@@ -40,12 +40,13 @@ pickle_hts_data = load_pickles_from_directory(path)
 
 # for combining data
 # TODO: make combining data more generic
-pickle_hts_data_patrols = load_pickles_from_directory(
-    'D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\processed_hts_obj')
-for key, obj in pickle_hts_data.items():
-    df_combined = pd.concat([obj.dose_response_df, pickle_hts_data_patrols[key].dose_response_df])
-    df_combined = df_combined.drop(['0.05% BSA water, 30ul EtOH', 'water'])
-    obj.dose_response_df = df_combined
+
+# pickle_hts_data_patrols = load_pickles_from_directory(
+#     'D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\processed_hts_obj')
+# for key, obj in pickle_hts_data.items():
+#     df_combined = pd.concat([obj.dose_response_df, pickle_hts_data_patrols[key].dose_response_df])
+#     df_combined = df_combined.drop(['0.05% BSA water, 30ul EtOH', 'water'])
+#     obj.dose_response_df = df_combined
 
 without_serum = []
 with_serum = []
@@ -86,9 +87,9 @@ def generate_tox5_scores(pickle_hts_data, keys, cells: [], transform_functions: 
 
     if bootstrap_cis:
         tox5.calc_ci_slices()
-        tox5.calc_ci_scores()
+        tox5.calc_ci()
 
-    return tox5.tox5_scores, tox5.ci_slices, tox5.ci_scores, tox5.ci_scores_df
+    return tox5
 
 
 def rank_with_topsis(pickle_hts_data, keys):
@@ -98,61 +99,152 @@ def rank_with_topsis(pickle_hts_data, keys):
     return sorted_df
 
 
-
 cells = extract_config['cells']
 user_selected_transform_functions = extract_config['transform_functions']
 bootstrap_ci = extract_config['bootstrap_CIs']
-materials = extract_config_plot['materials']
-colored_param = extract_config_plot['colored_param']
-ci_color_low = extract_config_plot['ci_low_color']
-ci_color_up = extract_config_plot['ci_high_color']
+
+# extract parameters for pies plot
+materials = extract_config_plot['pies']['materials']
+colored_param = extract_config_plot['pies']['colored_param']
+ci_color_low = extract_config_plot['pies']['ci_low_color']
+ci_color_up = extract_config_plot['pies']['ci_high_color']
+
+# extract parameters for ranks plot
+negative_controls = extract_config_plot['ranks']['negative_controls']
+positive_controls = extract_config_plot['ranks']['positive_controls']
+substance_types = extract_config_plot['ranks']['substance_types']
 
 if with_serum:
-    scores_w, ci_slices, _, df_ci = generate_tox5_scores(pickle_hts_data, with_serum, cells=cells,
-                                                         transform_functions=user_selected_transform_functions)
+    # Calculate tox5 scores with confidence intervals
+    tox5_w = generate_tox5_scores(pickle_hts_data, with_serum, cells=cells,
+                                  transform_functions=user_selected_transform_functions)
     file_name = os.path.join(product["data"], "ranked_w.xlsx")
+
+    # Save results in excel
     with pd.ExcelWriter(file_name) as writer:
-        scores_w.to_excel(writer, sheet_name='scores')
-        df_ci.to_excel(writer, sheet_name='scores_cis')
+        tox5_w.tox5_scores.to_excel(writer, sheet_name='scores')
+        tox5_w.results_ci_df.to_excel(writer, sheet_name='scores_cis')
 
-    figure, legend = plot_tox_rank_pie(scores_w, conf_intervals=ci_slices, colored_param=colored_param,
-                                       materials=materials, ci_low_color=ci_color_low, ci_high_color=ci_color_up)
-    figure_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_w.pdf")
-    figure.savefig(figure_file_name_pdf, format='pdf', bbox_inches='tight')
-    legend_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_legend_w.pdf")
-    legend.savefig(legend_file_name_pdf, format='pdf', bbox_inches='tight')
+    # plot ranked materials as a scatter plot
+    fig_ranks = plot_ranked_material(tox5_w.results_ci_df, 'toxpi_score', 'rnk', 'Material',
+                                     x_ci_dict=('score_ci_high', 'score_ci_low'),
+                                     y_ci_dict=('rank_ci_high', 'rank_ci_low'),
+                                     negative_controls=negative_controls,
+                                     positive_controls=positive_controls,
+                                     substance_types=substance_types,
+                                     marker_resize=20,
+                                     output_directory=product["data"], file_name='ranked_w')
 
-    plt.show()
-    legend.show()
+    fig_ranks_ci = plot_ranked_material(tox5_w.results_ci_df, 'rnk', 'Material', 'Material',
+                                        x_ci_dict=('rank_ci_high', 'rank_ci_low'),
+                                        negative_controls=negative_controls,
+                                        positive_controls=positive_controls,
+                                        substance_types=substance_types,
+                                        marker_resize=20,
+                                        output_directory=product["data"], file_name='ranked_w_rank_ci')
+
+    fig_scores_ci = plot_ranked_material(tox5_w.results_ci_df, 'toxpi_score', 'Material', 'Material',
+                                         x_ci_dict=('score_ci_high', 'score_ci_low'),
+                                         negative_controls=negative_controls,
+                                         positive_controls=positive_controls,
+                                         substance_types=substance_types,
+                                         marker_resize=20,
+                                         output_directory=product["data"], file_name='ranked_w_score_ci')
+
+    # plot interactive pies
+    fig = plot_tox_rank_pie_interactive(tox5_w.tox5_scores, colored_param=colored_param,
+                                        conf_intervals=tox5_w.ci_slices,
+                                        output_directory=product["data"], materials=materials,
+                                        file_name='tox_pie_w_interactive')
+
+    # hierarchial clustering
+    features = tox5_w.tox5_scores.iloc[:, 3:].values
+    labels = tox5_w.tox5_scores['Material'] + ' rank:' + tox5_w.tox5_scores['rnk'].astype(str)
+    labels = labels.values
+    dendogram = h_clustering(features, labels, output_directory=product["data"], file_name='dendograme_w')
+    dendogram2 = h_clustering(features, labels, clusters='silhouette', output_directory=product["data"],
+                              file_name='dendograme_w_silhouette')
+
+    # figure, legend = plot_tox_rank_pie(scores_w, conf_intervals=ci_slices, colored_param=colored_param,
+    #                                    materials=materials, ci_low_color=ci_color_low, ci_high_color=ci_color_up)
+    # figure_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_w.pdf")
+    # figure.savefig(figure_file_name_pdf, format='pdf', bbox_inches='tight')
+    # legend_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_legend_w.pdf")
+    # legend.savefig(legend_file_name_pdf, format='pdf', bbox_inches='tight')
+    # plt.show()
+    # legend.show()
 
 if without_serum:
-    scores_wo, ci_slices, _, df_ci = generate_tox5_scores(pickle_hts_data, without_serum, cells=cells,
-                                                          transform_functions=user_selected_transform_functions)
+    # Calculate tox5 scores with confidence intervals
+    tox5_wo = generate_tox5_scores(pickle_hts_data, without_serum, cells=cells,
+                                   transform_functions=user_selected_transform_functions)
     file_name = os.path.join(product["data"], "ranked_wo.xlsx")
+    # Save results in excel
     with pd.ExcelWriter(file_name) as writer:
-        scores_wo.to_excel(writer, sheet_name='scores')
-        df_ci.to_excel(writer, sheet_name='scores_cis')
+        tox5_wo.tox5_scores.to_excel(writer, sheet_name='scores')
+        tox5_wo.results_ci_df.to_excel(writer, sheet_name='scores_cis')
 
-    # test with topsis
+    # =========================  Topsis model: test for quantum dots and patrols controls ==============================
     sorted_df = rank_with_topsis(pickle_hts_data, without_serum)
     file_name_topsis = os.path.join(product["data"], "ranked_topsis.xlsx")
     with pd.ExcelWriter(file_name_topsis) as writer:
         sorted_df.to_excel(writer)
 
-    # plot topsis
-    fig_topsis = plot_topsis(sorted_df, marker_resize=7, output_directory=product["data"])
+    fig_topsis = plot_ranked_material(sorted_df, 'Preference', 'Ranking', 'Material',
+                                      # controls for calibrate
+                                      negative_controls=['water'],
+                                      positive_controls=['Gemcitabine', 'Mitomycin C ', '5-Fluorouracil',
+                                                         '4-Nitroquinoline 1-oxide', 'Daunorubicin '],
+                                      # controls for quntum dots
+                                      # negative_controls=['NM-220', 'JRCNM50001a', 'NM-105'],
+                                      # positive_controls=['NM-110', 'JRCNM01005a'],
+                                      marker_resize=20, output_directory=product["data"], file_name='topsis_ranked_wo')
+    # ==================================================================================================================
 
+    # plot ranked materials as a scatter plot
+    fig_ranks = plot_ranked_material(tox5_wo.results_ci_df, 'toxpi_score', 'rnk', 'Material',
+                                     negative_controls=negative_controls,
+                                     positive_controls=positive_controls,
+                                     substance_types=substance_types,
+                                     x_ci_dict=('score_ci_high', 'score_ci_low'),
+                                     y_ci_dict=('rank_ci_high', 'rank_ci_low'),
+                                     marker_resize=20, output_directory=product["data"], file_name='ranked_wo')
 
-    figure, legend = plot_tox_rank_pie(scores_wo, conf_intervals=ci_slices, colored_param=colored_param,
-                                       materials=materials, ci_low_color=ci_color_low, ci_high_color=ci_color_up)
+    fig_ranks_ci = plot_ranked_material(tox5_wo.results_ci_df, 'rnk', 'Material', 'Material',
+                                        negative_controls=negative_controls,
+                                        positive_controls=positive_controls,
+                                        substance_types=substance_types,
+                                        x_ci_dict=('rank_ci_high', 'rank_ci_low'),
+                                        marker_resize=20, output_directory=product["data"],
+                                        file_name='ranked_wo_rank_ci')
 
-    fig = plot_tox_rank_pie_interactive(scores_wo, colored_param=colored_param, conf_intervals=ci_slices,
-                                        output_directory=product["data"], materials=materials)
+    fig_scores_ci = plot_ranked_material(tox5_wo.results_ci_df, 'toxpi_score', 'Material', 'Material',
+                                         negative_controls=negative_controls,
+                                         positive_controls=positive_controls,
+                                         substance_types=substance_types,
+                                         x_ci_dict=('score_ci_high', 'score_ci_low'),
+                                         marker_resize=20, output_directory=product["data"],
+                                         file_name='ranked_wo_score_ci')
 
-    figure_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_wo.pdf")
-    figure.savefig(figure_file_name_pdf, format='pdf', bbox_inches='tight')
-    legend_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_legend_wo.pdf")
-    legend.savefig(legend_file_name_pdf, format='pdf', bbox_inches='tight')
+    # plot interactive pies
+    fig = plot_tox_rank_pie_interactive(tox5_wo.tox5_scores, colored_param=colored_param,
+                                        conf_intervals=tox5_wo.ci_slices,
+                                        output_directory=product["data"], materials=materials,
+                                        file_name="tox_pie_wo_interactive")
 
-    plt.show()
-    legend.show()
+    # hierarchial clustering
+    features = tox5_wo.tox5_scores.iloc[:, 3:].values
+    labels = tox5_wo.tox5_scores['Material'] + ' rank:' + tox5_wo.tox5_scores['rnk'].astype(str)
+    labels = labels.values
+    dendogram = h_clustering(features, labels, output_directory=product["data"], file_name='dendograme_wo')
+    dendogram2 = h_clustering(features, labels, clusters='silhouette', output_directory=product["data"],
+                              file_name='dendograme_wo_silhouette')
+
+    # figure, legend = plot_tox_rank_pie(scores_wo, conf_intervals=ci_slices, colored_param=colored_param,
+    #                                    materials=materials, ci_low_color=ci_color_low, ci_high_color=ci_color_up)
+    # figure_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_wo.pdf")
+    # figure.savefig(figure_file_name_pdf, format='pdf', bbox_inches='tight')
+    # legend_file_name_pdf = os.path.join(product["data"], "tox_rank_pie_legend_wo.pdf")
+    # legend.savefig(legend_file_name_pdf, format='pdf', bbox_inches='tight')
+    # plt.show()
+    # legend.show()
