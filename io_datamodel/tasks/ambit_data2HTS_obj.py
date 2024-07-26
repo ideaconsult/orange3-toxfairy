@@ -156,6 +156,24 @@ def ambit_subs2hts_obj(ambit_substances, assay_type, endpoint, serum_used=False)
                         if well not in metadata and well is not None:
                             metadata[well] = {'material': substance.name, 'concentration': conc_value}
 
+    # split combined materials calcined kaolin in calibrate
+    if ambit_substances.substance[0].ownerName == "caLIBRAte":
+        G_keys = ['G12', 'G11', 'G10', 'G09', 'G08', 'G07', 'G06', 'G05', 'G04', 'G03', 'G02', 'G01']
+        I_keys = ['I12', 'I11', 'I10', 'I09', 'I08', 'I07', 'I06', 'I05', 'I04', 'I03', 'I02', 'I01']
+        M_keys = ['M12', 'M11', 'M10', 'M09', 'M08', 'M07', 'M06', 'M05', 'M04', 'M03', 'M02', 'M01']
+        N_keys = ['N12', 'N11', 'N10', 'N09', 'N08', 'N07', 'N06', 'N05', 'N04', 'N03', 'N02', 'N01']
+
+        # Update material value based on specific lists of keys
+        for key in metadata.keys():
+            if key in G_keys:
+                metadata[key]['material'] = 'Ultrex 96'
+            elif key in I_keys:
+                metadata[key]['material'] = 'PoleStar 200P'
+            elif key in M_keys:
+                metadata[key]['material'] = 'Tylose HX 6000 YG4'
+            elif key in N_keys:
+                metadata[key]['material'] = 'Tylose HS 6000 YP2'
+
     materials_to_check = ['water', 'Dispersant', 'dispersant', 'another_material']
     water_keys = [key for key, value in metadata.items() if value['material'] in materials_to_check]
 
