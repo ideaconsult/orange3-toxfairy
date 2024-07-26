@@ -54,6 +54,9 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
                            meta={'E.cell_type': cell, "E.method": endpoint.upper(), "MEDIUM": serum}
                            )
             if endpoint_type == 'MEDIAN':
+                # TODO:  add standard deviation
+                # errQualifier: Optional[str] = None
+                # errorValue: Optional[Union[NDArray, None]] = None
 
                 concentration_values = np.sort(slice['concentration'].unique())
                 time_values = np.sort(slice['time'].unique())
@@ -68,7 +71,10 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
                     , 'E.EXPOSURE_TIME': ValueArray(values=time_values, unit=time_unit_values[0].lower())
                 }
                 ea = EffectArray(endpoint=endpoint.upper(), unit="", endpointtype=endpoint_type,
-                                 signal=ValueArray(values=result_array, unit=''),
+                                 signal=ValueArray(values=result_array, unit=''
+                                                   # , errQualifier='sd',
+                                                   #  errorValue= [[,]]
+                                                   ),
                                  axes=data_dict)
 
                 papp.effects.append(ea)
@@ -137,6 +143,9 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
 
 
 path = upstream["metl_df"]["data"]
+# this is for combining harmless and partols
+# paths = [upstream["metl_df"]["data"], "D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\melted_hts_obj"]
+
 
 # # if we don't remove, mode="a" will add to the file from previous run
 if os.path.exists(product["data"]):
@@ -155,8 +164,9 @@ def add_to_nxs(_config, substance_owner, data_provider, *endpoint_types):
                     else:
                         serum_used = False
 
-                    result_df = pd.read_csv(os.path.join(path, f"{endpoint}_{serum}_{endpoint_type}_data_melted.txt"),
-                                            sep="\t")
+                    result_df = pd.read_csv(
+                        os.path.join(path, f"{endpoint.upper()}_{serum}_{endpoint_type}_data_melted.txt"),
+                        sep="\t")
                     result_df = result_df.loc[:, ~result_df.columns.str.contains('^Unnamed')]
                     substance_records = []
                     substance_records = htsdf2ambit(result_df, endpoint, substance_owner=substance_owner,
@@ -176,6 +186,13 @@ def loadconfig(config_file, config_key, subkey="extract"):
 
 
 extract_config = loadconfig(config_file, config_key, "2ambit")
+
+# for path in paths:
+#     add_to_nxs(extract_config["endpoints"],
+#                extract_config['substance_owner'],
+#                extract_config['data_provider'],
+#                path,
+#                'raw', 'median', 'normalized', 'dose-response')
 
 add_to_nxs(extract_config["endpoints"],
            extract_config['substance_owner'],
