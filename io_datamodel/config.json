@@ -81,11 +81,12 @@
                                         "assay_type": "imaging",
                                         "serum": false,
                                         "endpoints": ["DAPI","H2AX", "8OHG"]}
-                                        }
+                                        },
+                            "dose_recalculation": {"well_volume":  50, "cell_growth_area": 0.079495092}
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
                     "tech_replicates_endpoints": [],
-                    "filtrate_materials": ["PL-QD-CF  (no disp)","PL-QD-OA (poor disp)"],
+                    "filtrate_materials": ["ZnCuInS/ZnS","ZnCdSeS"],
                     "filtrate_cells": ["BEAS-2B", "A549", "HEPG2"]
                   },
     "2ambit": {"substance_owner":  "HARMLESS",
@@ -104,10 +105,13 @@
               "add_weight": [3, "1st_3SD"],
               "bootstrap_CIs": true
               },
-    "plotting": {"materials": [],
+    "plotting": {"pies":{"materials": [],
                   "colored_param": "endpoint",
                   "ci_low_color": "#ff5c33",
-                  "ci_high_color":"#ff5c33"
+                  "ci_high_color":"#ff5c33"},
+                "ranks":{"negative_controls": ["NM-220", "JRCNM50001a", "NM-105"],
+                          "positive_controls": ["NM-110", "JRCNM01005a"],
+                          "substance_types": {"Quantum dots":  ["ZnCuInS/ZnS", "ZnCdSeS"]}}
                 }
     },
 
@@ -127,7 +131,8 @@
                                         "assay_type": "imaging",
                                         "serum": false,
                                         "endpoints": ["DAPI","H2AX", "8OHG"]}
-                                        }
+                                        },
+                            "dose_recalculation": {"well_volume":  50, "cell_growth_area": 0.1}
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
                     "tech_replicates_endpoints": [],
@@ -152,10 +157,13 @@
               "add_weight": [3, "1st_3SD"],
               "bootstrap_CIs": true
               },
-    "plotting": {"materials": [],
+    "plotting": {"pies":{"materials": [],
                   "colored_param": "endpoint",
                   "ci_low_color": "#ff5c33",
-                  "ci_high_color":"#ff5c33"
+                  "ci_high_color":"#ff5c33"},
+                "ranks":{"negative_controls": ["NM-220", "JRCNM50001a", "NM-105"],
+                          "positive_controls": ["NM-110", "JRCNM01005a"],
+                          "substance_types": false}
                 }
     },
 
