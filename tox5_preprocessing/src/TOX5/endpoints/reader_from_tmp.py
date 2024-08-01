@@ -32,13 +32,15 @@ class MetaDataReaderTmp:
                                           if value['material'] in materials_to_check]
 
     def recalculate_dose_from_cell_growth(self, well_volume, cell_growth_area):
-        # Recalculate material dose (ug/ml), based on cell growth area in ug/cm2
+        # Recalculate material dose (ug/ml), based on cell growth area, in ug/cm2
+        # Dose from cell growth (µg/cm²) = (Concentration (µg/ml) * Well Volume (ml)) / Cell Growth Area (cm²)
         for key, value in self.data_container.metadata.items():
             if "concentration" in value:
                 value['concentration'] = value['concentration'] * well_volume / cell_growth_area
 
     def recalculate_dose_from_sbet(self, well_volume, cell_growth_area):
-        # Recalculate material dose (ug/ml), based on SBET in cm2/cm2
+        # Recalculate material dose (ug/ml), based on SBET, in cm2/cm2
+        # Dose from SBET (cm²/cm²) = SBET(m²/g)/100 * (conc(ug/ml)/1000/well volume(ul)) / cell growth area(cm²)
         missing_sbet = set()
         for key, value in self.data_container.metadata.items():
             if "concentration" in value and 'SBET' in value:
