@@ -29,12 +29,15 @@ extract_config = loadconfig(config_file, config_key, "extract_from_local")
 run_task(extract_config)
 
 
-def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=False):
+def create_data_container(endpoint, assay_type, directory=None, tmp=None, serum=False, dose_recalc=None):
     _data = None
 
     _data = HTS(endpoint)
     _meta = MetaDataReaderTmp(tmp, _data)
     _meta.read_meta_data()
+    if dose_recalc:
+        _meta.recalculate_dose_from_sbet(dose_recalc["well_volume"], dose_recalc["cell_growth_area"])
+
     data_reader = DataReaderTmp(tmp, directory, _data)
     data_reader.read_data()
     if _data.assay_type == "imaging":
@@ -61,6 +64,7 @@ obj_list = []
 folder_data_input = extract_config["folder_data_input"]
 folder_tmp_input = extract_config["folder_tmp_input"]
 config = extract_config["config"]
+dose_recalculation = extract_config["dose_recalculation"]
 # print(config)
 
 for key, config_item in config.items():
@@ -71,7 +75,8 @@ for key, config_item in config.items():
     endpoints = config_item.get("endpoints", [])
 
     for endpoint in endpoints:
-        tmp_obj = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum)
+        tmp_obj = create_data_container(endpoint, assay_type=assay_type, directory=directory, tmp=tmp, serum=serum,
+                                        dose_recalc=dose_recalculation)
         obj_list.append(tmp_obj)
 
 # # Example to print the resulting list of objects
