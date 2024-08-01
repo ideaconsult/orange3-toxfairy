@@ -144,15 +144,15 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
 
 path = upstream["metl_df"]["data"]
 # this is for combining harmless and partols
-# paths = [upstream["metl_df"]["data"], "D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\patrols\\melted_hts_obj"]
-
+# paths = [upstream["metl_df"]["data"],
+#          "D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\harmless_screen_5-8\\melted_hts_obj"]
 
 # # if we don't remove, mode="a" will add to the file from previous run
 if os.path.exists(product["data"]):
     os.remove(product["data"])
 
 
-def add_to_nxs(_config, substance_owner, data_provider, *endpoint_types):
+def add_to_nxs(_config, substance_owner, data_provider, path, *endpoint_types):
     with nx.load(product["data"], mode="a") as nxroot:
         for endpoint_type in endpoint_types:
             for endpoint in _config:
@@ -197,4 +197,5 @@ extract_config = loadconfig(config_file, config_key, "2ambit")
 add_to_nxs(extract_config["endpoints"],
            extract_config['substance_owner'],
            extract_config['data_provider'],
+           path,
            'raw', 'median', 'normalized', 'dose-response')
