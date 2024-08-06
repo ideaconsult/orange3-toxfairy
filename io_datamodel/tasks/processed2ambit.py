@@ -150,6 +150,7 @@ path = upstream["metl_df"]["data"]
 # # if we don't remove, mode="a" will add to the file from previous run
 if os.path.exists(product["data"]):
     os.remove(product["data"])
+os.makedirs(product["data_json"], exist_ok=True)
 
 
 def add_to_nxs(_config, substance_owner, data_provider, path, *endpoint_types):
@@ -176,6 +177,14 @@ def add_to_nxs(_config, substance_owner, data_provider, path, *endpoint_types):
                                                     serum_used=serum_used)
 
                     substances = Substances(substance=substance_records)
+
+                    # save as a json
+                    sjson = substances.to_json()
+                    parsed_json = json.loads(sjson)
+                    with open(os.path.join(product["data_json"], f"{endpoint}_{endpoint_type}_patrols.json"), 'w') as json_file:
+                        json.dump(parsed_json, json_file, indent=4)
+                    print()
+
                     substances.to_nexus(nx_root=nxroot)
 
 

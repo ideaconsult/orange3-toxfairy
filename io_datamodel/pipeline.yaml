@@ -47,16 +47,17 @@ tasks:
     product:
       nb: "products/processed2ambit_nb.ipynb"
       data: "{{folder_output}}/calibrate_substances.nxs"
+      data_json: "{{folder_output}}/result_json"
     params:
       config_file: "{{config_file}}"
       config_key: "{{config_key}}"
 
 
-  - source: tasks/tox5_scoring.py
-    product:
-      nb: "products/tox5_scoring.ipynb"
-      data: "{{folder_output}}/tox5_scored_data"
-    params:
-      config_file: "{{config_file}}"
-      config_key: "{{config_key}}"
+#  - source: tasks/tox5_scoring.py
+#    product:
+#      nb: "products/tox5_scoring.ipynb"
+#      data: "{{folder_output}}/tox5_scored_data"
+#    params:
+#      config_file: "{{config_file}}"
+#      config_key: "{{config_key}}"
 
