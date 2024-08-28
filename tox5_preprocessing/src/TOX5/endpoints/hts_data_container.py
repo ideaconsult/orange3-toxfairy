@@ -8,8 +8,8 @@ class HTS:
     endpoint: Optional[str] = field(default=None)
     serum_used: bool = False
     assay_type: Optional[str] = field(default=None)
-    metadata: dict = field(default_factory=dict)
-    water_keys: List[str] = field(default_factory=list)
+    _metadata: dict = field(default_factory=dict)
+    _water_keys: List[str] = field(default_factory=list)
     raw_data_df: pd.DataFrame = pd.DataFrame()
     normalized_df: pd.DataFrame = pd.DataFrame()
     mean_df: pd.DataFrame = pd.DataFrame()
@@ -22,6 +22,35 @@ class HTS:
 
         if self.assay_type is not None and self.assay_type not in {"imaging", "viability"}:
             raise ValueError(f"Invalid assay_type: {self.assay_type}. Allowed values are 'imaging' or 'viability'.")
+
+    @property
+    def metadata(self):
+        self._update_metadata_and_water_keys()
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        self._metadata = value
+        # self._update_metadata_and_water_keys()
+
+    @property
+    def water_keys(self):
+        self._update_metadata_and_water_keys()
+        return self._water_keys
+
+    @water_keys.setter
+    def water_keys(self, value):
+        self._water_keys = value
+        # self._update_metadata_and_water_keys()
+
+    def _update_metadata_and_water_keys(self):
+        """Update metadata and water_keys based on raw_data_df columns."""
+        if self.raw_data_df.empty or not self._metadata or not self._water_keys:
+            return
+
+        keys_to_keep = list(self.raw_data_df.columns)[3:]
+        self._metadata = {key: value for key, value in self._metadata.items() if key in keys_to_keep}
+        self._water_keys = [item for item in self._water_keys if item in keys_to_keep]
 
     def filtrate_data(self, df, materials: List[str] = None, cells: List[str] = None):
         if materials is None:
