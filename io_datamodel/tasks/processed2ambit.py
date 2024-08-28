@@ -3,9 +3,11 @@ upstream = ["metl_df"]
 product = None
 config_file = None
 config_key = None
+combine_data_with = None
 # -
 
 import os.path
+from pathlib import Path
 import pandas as pd
 import nexusformat.nexus.tree as nx
 from pynanomapper.datamodel.ambit import EffectArray, ValueArray, Protocol, \
@@ -142,17 +144,6 @@ def htsdf2ambit(result_df, endpoint, substance_owner="HARMLESS", dataprovider="M
     return substance_records
 
 
-path = upstream["metl_df"]["data"]
-# this is for combining harmless and partols
-# paths = [upstream["metl_df"]["data"],
-#          "D:\\PhD\\projects\\ToxPi\\orange-tox5\\io_datamodel\\products\\harmless_screen_5-8\\melted_hts_obj"]
-
-# # if we don't remove, mode="a" will add to the file from previous run
-if os.path.exists(product["data"]):
-    os.remove(product["data"])
-os.makedirs(product["data_json"], exist_ok=True)
-
-
 def add_to_nxs(_config, substance_owner, data_provider, path, *endpoint_types):
     with nx.load(product["data"], mode="a") as nxroot:
         for endpoint_type in endpoint_types:
@@ -194,17 +185,29 @@ def loadconfig(config_file, config_key, subkey="extract"):
     return cfg[config_key][subkey]
 
 
+path = upstream["metl_df"]["data"]
+
+paths = []
+if combine_data_with:
+    path2 = Path(path)
+    two_dirs_up = path2.parents[1]
+    new_path = two_dirs_up / combine_data_with / 'melted_hts_obj'
+    paths = [path2, new_path]
+else:
+    paths = [Path(path)]
+
+# # if we don't remove, mode="a" will add to the file from previous run
+if os.path.exists(product["data"]):
+    os.remove(product["data"])
+os.makedirs(product["data_json"], exist_ok=True)
+
+
 extract_config = loadconfig(config_file, config_key, "2ambit")
 
-# for path in paths:
-#     add_to_nxs(extract_config["endpoints"],
-#                extract_config['substance_owner'],
-#                extract_config['data_provider'],
-#                path,
-#                'raw', 'median', 'normalized', 'dose-response')
+for path in paths:
+    add_to_nxs(extract_config["endpoints"],
+               extract_config['substance_owner'],
+               extract_config['data_provider'],
+               path,
+               'raw', 'median', 'normalized', 'dose-response')
 
-add_to_nxs(extract_config["endpoints"],
-           extract_config['substance_owner'],
-           extract_config['data_provider'],
-           path,
-           'raw', 'median', 'normalized', 'dose-response')
