@@ -22,7 +22,8 @@
                                                     "assay_type": "imaging",
                                                     "serum": true,
                                                     "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]}
-                                      }
+                                      },
+                            "dose_recalculation": false
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"],
                     "tech_replicates_endpoints": ["DAPIA", "DAPIB", "DAPI"],
@@ -62,6 +63,82 @@
                                                                                     "Alumino Silica", "Sodiumhexametaphosphate",
                                                                                     "Tylose HS 6000 YP2", "Tylose HX 6000 YG4",
                                                                                     "tetrapotassium diphosphate", "Sodiumhexametaphosphate"] }}
+                }
+    },
+"calibrate_set2":  {
+    "extract_from_db":  false,
+    "extract_from_local": {"folder_data_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate\\CALIBRATE_SET2",
+                            "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate\\CALIBRATE_SET2",
+                            "config": {
+                                        "config1": {
+                                                    "dir": "imaging_my_fixed",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_wo.xlsx",
+                                                    "assay_type": "imaging",
+                                                    "serum": false,
+                                                    "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]},
+                                        "config2": {
+                                                    "dir": "imaging_my_fixed",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_w.xlsx",
+                                                    "assay_type": "imaging",
+                                                    "serum": true,
+                                                    "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]},
+                                        "config3": {
+                                                    "dir": "viability_fixed_gt",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_wo.xlsx",
+                                                    "assay_type": "viability",
+                                                    "serum": false,
+                                                    "endpoints": ["CTG"]},
+                                        "config4": {
+                                                    "dir": "viability_fixed_gt",
+                                                    "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_w.xlsx",
+                                                    "assay_type": "viability",
+                                                    "serum": true,
+                                                    "endpoints": ["CTG"]}
+                            },
+                            "dose_recalculation": false
+                            },
+    "processing": {"endpoint_order":  ["CTG", "DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"],
+                    "tech_replicates_endpoints": ["DAPIA", "DAPIB", "DAPI"],
+                    "filtrate_materials": [],
+                    "filtrate_cells": []
+                  },
+    "2ambit": {"substance_owner":  "caLIBRAte",
+              "data_provider": "Misvik",
+              "endpoints": ["ctg", "dapi", "casp", "h2ax", "8ohg"]
+              },
+    "scoring": {"cells": ["BEAS-2B"],
+                "transform_functions": {
+                                        "1st": "log10x_6",
+                                        "auc": "sqrt_x",
+                                        "max": "log10x_6"
+                                        },
+              "auto_slices": "by_time_endpoint",
+              "manual_slices": false,
+              "manual_names": false,
+              "add_weight": [3, "1st_3SD"],
+              "bootstrap_CIs": true
+              },
+    "plotting": {"pies":{"materials": [],
+                  "colored_param": "endpoint",
+                  "ci_low_color": "#ff5c33",
+                  "ci_high_color":"#ff5c33"},
+                "ranks": {"negative_controls": ["water"],
+                          "positive_controls": ["Gemcitabine", "Mitomycin C ", "5-Fluorouracil",
+                                                "4-Nitroquinoline 1-oxide", "Daunorubicin ", "4-Nitroquinoline 1-oxide_set2"],
+                          "substance_types": {"Advanced SiO2 NM": ["Porous Silica 300nm-Me", "Non-porous Silica 300nm-Me", "Porous Silica 100nm-Me",
+                                                    "Non-porous Silica 100nm-Me", "Porous Silica 300nm-CuO doping-Me",
+                                                    "Porous Silica 100nm-CuO doping-Me", "Non-Porous Silica 300nm-CuO doping-Me"],
+                                              "NM with antipollution or antibacterial properties": ["TiO2", "TiO2/SiO2 1:3", "A1 Silver nanoparticles",
+                                              "A2 Silver nanoparticles (less ions)", "CuO nanoparticles"],
+                                              "Fine pigments and mineral fillers": ["Expancel", "Titanium(IV)oxide", "Dolomite", "Talcum",
+                                                                                    "Ultrex 96", "PoleStar 200P", "Calcium Carbonate",
+                                                                                    "Alumino Silica", "Sodiumhexametaphosphate","Sodiumhexametaphosphate_set2",
+                                                                                    "Tylose HS 6000 YP2", "Tylose HX 6000 YG4",
+                                                                                    "tetrapotassium diphosphate", "Sodiumhexametaphosphate"],
+                                              "Nanomaterial control": ["Carbon black"],
+                                              "Functionalized nanodiamonds": ["Kaolin", "ND VoxP", "ND Molto", "ND Hydrogen P"]
+                                              }
+                          }
                 }
     },
 
@@ -183,7 +260,8 @@
                                         "assay_type": "imaging",
                                         "serum": false,
                                         "endpoints": ["DAPI","H2AX", "8OHG"]}
-                                        }
+                                        },
+                            "dose_recalculation": false
                             },
     "processing": {"endpoint_order":  ["CTG", "DAPI", "CASP", "H2AX", "8OHG"],
                     "tech_replicates_endpoints": [],
@@ -206,10 +284,13 @@
               "add_weight": [3, "1st_3SD"],
               "bootstrap_CIs": true
               },
-    "plotting": {"materials": [],
+    "plotting": {"pies":{"materials": [],
                   "colored_param": "endpoint",
                   "ci_low_color": "#ff5c33",
-                  "ci_high_color":"#ff5c33"
+                  "ci_high_color":"#ff5c33"},
+                "ranks":{"negative_controls": [],
+                          "positive_controls": [],
+                          "substance_types": {}}
                 }
   },
 
