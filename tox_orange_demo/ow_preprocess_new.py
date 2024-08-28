@@ -4,12 +4,13 @@ from Orange.widgets import gui
 from AnyQt.QtWidgets import QGridLayout, QFileDialog
 import copy
 from orangewidget.settings import Setting
-from tox5_preprocessing.src.TOX5.calculations.casp_normalization import CaspNormalization
-from tox5_preprocessing.src.TOX5.calculations.ctg_normalization import CTGNormalization
-from tox5_preprocessing.src.TOX5.calculations.dapi_normalization import DapiNormalization
-from tox5_preprocessing.src.TOX5.calculations.dose_response import DoseResponse
-from tox5_preprocessing.src.TOX5.calculations.ohg_h2ax_normalization import OHGH2AXNormalization
 from tox_orange_demo.data_view import DataViewHandler
+
+from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
+from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
+from TOX5.endpoints.hts_data_container import HTS
+from TOX5.calculations.dose_response import DoseResponse
+from TOX5.calculations.basic_normalization import BasicNormalization
 
 
 class Toxpi(OWWidget):
@@ -193,7 +194,7 @@ class Toxpi(OWWidget):
         elif todo == 'casp_clean':
             self.data_container_copy[selected_endpoint][1].ctg_mean_df = self.data_container_copy['CTG'][0].mean_df
             self.data_container_copy[selected_endpoint][1].dapi_mean_df = self.data_container_copy['DAPI'][0].mean_df
-            self.data_container_copy[selected_endpoint][1].additional_normalization()
+            self.data_container_copy[selected_endpoint][1].normalize_data_to_cell_count()
         else:
             print('no available function')
 
@@ -212,19 +213,19 @@ class Toxpi(OWWidget):
 
     def create_hts_calc_objects(self, selected_endp):
         if selected_endp == 'CTG':
-            self.data_container_copy[selected_endp].append(CTGNormalization(self.data_container_copy[selected_endp][0]))
+            self.data_container_copy[selected_endp].append(CellViabilityNormalization(self.data_container_copy[selected_endp][0]))
         elif selected_endp == 'DAPI':
             self.data_container_copy[selected_endp].append(
-                DapiNormalization(self.data_container_copy[selected_endp][0]))
+                DNADamageNormalization(self.data_container_copy[selected_endp][0]))
         elif selected_endp == '8OHG':
             self.data_container_copy[selected_endp].append(
-                OHGH2AXNormalization(self.data_container_copy[selected_endp][0]))
+                DNADamageNormalization(self.data_container_copy[selected_endp][0]))
         elif selected_endp == 'H2AX':
             self.data_container_copy[selected_endp].append(
-                OHGH2AXNormalization(self.data_container_copy[selected_endp][0]))
+                DNADamageNormalization(self.data_container_copy[selected_endp][0]))
         elif selected_endp == 'CASP':
             self.data_container_copy[selected_endp].append(
-                CaspNormalization(self.data_container_copy[selected_endp][0]))
+                CellViabilityNormalization(self.data_container_copy[selected_endp][0]))
         self.data_container_copy[selected_endp].append(DoseResponse(self.data_container_copy[selected_endp][0]))
 
     def view_data(self):
