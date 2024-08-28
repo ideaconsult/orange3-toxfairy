@@ -65,13 +65,18 @@ class DataReaderTmp:
 
     @staticmethod
     def _read_data_csv(file):
-        df = pd.read_csv(file, engine='python', sep='[;,]', header=None, on_bad_lines='skip').dropna(subset=[0])
+        df = pd.read_csv(file, engine='python', sep='[;,]', header=None, on_bad_lines='skip')
         start_row = df[df.iloc[:, 0] == 'A'].index[0]
-        end_row = df[df.iloc[:, 0].str.match(r'^[A-Z](?![A-Z])$')].index[-1]
-        df = df.iloc[start_row - 1:end_row, :]
-
-        df = df.set_index(0).T.stack().astype('int')
+        mask = df.iloc[:, 0].str.match(r'^[A-Z](?![A-Z])$').fillna(False)
+        end_row = df[mask].index[-1]
+        df = df.iloc[start_row - 1:end_row+1, :]
+        df.columns = df.iloc[0]
+        df = df[1:]
+        df = df.reset_index(drop=True)
+        df = df.set_index(df.columns[0])
+        df = df.T.stack().astype(int)
         df.index = df.index.map('{0[1]}{0[0]}'.format)
+        df.index = df.index.str.replace('.0', '', regex=False)
         return df
 
     @staticmethod
@@ -79,7 +84,8 @@ class DataReaderTmp:
         num_columns = len(pd.read_csv(file, sep='\t', nrows=1).columns)
         used_cols = list(range(1, num_columns)) if num_columns > 1 else None
         df = pd.read_csv(file, sep='\t', skiprows=1, usecols=used_cols, header=None)
-        df = df.set_index(1).T.dropna(how='all').astype('int')
+        df = df.set_index(1).T.dropna(how='all')
+        df = df.apply(pd.to_numeric, errors='coerce')
         return df
 
     @staticmethod
