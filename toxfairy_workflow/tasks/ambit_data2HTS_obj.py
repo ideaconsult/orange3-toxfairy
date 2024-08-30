@@ -15,7 +15,7 @@ import traceback
 import json
 import re
 import pickle
-from TOX5.endpoints.hts_data_container import HTS
+from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
 import sys
 
 os.makedirs(product["data_json"], exist_ok=True)
