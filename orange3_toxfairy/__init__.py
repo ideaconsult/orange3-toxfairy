@@ -1,5 +1,5 @@
 
-NAME = "TOX5 Scores"
+NAME = "ToxFAIRy"
 
 DESCRIPTION = "Test description text"
 

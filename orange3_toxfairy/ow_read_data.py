@@ -10,10 +10,10 @@ from Orange.widgets.settings import Setting
 from AnyQt.QtWidgets import QFileDialog
 from orangewidget import widget
 
-from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.reader_from_tmp import DataReaderTmp, MetaDataReaderTmp
-from TOX5.misc.utils import annotate_data
-from tox_orange_demo.data_view import DataViewHandler
+from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.src.toxfairy.endpoints.reader_from_tmp import DataReaderTmp, MetaDataReaderTmp
+from toxfairy.src.toxfairy.misc.utils import annotate_data
+from orange3_toxfairy.data_view import DataViewHandler
 
 
 class Toxpi(OWWidget):

@@ -40,5 +40,5 @@ dependencies:
   - setuptools
   - plotly
   - pip:
-    - -e tox5_preprocessing
+    - -e toxfairy
     - -e .

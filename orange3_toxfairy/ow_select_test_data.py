@@ -6,7 +6,7 @@ from Orange.widgets.settings import Setting
 from Orange.widgets import gui
 from AnyQt.QtWidgets import QGridLayout, QStyle, QListWidget
 from Orange.data.pandas_compat import table_from_frame
-from TOX5 import test_data
+from toxfairy.src.toxfairy import test_data
 
 
 class TestData(OWWidget):

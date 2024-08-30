@@ -5,7 +5,7 @@ from Orange.widgets import gui
 from AnyQt.QtWidgets import QListWidget
 from Orange.widgets.settings import Setting
 
-from tox_orange_demo.data_view import DataViewHandler
+from orange3_toxfairy.data_view import DataViewHandler
 
 
 class HTSDataFiltrator(OWWidget):

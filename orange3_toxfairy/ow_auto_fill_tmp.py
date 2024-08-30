@@ -3,7 +3,7 @@ from Orange.widgets import gui
 import Orange
 from orangewidget import widget
 import warnings
-from TOX5.misc.utils import generate_annotation_file
+from toxfairy.src.toxfairy.misc.utils import generate_annotation_file
 
 
 class AutofillTmp(OWWidget):
