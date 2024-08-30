@@ -13,7 +13,7 @@ from pathlib import Path
 import pickle
 import json
 from toxfairy.src.toxfairy.calculations.tox5 import TOX5
-from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie, plot_tox_rank_pie_interactive, plot_ranked_material, \
+from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie_interactive, plot_ranked_material, \
     h_clustering
 from toxfairy.src.toxfairy.calculations.topsis_ranking import topsis_scoring
 from toxfairy.src.toxfairy.misc.pvclust import PvClust

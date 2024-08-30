@@ -1,6 +1,6 @@
 import os
 import glob
-from tox5_preprocessing.src.TOX5.misc.utils import *
+from toxfairy.src.toxfairy.misc.utils import *
 
 
 class MetaDataReader:
