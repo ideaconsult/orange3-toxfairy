@@ -5,11 +5,11 @@ folder_output = None
 config_file = None
 config_key = None
 # -
-from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
-from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
-from TOX5.endpoints.hts_data_container import HTS
-from TOX5.calculations.dose_response import DoseResponse
-from TOX5.calculations.basic_normalization import BasicNormalization
+from toxfairy.src.toxfairy.calculations.cell_viability_normalization import CellViabilityNormalization
+from toxfairy.src.toxfairy.calculations.dna_damage_normalization import DNADamageNormalization
+from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.src.toxfairy.calculations.dose_response import DoseResponse
+from toxfairy.src.toxfairy.calculations.basic_normalization import BasicNormalization
 import pandas as pd
 import os.path
 import pickle

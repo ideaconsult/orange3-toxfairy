@@ -6,8 +6,8 @@ config_file = None
 config_key = None
 # -
 
-from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
+from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.src.toxfairy.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 import os.path
 import pickle
 import json
