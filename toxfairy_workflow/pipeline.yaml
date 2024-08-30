@@ -43,15 +43,15 @@ tasks:
       data: "{{folder_output}}/{{config_key}}/melted_hts_obj"
 
 
-  - source: tasks/processed2ambit.py
-    product:
-      nb: "products/processed2ambit_nb.ipynb"
-      data: "{{folder_output}}/calibrate_substances.nxs"
-      data_json: "{{folder_output}}/result_json"
-    params:
-      config_file: "{{config_file}}"
-      config_key: "{{config_key}}"
-      combine_data_with: "{{combine_data_with}}"
+#  - source: tasks/processed2ambit.py
+#    product:
+#      nb: "products/processed2ambit_nb.ipynb"
+#      data: "{{folder_output}}/calibrate_substances.nxs"
+#      data_json: "{{folder_output}}/result_json"
+#    params:
+#      config_file: "{{config_file}}"
+#      config_key: "{{config_key}}"
+#      combine_data_with: "{{combine_data_with}}"
 
 
   - source: tasks/tox5_scoring.py

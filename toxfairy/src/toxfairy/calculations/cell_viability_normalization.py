@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tox5_preprocessing.src.TOX5.calculations.basic_normalization import BasicNormalization
+from toxfairy.src.toxfairy.calculations.basic_normalization import BasicNormalization
 
 
 class CellViabilityNormalization(BasicNormalization):
