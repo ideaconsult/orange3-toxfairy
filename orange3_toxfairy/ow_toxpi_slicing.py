@@ -8,7 +8,7 @@ import Orange.data
 from Orange.widgets.settings import Setting
 import re
 from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget
-from TOX5.calculations.tox5 import TOX5
+from toxfairy.src.toxfairy.calculations.tox5 import TOX5
 
 
 class Toxpi(OWWidget):

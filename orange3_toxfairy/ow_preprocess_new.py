@@ -4,13 +4,13 @@ from Orange.widgets import gui
 from AnyQt.QtWidgets import QGridLayout, QFileDialog
 import copy
 from orangewidget.settings import Setting
-from tox_orange_demo.data_view import DataViewHandler
+from orange3_toxfairy.data_view import DataViewHandler
 
-from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
-from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
-from TOX5.endpoints.hts_data_container import HTS
-from TOX5.calculations.dose_response import DoseResponse
-from TOX5.calculations.basic_normalization import BasicNormalization
+from toxfairy.src.toxfairy.calculations.cell_viability_normalization import CellViabilityNormalization
+from toxfairy.src.toxfairy.calculations.dna_damage_normalization import DNADamageNormalization
+from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.src.toxfairy.calculations.dose_response import DoseResponse
+from toxfairy.src.toxfairy.calculations.basic_normalization import BasicNormalization
 
 
 class Toxpi(OWWidget):

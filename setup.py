@@ -1,6 +1,6 @@
 from setuptools import setup
 
-NAME = "TOX5 Scores"
+NAME = "ToxFAIRy"
 
 AUTHOR = 'IDEAconsult Ltd.'
 
@@ -19,13 +19,14 @@ INSTALL_REQUIRES = [
     'plotly'
 ]
 
-PACKAGES = ["tox_orange_demo"]
+PACKAGES = ["orange3_toxfairy"]
 
-PACKAGE_DATA = {"tox_orange_demo": ["icons/*.svg"]}
+PACKAGE_DATA = {"orange3_toxfairy": ["icons/*.svg"]}
 
 CLASSIFIERS = ["Example :: Invalid"]
 
-ENTRY_POINTS = {"orange.widgets": "TOX5 Scores = tox_orange_demo"}
+# ENTRY_POINTS = {"orange.widgets": "ToxFAIRy = orange3-toxfairy"}
+ENTRY_POINTS = {'orange.widgets': ['ToxFAIRy = orange3_toxfairy']}
 
 setup(
     name=NAME,

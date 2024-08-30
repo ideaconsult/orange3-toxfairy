@@ -10,7 +10,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from TOX5.misc.utils import plot_tox_rank_pie
+from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie
 
 
 class Toxpi(OWWidget):
