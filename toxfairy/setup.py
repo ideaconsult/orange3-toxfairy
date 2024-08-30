@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-NAME = "TOX5"
+NAME = "ToxFAIRy"
 AUTHOR = 'IDEAconsult Ltd.'
 
 INSTALL_REQUIRES = [
