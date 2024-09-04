@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme version="2.0" title="" description="">
+	<nodes>
+		<node id="0" name="Multifiles" qualified_name="orange3_toxfairy.ow_mylti_files.MultifileNames" project_name="ToxFAIRy" version="" title="Multifiles" position="(122.0, 149.0)" />
+		<node id="1" name="Multifiles" qualified_name="orange3_toxfairy.ow_mylti_files.MultifileNames" project_name="ToxFAIRy" version="" title="Multifiles (1)" position="(126.0, 287.0)" />
+		<node id="2" name="HTS preprocess" qualified_name="orange3_toxfairy.ow_preprocess_new.HTSPreprocess" project_name="ToxFAIRy" version="" title="HTS preprocess" position="(456.0, 228.0)" />
+		<node id="3" name="Read HTS data/metadata" qualified_name="orange3_toxfairy.ow_read_data.ReadHTSDataLocal" project_name="ToxFAIRy" version="" title="Read HTS data/metadata" position="(284.0, 231.0)" />
+		<node id="4" name="Multifiles" qualified_name="orange3_toxfairy.ow_mylti_files.MultifileNames" project_name="ToxFAIRy" version="" title="Multifiles (2)" position="(129.0, 398.0)" />
+		<node id="5" name="Multifiles" qualified_name="orange3_toxfairy.ow_mylti_files.MultifileNames" project_name="ToxFAIRy" version="" title="Multifiles (1) (1)" position="(133.0, 536.0)" />
+		<node id="6" name="HTS preprocess" qualified_name="orange3_toxfairy.ow_preprocess_new.HTSPreprocess" project_name="ToxFAIRy" version="" title="HTS preprocess (1)" position="(454.0, 476.0)" />
+		<node id="7" name="Read HTS data/metadata" qualified_name="orange3_toxfairy.ow_read_data.ReadHTSDataLocal" project_name="ToxFAIRy" version="" title="Read HTS data/metadata (1)" position="(292.0, 480.0)" />
+		<node id="8" name="Combine HTS Objects" qualified_name="orange3_toxfairy.ow_combine_data.CombineHTSObj" project_name="ToxFAIRy" version="" title="Combine HTS Objects" position="(652.0, 384.0)" />
+		<node id="9" name="Data Table" qualified_name="Orange.widgets.data.owtable.OWTable" project_name="Orange3" version="" title="Data Table" position="(981.0, 257.0)" />
+		<node id="10" name="Tox5 Score" qualified_name="orange3_toxfairy.ow_toxpi_slicing.Toxpi" project_name="ToxFAIRy" version="" title="Tox5 Score" position="(641.0, 208.0)" />
+		<node id="11" name="Tox5 Score" qualified_name="orange3_toxfairy.ow_toxpi_slicing.Toxpi" project_name="ToxFAIRy" version="" title="Tox5 Score (1)" position="(814.0, 378.0)" />
+		<node id="12" name="Tox5 pie view" qualified_name="orange3_toxfairy.ow_toxpi_pie_view.PlotToxPies" project_name="ToxFAIRy" version="" title="Tox5 pie view" position="(786.0, 207.0)" />
+		<node id="13" name="Tox5 pie view" qualified_name="orange3_toxfairy.ow_toxpi_pie_view.PlotToxPies" project_name="ToxFAIRy" version="" title="Tox5 pie view (1)" position="(944.0, 376.0)" />
+	</nodes>
+	<links>
+		<link id="0" source_node_id="0" sink_node_id="3" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="1" source_node_id="1" sink_node_id="3" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+		<link id="2" source_node_id="3" sink_node_id="2" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_dict" sink_channel_id="data_container" />
+		<link id="3" source_node_id="4" sink_node_id="7" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
+		<link id="4" source_node_id="5" sink_node_id="7" source_channel="Data" sink_channel="File for meta data" enabled="true" source_channel_id="table" sink_channel_id="meta_data_input" />
+		<link id="5" source_node_id="7" sink_node_id="6" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_dict" sink_channel_id="data_container" />
+		<link id="6" source_node_id="2" sink_node_id="8" source_channel="Data dictionary" sink_channel="Data dictionary 1" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container1" />
+		<link id="7" source_node_id="6" sink_node_id="8" source_channel="Data dictionary" sink_channel="Data dictionary 2" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container2" />
+		<link id="8" source_node_id="2" sink_node_id="10" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container" />
+		<link id="9" source_node_id="8" sink_node_id="11" source_channel="Data dictionary" sink_channel="Data dictionary" enabled="true" source_channel_id="data_container_output" sink_channel_id="data_container" />
+		<link id="10" source_node_id="10" sink_node_id="12" source_channel="ci_4slices" sink_channel="ci_4slices" enabled="true" source_channel_id="ci_slices_dict" sink_channel_id="ci_slices" />
+		<link id="11" source_node_id="10" sink_node_id="12" source_channel="tox data" sink_channel="Tox5-scores" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
+		<link id="12" source_node_id="11" sink_node_id="13" source_channel="ci_4slices" sink_channel="ci_4slices" enabled="true" source_channel_id="ci_slices_dict" sink_channel_id="ci_slices" />
+		<link id="13" source_node_id="11" sink_node_id="13" source_channel="tox data" sink_channel="Tox5-scores" enabled="true" source_channel_id="dataframe_tox" sink_channel_id="table" />
+		<link id="14" source_node_id="11" sink_node_id="9" source_channel="ci results" sink_channel="Data" enabled="true" source_channel_id="ci_results" sink_channel_id="data" />
+	</links>
+	<annotations />
+	<thumbnail />
+	<node_properties>
+		<properties node_id="0" format="literal">{'controlAreaVisible': True, 'files': [], 'paths': ['D:/PhD/projects/ToxPi/tox_data/calibrate/calibrate_imaging_w'], 'radioBtnSelection': 1, 'recent_paths': [], 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\x88\x00\x00\x00\xa8\x00\x00\x05A\x00\x00\x02\xbb\x00\x00\x02\x89\x00\x00\x00\xc7\x00\x00\x05@\x00\x00\x02\xba\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\x89\x00\x00\x00\xc7\x00\x00\x05@\x00\x00\x02\xba', '__version__': 1}</properties>
+		<properties node_id="1" format="pickle">gASVdwIAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjAVmaWxlc5RdlIxcRDovUGhEL3By
+b2plY3RzL1RveFBpL3RveF9kYXRhL2NhbGlicmF0ZS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1fY2Fs
+aWJyYXRlX0hUU19NRVRBREFUQV93Lnhsc3iUYYwFcGF0aHOUXZSMEXJhZGlvQnRuU2VsZWN0aW9u
+lEsAjAxyZWNlbnRfcGF0aHOUXZQojB5vcmFuZ2V3aWRnZXQudXRpbHMuZmlsZWRpYWxvZ3OUjApS
+ZWNlbnRQYXRolJOUKYGUfZQojAdhYnNwYXRolIxaRDovUGhEL3Byb2plY3RzL1RveFBpL3RveF9k
+YXRhL3Zlc2FfZmlsZXMvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2hhcm1sZXNzX0hUU19NRVRBREFU
+QS54bHN4lIwGcHJlZml4lE6MB3JlbHBhdGiUTowFdGl0bGWUjACUjAVzaGVldJRoFIwLZmlsZV9m
+b3JtYXSUTnViaAwpgZR9lChoD4xcRDovUGhEL3Byb2plY3RzL1RveFBpL3RveF9kYXRhL2NhbGli
+cmF0ZS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1fY2FsaWJyYXRlX0hUU19NRVRBREFUQV93Lnhsc3iU
+aBFOaBJOaBNoFGgVaBRoFk51YmWME3NhdmVkV2lkZ2V0R2VvbWV0cnmUQ0IB2dDLAAMAAAAAAcMA
+AACRAAAEfAAAAqQAAAHEAAAAsAAABHsAAAKjAAAAAAAAAAAGQAAAAcQAAACwAAAEewAAAqOUjAtf
+X3ZlcnNpb25fX5RLAXUu
+</properties>
+		<properties node_id="2" format="literal">{'casp_clean_': False, 'clean_dna': True, 'combine': True, 'controlAreaVisible': True, 'dose': True, 'eff_med_control': False, 'endpoint': ['DAPIA', 'DAPIB', 'CASP', 'H2AX', '8OHG'], 'endpoint_': 4, 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01S\x00\x00\x00\x91\x00\x00\x04\xed\x00\x00\x02\xa4\x00\x00\x01T\x00\x00\x00\xb0\x00\x00\x04\xec\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01T\x00\x00\x00\xb0\x00\x00\x04\xec\x00\x00\x02\xa3', 'sub_bl': False, 'sub_bl_percent': False, '__version__': 1}</properties>
+		<properties node_id="3" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'dapia, dapib, casp, h2ax, 8ohg', 'radioBtnSelection': 0, 'recalculate': False, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\x87\x00\x00\x00\x91\x00\x00\x04\xb9\x00\x00\x02\xa4\x00\x00\x01\x88\x00\x00\x00\xb0\x00\x00\x04\xb8\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\x88\x00\x00\x00\xb0\x00\x00\x04\xb8\x00\x00\x02\xa3', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="4" format="literal">{'controlAreaVisible': True, 'files': [], 'paths': ['D:/PhD/projects/ToxPi/tox_data/calibrate/calibrate_imaging_wo'], 'radioBtnSelection': 1, 'recent_paths': [], 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\x88\x00\x00\x00\xa8\x00\x00\x05A\x00\x00\x02\xbb\x00\x00\x02\x89\x00\x00\x00\xc7\x00\x00\x05@\x00\x00\x02\xba\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\x89\x00\x00\x00\xc7\x00\x00\x05@\x00\x00\x02\xba', '__version__': 1}</properties>
+		<properties node_id="5" format="pickle">gASV9QIAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjAVmaWxlc5RdlIxdRDovUGhEL3By
+b2plY3RzL1RveFBpL3RveF9kYXRhL2NhbGlicmF0ZS9UZXN0RGF0YVJlY29yZGluZ0Zvcm1fY2Fs
+aWJyYXRlX0hUU19NRVRBREFUQV93by54bHN4lGGMBXBhdGhzlF2UjBFyYWRpb0J0blNlbGVjdGlv
+bpRLAIwMcmVjZW50X3BhdGhzlF2UKIweb3Jhbmdld2lkZ2V0LnV0aWxzLmZpbGVkaWFsb2dzlIwK
+UmVjZW50UGF0aJSTlCmBlH2UKIwHYWJzcGF0aJSMWkQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS90b3hf
+ZGF0YS92ZXNhX2ZpbGVzL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURB
+VEEueGxzeJSMBnByZWZpeJROjAdyZWxwYXRolE6MBXRpdGxllIwAlIwFc2hlZXSUaBSMC2ZpbGVf
+Zm9ybWF0lE51YmgMKYGUfZQoaA+MXEQ6L1BoRC9wcm9qZWN0cy9Ub3hQaS90b3hfZGF0YS9jYWxp
+YnJhdGUvVGVzdERhdGFSZWNvcmRpbmdGb3JtX2NhbGlicmF0ZV9IVFNfTUVUQURBVEFfdy54bHN4
+lGgRTmgSTmgTaBRoFWgUaBZOdWJoDCmBlH2UKGgPjF1EOi9QaEQvcHJvamVjdHMvVG94UGkvdG94
+X2RhdGEvY2FsaWJyYXRlL1Rlc3REYXRhUmVjb3JkaW5nRm9ybV9jYWxpYnJhdGVfSFRTX01FVEFE
+QVRBX3dvLnhsc3iUaBFOaBJOaBNoFGgVaBRoFk51YmWME3NhdmVkV2lkZ2V0R2VvbWV0cnmUQ0IB
+2dDLAAMAAAAAAcMAAACRAAAEfAAAAqQAAAHEAAAAsAAABHsAAAKjAAAAAAAAAAAGQAAAAcQAAACw
+AAAEewAAAqOUjAtfX3ZlcnNpb25fX5RLAXUu
+</properties>
+		<properties node_id="6" format="literal">{'casp_clean_': False, 'clean_dna': True, 'combine': True, 'controlAreaVisible': True, 'dose': True, 'eff_med_control': False, 'endpoint': ['DAPIA', 'DAPIB', 'CASP', 'H2AX', '8OHG'], 'endpoint_': 4, 'mean_median': True, 'med_control': True, 'remove_out': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01S\x00\x00\x00\x91\x00\x00\x04\xed\x00\x00\x02\xa4\x00\x00\x01T\x00\x00\x00\xb0\x00\x00\x04\xec\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01T\x00\x00\x00\xb0\x00\x00\x04\xec\x00\x00\x02\xa3', 'sub_bl': False, 'sub_bl_percent': False, '__version__': 1}</properties>
+		<properties node_id="7" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': 'dapia, dapib, casp, h2ax, 8ohg', 'radioBtnSelection': 0, 'recalculate': False, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\x87\x00\x00\x00\x91\x00\x00\x04\xb9\x00\x00\x02\xa4\x00\x00\x01\x88\x00\x00\x00\xb0\x00\x00\x04\xb8\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\x88\x00\x00\x00\xb0\x00\x00\x04\xb8\x00\x00\x02\xa3', 'well_volume': '50', '__version__': 1}</properties>
+		<properties node_id="8" format="literal">{'controlAreaVisible': True, 'radioBtnSelection': 1, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xa5\x00\x00\x00\x91\x00\x00\x04\x9a\x00\x00\x02\xa4\x00\x00\x01\xa6\x00\x00\x00\xb0\x00\x00\x04\x99\x00\x00\x02\xa3\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01\xa6\x00\x00\x00\xb0\x00\x00\x04\x99\x00\x00\x02\xa3', '__version__': 1}</properties>
+		<properties node_id="9" format="literal">{'auto_commit': True, 'color_by_class': True, 'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01F\x00\x00\x00\x92\x00\x00\x04\x92\x00\x00\x02\xa5\x00\x00\x01G\x00\x00\x00\xb1\x00\x00\x04\x91\x00\x00\x02\xa4\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01G\x00\x00\x00\xb1\x00\x00\x04\x91\x00\x00\x02\xa4', 'select_rows': True, 'show_attribute_labels': True, 'show_distributions': True, 'stored_selection': {'rows': [], 'columns': []}, 'stored_sort': [], '__version__': 1}</properties>
+		<properties node_id="10" format="pickle">gASVGAEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjBBtdWx0aV9jZWxsX2xpbmVzlIwH
+Y29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoCCmHlFKUjBFy
+YWRpb0J0blNlbGVjdGlvbpRLAIwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRDQgHZ0MsAAwAAAAABOwAA
+AJEAAAUJAAACpAAAATwAAACwAAAFCAAAAqMAAAAAAAAAAAZAAAABPAAAALAAAAUIAAACo5SMBnRm
+XzFzdJSMCGxvZzEweF82lIwGdGZfYXVjlIwGc3FydF94lIwGdGZfbWF4lGgPjAtfX3ZlcnNpb25f
+X5RLAXUu
+</properties>
+		<properties node_id="11" format="pickle">gASVGAEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjBBtdWx0aV9jZWxsX2xpbmVzlIwH
+Y29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoCCmHlFKUjBFy
+YWRpb0J0blNlbGVjdGlvbpRLAIwTc2F2ZWRXaWRnZXRHZW9tZXRyeZRDQgHZ0MsAAwAAAAABOwAA
+AJEAAAUJAAACpAAAATwAAACwAAAFCAAAAqMAAAAAAAAAAAZAAAABPAAAALAAAAUIAAACo5SMBnRm
+XzFzdJSMCGxvZzEweF82lIwGdGZfYXVjlIwGc3FydF94lIwGdGZfbWF4lGgPjAtfX3ZlcnNpb25f
+X5RLAXUu
+</properties>
+		<properties node_id="12" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': None, '__version__': 1}</properties>
+		<properties node_id="13" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': None, '__version__': 1}</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>
