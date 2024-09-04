@@ -1,29 +1,26 @@
 import re
 import pandas as pd
-import copy
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 from Orange.data import table_from_frame
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 import Orange.data
 from Orange.widgets.settings import Setting
-from AnyQt.QtWidgets import QFileDialog
 from orangewidget import widget
 
 from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
 from toxfairy.src.toxfairy.endpoints.reader_from_tmp import DataReaderTmp, MetaDataReaderTmp
-from toxfairy.src.toxfairy.misc.utils import annotate_data
 from orange3_toxfairy.data_view import DataViewHandler
 
 
-class Toxpi(OWWidget):
+class ReadHTSDataLocal(OWWidget):
     name = "Read HTS data/metadata"
     description = "Read HTS data and annotate with meta data"
     icon = "icons/print.svg"
 
     UserAdviceMessages = [
         widget.Message("Please enter endpoints separately using either a dot and whitespace (. ) or a comma and "
-                       "whitespace (, ). Available endpoints: CTG, CASP, DAPI, H2AX, OHG", '')]
+                       "whitespace (, ). Available endpoints: CTG, CASP, DAPI, H2AX, OHG."
+                       "Please, specify technical replicates with prefix or suffix as DAPIA, DAPIB for example", '')]
 
     class Inputs:
         data_input = Input("Directory to data ", Orange.data.Table, default=True)
@@ -92,15 +89,8 @@ class Toxpi(OWWidget):
             Main area with data view of chosen endpoint.
         """
         self.mainBox = gui.widgetBox(self.mainArea, 'Data view')
-
-        # self.combo_box_main = gui.comboBox(None, self, 'endpoint_view', label='Select endpoint',
-        #                                    sendSelectedValue=True, callback=self.view)
-        # self.view_table = gui.widgetBox(None, 'table')
-        # self.saveBtn = gui.button(None, self, 'Save as', callback=self.save_table, autoDefault=False)
-
         self.data_view_handler = DataViewHandler(self.mainBox)
         self.data_view_handler.dataframes_available_dict = {'Raw_data': 'raw_data_df'}
-
         self.toggle_recalculation()
 
     @Inputs.data_input
@@ -159,11 +149,15 @@ class Toxpi(OWWidget):
         for i, items in enumerate(self.endpoints_list):
             combo_box = gui.comboBox(self.box_dir, self, '', label=f'{items}', items=data_values)
             combo_box.activated.connect(
-                lambda value, items=items: self.save_selected_value(items, data_values, value))
+                lambda value, items=items: self.save_selected_value(items, data_values, value, 0))
+
+            combo_box2 = gui.comboBox(self.box_dir, self, '', items=["imaging", "viability"])
+            combo_box2.activated.connect(
+                lambda value, items=items: self.save_selected_value(items, ["imaging", "viability"], value, 1))
 
             if data_values:
                 combo_box.setCurrentText(data_values[0])
-                self.save_selected_value(items, data_values, 0)
+                self.save_selected_value(items, data_values, 0, 0)
 
         self.annot_dir.clear()
         self.annot_dir.addItems(meta_values)
@@ -171,9 +165,12 @@ class Toxpi(OWWidget):
         if meta_values:
             self.annot_data = meta_values[0]
 
-    def save_selected_value(self, items, values, index):
+    def save_selected_value(self, items, values, index, position):
         if index < len(values):
-            self.selected_values_dict[items] = values[index]
+            if items not in self.selected_values_dict:
+                self.selected_values_dict[items] = [None, None]
+
+            self.selected_values_dict[items][position] = values[index]
         else:
             print(f"Index {index} out of range for values {values}")
 
@@ -194,9 +191,12 @@ class Toxpi(OWWidget):
                 test_data = HTS(key)
                 test_meta = MetaDataReaderTmp(self.annot_data, test_data)
                 test_meta.read_meta_data()
-                test_read = DataReaderTmp(self.annot_data, value, test_data)
+                test_read = DataReaderTmp(self.annot_data, value[0], test_data)
                 try:
                     test_read.read_data()
+                    test_data.assay_type = value[1]
+                    if test_data.assay_type == "imaging":
+                        test_data.raw_data_df = test_data.raw_data_df[test_data.raw_data_df['Description'] != '_']
                 except Exception as e:
                     self.Error.file_dont_exist(str(e))
 
@@ -220,14 +220,6 @@ class Toxpi(OWWidget):
             df_meta_data = pd.DataFrame(meta_data_dict)
             transposed_df = df_meta_data.T
 
-
-
-            # self.combo_box_main.clear()
-            # self.combo_box_main.addItems(self.endpoints_list)
-            # self.endpoint_view = self.endpoints_list[0]
-            # self.mainBox.layout().addWidget(self.combo_box_main)
-            # self.mainBox.layout().addWidget(self.view_table)
-
             self.view_data()
 
             self.Outputs.data_dict.send(self.output_dict)
@@ -241,50 +233,11 @@ class Toxpi(OWWidget):
     def view(self):
         self.data_view_handler.view()
 
-        # output_dict_copy = copy.deepcopy(self.output_dict)
-        # if self.previous_table:
-        #     self.view_table.layout().itemAt(0).widget().deleteLater()
-        #
-        # if self.endpoint_view in output_dict_copy:
-        #     annotate_data(output_dict_copy[self.endpoint_view][0].raw_data_df,
-        #                   output_dict_copy[self.endpoint_view][0].metadata)
-        #
-        #     self.raw_data = output_dict_copy[self.endpoint_view][0].raw_data_df
-        # else:
-        #     print('key doesnt exist')
-        #
-        # table_widget = QTableWidget(self.view_table)
-        # num_rows, num_cols = self.raw_data.shape
-        # table_widget.setRowCount(num_rows)
-        # table_widget.setColumnCount(num_cols)
-        # table_widget.setHorizontalHeaderLabels(self.raw_data.columns)
-        # for i in range(num_rows):
-        #     table_widget.setVerticalHeaderItem(i, QTableWidgetItem(str(self.raw_data.index[i])))
-        #     for j in range(num_cols):
-        #         item = QTableWidgetItem(str(self.raw_data.iloc[i, j]))
-        #         table_widget.setItem(i, j, item)
-        #
-        # self.view_table.layout().addWidget(table_widget)
-        # self.previous_table = table_widget
-        # self.view_table.layout().addWidget(self.saveBtn)
-
     def save_table(self):
         self.data_view_handler.save_table()
-
-        # options = QFileDialog.Options()
-        # file_path, _ = QFileDialog.getSaveFileName(self, "Save Table", "",
-        #                                            "CSV Files (*.csv);;Excel Files (*.xlsx);;All Files (*)",
-        #                                            options=options)
-        # if file_path:
-        #     if file_path.endswith(".csv"):
-        #         self.raw_data.to_csv(file_path)
-        #     elif file_path.endswith(".xlsx"):
-        #         self.raw_data.to_excel(file_path)
-        #     else:
-        #         print('no existing file format to save')
 
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
 
-    WidgetPreview(Toxpi).run()
+    WidgetPreview(ReadHTSDataLocal).run()

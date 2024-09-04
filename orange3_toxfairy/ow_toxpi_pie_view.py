@@ -1,21 +1,19 @@
-from Orange.widgets.widget import OWWidget, Input, Output
+from Orange.widgets.widget import OWWidget, Input
 from Orange.widgets import gui
 from Orange.data.pandas_compat import table_from_frame, table_to_frame
 import Orange.data
 from PyQt5.QtWidgets import QListWidget, QColorDialog
-from AnyQt.QtWidgets import QSizePolicy as Policy, QGridLayout, QFileDialog, QStyle
+from AnyQt.QtWidgets import QFileDialog
 
-import numpy as np
-from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie
 
 
-class Toxpi(OWWidget):
-    name = "Tox5 view"
-    description = "View toxicity for each material"
+class PlotToxPies(OWWidget):
+    name = "Tox5 pie view"
+    description = "View toxicity for each material as a pie chart"
     icon = "icons/print.svg"
 
     class Inputs:
@@ -74,24 +72,21 @@ class Toxpi(OWWidget):
     def select_color_low(self):
         color = QColorDialog.getColor()
         if color.isValid():
-            print(color.name())
             self.low_color = color.name()
 
     def select_color_high(self):
         color = QColorDialog.getColor()
         if color.isValid():
-            print(color.name())
             self.high_color = color.name()
 
     def plot_tox_rank(self):
-        print(self.colored_by)
         if not self.table:
             return
 
         df = table_to_frame(self.table, include_metas=True)
 
         materials = [self.list_materials[index] for index in self.selected_cell]
-        # self.figure, legend = plot_tox_rank_pie(df, materials, self.figure)
+        df = df.iloc[:, 1:]
         self.figure, legend = plot_tox_rank_pie(df, figure=self.figure, materials=materials,
                                                 colored_param=self.colored_by,
                                                 transparency_bars=0.8, linewidth=0.5,
@@ -114,4 +109,4 @@ class Toxpi(OWWidget):
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
 
-    WidgetPreview(Toxpi).run()
+    WidgetPreview(PlotToxPies).run()
