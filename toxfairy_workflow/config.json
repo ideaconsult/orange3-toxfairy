@@ -71,13 +71,13 @@
                             "folder_tmp_input": "D:\\PhD\\projects\\ToxPi\\tox_data\\calibrate\\CALIBRATE_SET2",
                             "config": {
                                         "config1": {
-                                                    "dir": "imaging_my_fixed",
+                                                    "dir": "imaging_fixed_gt",
                                                     "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_wo.xlsx",
                                                     "assay_type": "imaging",
                                                     "serum": false,
                                                     "endpoints": ["DAPIA", "DAPIB", "CASP", "H2AX", "8OHG"]},
                                         "config2": {
-                                                    "dir": "imaging_my_fixed",
+                                                    "dir": "imaging_fixed_gt",
                                                     "tmp": "TestDataRecordingForm_calibrate_HTS_METADATA_set2_w.xlsx",
                                                     "assay_type": "imaging",
                                                     "serum": true,
