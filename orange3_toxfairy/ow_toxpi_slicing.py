@@ -21,8 +21,9 @@ class Toxpi(OWWidget):
 
     class Outputs:
         df_transformed = Output("transformed data", Orange.data.Table)
-        dataframe_tox = Output("tox data", Orange.data.Table)
+        dataframe_tox = Output("Tox5-scores", Orange.data.Table)
         ci_slices_dict = Output('ci_4slices', dict, auto_summary=False)
+        ci_results = Output('ci results', Orange.data.Table)
 
     class Error(OWWidget.Error):
         weight_value = Msg("Invalid weight value. Please enter an integer value.")
@@ -95,7 +96,7 @@ class Toxpi(OWWidget):
         gui.button(box, self, 'Calculate tox5 scores',
                    callback=self.calculate_tox5_ranks,
                    autoDefault=False)
-        gui.button(box, self, "Compute Bootstrap CIs", callback=self.compute_bootstrap_ci)
+        gui.button(box, self, "Add Bootstrap CIs", callback=self.compute_bootstrap_ci)
 
         # main area
         self.main = gui.hBox(self.mainArea)
@@ -243,10 +244,12 @@ class Toxpi(OWWidget):
             self.Outputs.ci_slices_dict.send(self.tox5.ci_slices)
 
         if self.tox5.tox5_scores is not None:
-            self.tox5.calc_ci_scores()
+            self.tox5.calc_ci()
 
             orange_table = table_from_frame(self.tox5.tox5_scores, force_nominal=True)
             self.Outputs.dataframe_tox.send(orange_table)
+            ci_results_orange_table = table_from_frame(self.tox5.results_ci_df, force_nominal=True)
+            self.Outputs.ci_results.send(ci_results_orange_table)
 
     def update_tf_dict(self):
         self.tf_dict['1st'] = self.tf_1st
