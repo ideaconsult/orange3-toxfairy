@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <scheme version="2.0" title="" description="">
 	<nodes>
-		<node id="0" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="Select test data" position="(47.0, 159.0)" />
-		<node id="1" name="Select test data" qualified_name="tox_orange_demo.ow_select_test_data.TestData" project_name="TOX5-Scores" version="" title="Select test data (1)" position="(55.0, 462.0)" />
-		<node id="2" name="Read HTS data/metadata" qualified_name="tox_orange_demo.ow_read_data.Toxpi" project_name="TOX5-Scores" version="" title="Read HTS data/metadata" position="(426.0, 302.0)" />
-		<node id="3" name="Auto-fill HTS template" qualified_name="tox_orange_demo.ow_auto_fill_tmp.AutofillTmp" project_name="TOX5-Scores" version="" title="Auto-fill HTS template" position="(223.0, 308.0)" />
+		<node id="0" name="Select test data" qualified_name="orange3_toxfairy.ow_select_test_data.TestData" project_name="ToxFAIRy" version="" title="Select test data" position="(47.0, 159.0)" />
+		<node id="1" name="Select test data" qualified_name="orange3_toxfairy.ow_select_test_data.TestData" project_name="ToxFAIRy" version="" title="Select test data (1)" position="(55.0, 461.0)" />
+		<node id="2" name="Read HTS data/metadata" qualified_name="orange3_toxfairy.ow_read_data.ReadHTSDataLocal" project_name="ToxFAIRy" version="" title="Read HTS data/metadata" position="(426.0, 302.0)" />
+		<node id="3" name="Auto-fill HTS template" qualified_name="orange3_toxfairy.ow_auto_fill_tmp.AutofillTmp" project_name="ToxFAIRy" version="" title="Auto-fill HTS template" position="(223.0, 308.0)" />
 	</nodes>
 	<links>
 		<link id="0" source_node_id="0" sink_node_id="2" source_channel="Data" sink_channel="Directory to data " enabled="true" source_channel_id="table" sink_channel_id="data_input" />
@@ -24,23 +24,23 @@
 	</annotations>
 	<thumbnail />
 	<node_properties>
-		<properties node_id="0" format="pickle">gASVrgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UKIxQZDpccGhkXHBy
-b2plY3RzXHRveHBpXG9yYW5nZS10b3g1XHRveDVfcHJlcHJvY2Vzc2luZ1xzcmNcVE9YNVx0ZXN0
-X2RhdGFccmF3X2RhdGGUjFhkOlxwaGRccHJvamVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9w
-cmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3RfZGF0YVxyYXdfZGF0YV9pbWFnaW5nlGWMBWZpbGVz
-lIwHY29weXJlZ5SMDl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoDCmHlFKU
-jAVwYXRoc5RoCWgMaAwph5RSlChLAEsBZYwRcmFkaW9CdG5TZWxlY3Rpb26USwGME3NhdmVkV2lk
-Z2V0R2VvbWV0cnmUQ0IB2dDLAAMAAAAAArsAAACRAAAE5QAAAqQAAAK8AAAAsAAABOQAAAKjAAAA
-AAAAAAAGQAAAArwAAACwAAAE5AAAAqOUjAtfX3ZlcnNpb25fX5RLAXUu
+		<properties node_id="0" format="pickle">gASVogEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UKIxKZDpccGhkXHBy
+b2plY3RzXHRveHBpXG9yYW5nZS10b3g1XHRveGZhaXJ5XHNyY1x0b3hmYWlyeVx0ZXN0X2RhdGFc
+cmF3X2RhdGGUjFJkOlxwaGRccHJvamVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94ZmFpcnlcc3Jj
+XHRveGZhaXJ5XHRlc3RfZGF0YVxyYXdfZGF0YV9pbWFnaW5nlGWMBWZpbGVzlIwHY29weXJlZ5SM
+Dl9yZWNvbnN0cnVjdG9ylJOUjAhidWlsdGluc5SMBGxpc3SUk5RoDCmHlFKUjAVwYXRoc5RoCWgM
+aAwph5RSlChLAEsBZYwRcmFkaW9CdG5TZWxlY3Rpb26USwGME3NhdmVkV2lkZ2V0R2VvbWV0cnmU
+Q0IB2dDLAAMAAAAAArsAAACRAAAE5QAAAqQAAAK8AAAAsAAABOQAAAKjAAAAAAAAAAAGQAAAArwA
+AACwAAAE5AAAAqOUjAtfX3ZlcnNpb25fX5RLAXUu
 </properties>
-		<properties node_id="1" format="pickle">gASVjgEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UjI9kOlxwaGRccHJv
-amVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94NV9wcmVwcm9jZXNzaW5nXHNyY1xUT1g1XHRlc3Rf
-ZGF0YVxodHNfbWV0YWRhdGFfdG1wXFRlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNf
-TUVUQURBVEFfZW1wdHkueGxzeJRhjAVmaWxlc5SMB2NvcHlyZWeUjA5fcmVjb25zdHJ1Y3RvcpST
-lIwIYnVpbHRpbnOUjARsaXN0lJOUaAsph5RSlEsAYYwFcGF0aHOUaAhoC2gLKYeUUpSMEXJhZGlv
-QnRuU2VsZWN0aW9ulEsAjBNzYXZlZFdpZGdldEdlb21ldHJ5lENCAdnQywADAAAAAAK7AAAAkQAA
-BOUAAAKkAAACvAAAALAAAATkAAACowAAAAAAAAAABkAAAAK8AAAAsAAABOQAAAKjlIwLX192ZXJz
-aW9uX1+USwF1Lg==
+		<properties node_id="1" format="pickle">gASViAEAAAAAAAB9lCiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjARkYXRhlF2UjIlkOlxwaGRccHJv
+amVjdHNcdG94cGlcb3JhbmdlLXRveDVcdG94ZmFpcnlcc3JjXHRveGZhaXJ5XHRlc3RfZGF0YVxo
+dHNfbWV0YWRhdGFfdG1wXFRlc3REYXRhUmVjb3JkaW5nRm9ybV9oYXJtbGVzc19IVFNfTUVUQURB
+VEFfZW1wdHkueGxzeJRhjAVmaWxlc5SMB2NvcHlyZWeUjA5fcmVjb25zdHJ1Y3RvcpSTlIwIYnVp
+bHRpbnOUjARsaXN0lJOUaAsph5RSlEsAYYwFcGF0aHOUaAhoC2gLKYeUUpSMEXJhZGlvQnRuU2Vs
+ZWN0aW9ulEsAjBNzYXZlZFdpZGdldEdlb21ldHJ5lENCAdnQywADAAAAAAK7AAAAkQAABOUAAAKk
+AAACvAAAALAAAATkAAACowAAAAAAAAAABkAAAAK8AAAAsAAABOQAAAKjlIwLX192ZXJzaW9uX1+U
+SwF1Lg==
 </properties>
 		<properties node_id="2" format="literal">{'cell_growth_area': '0.079495092', 'controlAreaVisible': True, 'endpoint': '', 'radioBtnSelection': 0, 'recalculate': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01u\x00\x00\x001\x00\x00\x04\xa4\x00\x00\x02\xa3\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x01v\x00\x00\x00P\x00\x00\x04\xa3\x00\x00\x02\xa2', 'well_volume': '50', '__version__': 1}</properties>
 		<properties node_id="3" format="literal">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02\x8a\x00\x00\x00\xc5\x00\x00\x03\xab\x00\x00\x02&amp;\x00\x00\x02\x8b\x00\x00\x00\xe4\x00\x00\x03\xaa\x00\x00\x02%\x00\x00\x00\x00\x00\x00\x00\x00\x06@\x00\x00\x02\x8b\x00\x00\x00\xe4\x00\x00\x03\xaa\x00\x00\x02%', '__version__': 1}</properties>
