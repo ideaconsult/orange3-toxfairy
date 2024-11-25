@@ -12,11 +12,11 @@ import os.path
 from pathlib import Path
 import pickle
 import json
-from toxfairy.src.toxfairy.calculations.tox5 import TOX5
-from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie_interactive, plot_ranked_material, \
+from toxfairy.calculations.tox5 import TOX5
+from toxfairy.misc.utils import plot_tox_rank_pie_interactive, plot_ranked_material, \
     h_clustering
-from toxfairy.src.toxfairy.calculations.topsis_ranking import topsis_scoring
-from toxfairy.src.toxfairy.misc.pvclust import PvClust
+from toxfairy.calculations.topsis_ranking import topsis_scoring
+from toxfairy.misc.pvclust import PvClust
 
 
 def load_pickles_from_directory(directory):

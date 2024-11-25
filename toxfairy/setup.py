@@ -8,11 +8,12 @@ INSTALL_REQUIRES = [
     'matplotlib',
     'numpy',
     'pandas',
+    'pymcdm',
     'pynanomapper',
     'rpy2',
     'scikit_learn',
     'scipy',
-    'setuptools'
+    'setuptools',
 ]
 
 PACKAGES = find_packages(where='src')

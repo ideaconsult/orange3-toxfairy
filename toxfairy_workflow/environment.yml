@@ -1,0 +1,42 @@
+name: toxfairy-ploomber
+channels:
+  - conda-forge
+  - default
+dependencies:
+  - python==3.10
+  - AnyQt
+  - matplotlib
+  - numpy
+  - pandas
+  - pip
+  - ploomber
+  - plotly
+  - pyqt
+  - r
+  - r-abind
+  - r-biocmanager
+  - r-brio
+  - r-car
+  - r-cardata
+  - r-desc
+  - r-diffobj
+  - r-essentials
+  - r-lme4
+  - r-matrixmodels
+  - r-minqa
+  - r-nloptr
+  - r-pbkrtest
+  - r-pkgbuild
+  - r-pkgload
+  - r-praise
+  - r-quantreg
+  - r-rprojroot
+  - r-sparsem
+  - r-testthat
+  - r-waldo
+  - rpy2~=3.5
+  - scikit-learn
+  - scipy
+  - setuptools
+  - pip:
+    - -e ../toxfairy
