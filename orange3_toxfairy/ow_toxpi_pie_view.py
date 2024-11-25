@@ -8,7 +8,7 @@ from AnyQt.QtWidgets import QFileDialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from toxfairy.src.toxfairy.misc.utils import plot_tox_rank_pie
+from toxfairy.misc.utils import plot_tox_rank_pie
 
 
 class PlotToxPies(OWWidget):

@@ -1,8 +1,10 @@
 from setuptools import setup
 
-NAME = "ToxFAIRy"
+NAME = "Orange3-ToxFAIRy"
 
 AUTHOR = 'IDEAconsult Ltd.'
+
+VERSION = '1'
 
 INSTALL_REQUIRES = [
     'AnyQt',
@@ -16,7 +18,8 @@ INSTALL_REQUIRES = [
     'scikit_learn',
     'scipy',
     'setuptools',
-    'plotly'
+    'plotly',
+    'toxfairy'
 ]
 
 PACKAGES = ["orange3_toxfairy"]
@@ -31,6 +34,7 @@ ENTRY_POINTS = {'orange.widgets': ['ToxFAIRy = orange3_toxfairy']}
 setup(
     name=NAME,
     author=AUTHOR,
+    version=VERSION,
     install_requires=INSTALL_REQUIRES,
     packages=PACKAGES,
     package_data=PACKAGE_DATA,

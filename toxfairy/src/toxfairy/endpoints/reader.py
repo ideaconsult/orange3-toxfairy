@@ -1,6 +1,6 @@
 import os
 import glob
-from toxfairy.src.toxfairy.misc.utils import *
+from ..misc.utils import *
 
 
 class MetaDataReader:

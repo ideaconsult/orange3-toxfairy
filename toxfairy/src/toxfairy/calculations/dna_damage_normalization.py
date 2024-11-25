@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from toxfairy.src.toxfairy.calculations.basic_normalization import BasicNormalization
-from toxfairy.src.toxfairy.misc.utils import *
+from .basic_normalization import BasicNormalization
+from ..misc.utils import *
 
 
 class DNADamageNormalization(BasicNormalization):

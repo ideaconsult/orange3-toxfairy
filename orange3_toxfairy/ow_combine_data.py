@@ -6,7 +6,7 @@ from AnyQt.QtWidgets import QGridLayout, QFileDialog
 import copy
 from PyQt5.QtWidgets import QListWidget
 from orangewidget.settings import Setting
-from orange3_toxfairy.data_view import DataViewHandler
+from .data_view import DataViewHandler
 
 
 class CombineHTSObj(OWWidget):

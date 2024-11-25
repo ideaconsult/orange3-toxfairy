@@ -8,8 +8,8 @@ from AnyQt.QtWidgets import QGridLayout, QFileDialog
 import copy
 from PyQt5.QtWidgets import QListWidget
 from orangewidget.settings import Setting
-from orange3_toxfairy.data_view import DataViewHandler
-from toxfairy.src.toxfairy.misc.hts2nexus import hts2df, add_to_nxs
+from .data_view import DataViewHandler
+from toxfairy.misc.hts2nexus import hts2df, add_to_nxs
 
 
 class HTS2NXS(OWWidget):

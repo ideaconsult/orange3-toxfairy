@@ -2,7 +2,7 @@ import os
 import re
 import pandas as pd
 import warnings
-from toxfairy.src.toxfairy.misc.utils import *
+from ..misc.utils import *
 
 
 class MetaDataReaderTmp:

@@ -1,15 +1,15 @@
 import pandas as pd
-from TOX5.calculations.cell_viability_normalization import CellViabilityNormalization
-from TOX5.calculations.dna_damage_normalization import DNADamageNormalization
-from TOX5.calculations.dose_response import DoseResponse
-from TOX5.calculations.tox5 import TOX5
-from TOX5.endpoints.hts_data_container import HTS
-from TOX5.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
+from toxfairy.calculations.cell_viability_normalization import CellViabilityNormalization
+from toxfairy.calculations.dna_damage_normalization import DNADamageNormalization
+from toxfairy.calculations.dose_response import DoseResponse
+from toxfairy.calculations.tox5 import TOX5
+from toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.endpoints.reader_from_tmp import MetaDataReaderTmp, DataReaderTmp
 
 # print(pd.__version__)
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
-from TOX5.misc.utils import plot_tox_rank_pie, generate_annotation_file
+from toxfairy.misc.utils import plot_tox_rank_pie, generate_annotation_file
 
 directories = [
     'D:\\PhD\\projects\\ToxPi\\tox_data\\vesa_files\\data\\Misvik high throughput screening data\\Screen1-4_CTG_Caspase_raw_data',
@@ -191,14 +191,14 @@ tox5.generate_auto_slices()
 tox5.calculate_tox5_scores()
 # tox5.calculate_tox5_scores()## default by_time_endpoint
 # print('..... TOX5 scores for CTG, CASP and DAPI, for cell lines A549, BEAS-2B and slices by endpoint .................')
-
-print('////////////////////////////////////////// bootstrap confidential intervals by slices   ////////////////////')
-dict_ci = tox5.ci_slices()
-
-print('////////////////////////////////////////// bootstrap confidential intervals by scores   ////////////////////')
-dict_ci_scores, df = tox5.ci_scores()
-
-_, _ = tox5.ci_scores()
+#
+# print('////////////////////////////////////////// bootstrap confidential intervals by slices   ////////////////////')
+# dict_ci = tox5.calc_ci_slices()
+#
+# print('////////////////////////////////////////// bootstrap confidential intervals by scores   ////////////////////')
+# dict_ci_scores, df = tox5.calc_ci()
+#
+# _, _ = tox5.calc_ci()
 
 #
 #

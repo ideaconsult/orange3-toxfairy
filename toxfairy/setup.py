@@ -2,6 +2,7 @@ from setuptools import find_packages, setup
 
 NAME = "ToxFAIRy"
 AUTHOR = 'IDEAconsult Ltd.'
+VERSION = '0.1.0'
 
 INSTALL_REQUIRES = [
     'matplotlib',
@@ -21,6 +22,7 @@ PACKAGES = find_packages(where='src')
 setup(
     name=NAME,
     author=AUTHOR,
+    version=VERSION,
     install_requires=INSTALL_REQUIRES,
     packages=PACKAGES,
     package_dir={"": "src"}

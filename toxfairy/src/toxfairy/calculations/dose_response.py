@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 from statistics import median
-from toxfairy.src.toxfairy.misc.utils import *
+from ..misc.utils import *
 
 
 class DoseResponse:

@@ -6,12 +6,12 @@ from AnyQt.QtWidgets import QGridLayout, QFileDialog
 import copy
 from PyQt5.QtWidgets import QListWidget
 from orangewidget.settings import Setting
-from orange3_toxfairy.data_view import DataViewHandler
-from toxfairy.src.toxfairy.calculations.cell_viability_normalization import CellViabilityNormalization
-from toxfairy.src.toxfairy.calculations.dna_damage_normalization import DNADamageNormalization
-from toxfairy.src.toxfairy.endpoints.hts_data_container import HTS
-from toxfairy.src.toxfairy.calculations.dose_response import DoseResponse
-from toxfairy.src.toxfairy.calculations.basic_normalization import BasicNormalization
+from .data_view import DataViewHandler
+from toxfairy.calculations.cell_viability_normalization import CellViabilityNormalization
+from toxfairy.calculations.dna_damage_normalization import DNADamageNormalization
+from toxfairy.endpoints.hts_data_container import HTS
+from toxfairy.calculations.dose_response import DoseResponse
+from toxfairy.calculations.basic_normalization import BasicNormalization
 
 
 class HTSPreprocess(OWWidget):
