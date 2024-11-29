@@ -1,4 +1,4 @@
-# Converts HTS data to NeXuS fformat
+# Converts HTS data to NeXuS format
 
 - copy env_example.yaml to env.yaml 
 - edit the folders 
