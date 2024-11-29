@@ -3,7 +3,6 @@ channels:
   - conda-forge
   - default
 dependencies:
-  - python==3.10
   - AnyQt
   - matplotlib
   - numpy
@@ -12,12 +11,12 @@ dependencies:
   - ploomber
   - plotly
   - pyqt
-  - r
+  - python~=3.10
   - r-abind
   - r-biocmanager
   - r-brio
-  - r-car
   - r-cardata
+  - r-car
   - r-desc
   - r-diffobj
   - r-essentials
@@ -34,7 +33,8 @@ dependencies:
   - r-sparsem
   - r-testthat
   - r-waldo
-  - rpy2~=3.5
+  - rpy2
+  - r
   - scikit-learn
   - scipy
   - setuptools
