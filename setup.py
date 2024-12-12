@@ -2,43 +2,38 @@ from setuptools import setup
 
 NAME = "Orange3-ToxFAIRy"
 
-AUTHOR = 'IDEAconsult Ltd.'
-
 VERSION = '1'
 
+AUTHOR = 'IDEAconsult Ltd.'
+
 INSTALL_REQUIRES = [
-    'AnyQt',
-    'matplotlib',
-    'numpy',
-    'orange3~=3.0',
-    'orange_widget_base',
-    'pandas',
-    'PyQt5',
-    'rpy2',
-    'scikit_learn',
-    'scipy',
-    'setuptools',
-    'plotly',
-    'toxfairy'
+    'AnyQt~=0.2.0',
+    'PyQt5~=5.15.0',
+    'matplotlib~=3.9.0',
+    'numpy~=1.26.0',
+    'orange3~=3.38',
+    'orange_widget_base~=4.25',
+    'pandas~=2.2.0',
+    'plotly~=5.24.0',
+    'rpy2~=3.5.0',
+    'scikit_learn~=1.5.0',
+    'scipy~=1.14.0',
+    'setuptools~=75.6.0',
+    'toxfairy~=0.1.0',
 ]
 
 PACKAGES = ["orange3_toxfairy"]
 
 PACKAGE_DATA = {"orange3_toxfairy": ["icons/*.svg"]}
 
-CLASSIFIERS = ["Example :: Invalid"]
-
-# ENTRY_POINTS = {"orange.widgets": "ToxFAIRy = orange3-toxfairy"}
 ENTRY_POINTS = {'orange.widgets': ['ToxFAIRy = orange3_toxfairy']}
 
 setup(
-    name=NAME,
     author=AUTHOR,
-    version=VERSION,
-    install_requires=INSTALL_REQUIRES,
-    packages=PACKAGES,
-    package_data=PACKAGE_DATA,
-    classifiers=CLASSIFIERS,
-    # Declare tox_orange_demo package to contain widgets for the "Tox_Demo" category
     entry_points=ENTRY_POINTS,
+    install_requires=INSTALL_REQUIRES,
+    name=NAME,
+    package_data=PACKAGE_DATA,
+    packages=PACKAGES,
+    version=VERSION,
 )
