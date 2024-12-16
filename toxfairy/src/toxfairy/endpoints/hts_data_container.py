@@ -10,11 +10,11 @@ class HTS:
     assay_type: Optional[str] = field(default=None)
     _metadata: dict = field(default_factory=dict)
     _water_keys: List[str] = field(default_factory=list)
-    raw_data_df: pd.DataFrame = pd.DataFrame()
-    normalized_df: pd.DataFrame = pd.DataFrame()
-    mean_df: pd.DataFrame = pd.DataFrame()
-    median_df: pd.DataFrame = pd.DataFrame()
-    dose_response_df: pd.DataFrame = pd.DataFrame()
+    raw_data_df: pd.DataFrame = field(default_factory=pd.DataFrame)
+    normalized_df: pd.DataFrame = field(default_factory=pd.DataFrame)
+    mean_df: pd.DataFrame = field(default_factory=pd.DataFrame)
+    median_df: pd.DataFrame = field(default_factory=pd.DataFrame)
+    dose_response_df: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     def __post_init__(self):
         if self.endpoint is not None:
