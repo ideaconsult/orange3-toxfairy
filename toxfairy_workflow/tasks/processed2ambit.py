@@ -3,17 +3,16 @@ upstream = ["metl_df"]
 product = None
 config_file = None
 config_key = None
-combine_data_with = None
+combine_data_with = []
 # -
 
 import os.path
 from pathlib import Path
 import pandas as pd
 import nexusformat.nexus.tree as nx
-from pynanomapper.datamodel.ambit import EffectArray, ValueArray, Protocol, \
-    EndpointCategory, ProtocolApplication, SubstanceRecord, Substances
-from pynanomapper.datamodel.nexus_writer import to_nexus
-from pynanomapper.datamodel.ambit import configure_papp
+from pyambit.datamodel import EffectArray, ValueArray, Protocol, \
+    EndpointCategory, ProtocolApplication, SubstanceRecord, Substances, configure_papp
+from  pyambit.nexus_writer import to_nexus
 from typing import Dict
 import numpy as np
 import uuid
@@ -169,13 +168,15 @@ def add_to_nxs(_config, substance_owner, data_provider, path, *endpoint_types):
 
                     substances = Substances(substance=substance_records)
 
+                    # TODO: update to pyambit
                     # save as a json
-                    sjson = substances.to_json()
-                    parsed_json = json.loads(sjson)
-                    with open(os.path.join(product["data_json"], f"{endpoint}_{endpoint_type}_patrols.json"), 'w') as json_file:
-                        json.dump(parsed_json, json_file, indent=4)
-                    print()
+                    # sjson = substances.to_json()
+                    # parsed_json = json.loads(sjson)
+                    # with open(os.path.join(product["data_json"], f"{endpoint}_{endpoint_type}_patrols.json"), 'w') as json_file:
+                    #     json.dump(parsed_json, json_file, indent=4)
+                    # print()
 
+                    # TODO: do not work with pyambit, check it
                     substances.to_nexus(nx_root=nxroot)
 
 
@@ -189,10 +190,11 @@ path = upstream["metl_df"]["data"]
 
 paths = []
 if combine_data_with:
-    path2 = Path(path)
-    two_dirs_up = path2.parents[1]
-    new_path = two_dirs_up / combine_data_with / 'melted_hts_obj'
-    paths = [path2, new_path]
+    for n in combine_data_with:
+        path2 = Path(path)
+        two_dirs_up = path2.parents[1]
+        new_path = two_dirs_up / n / 'melted_hts_obj'
+        paths = [path2, new_path]
 else:
     paths = [Path(path)]
 

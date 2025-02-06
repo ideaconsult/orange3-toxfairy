@@ -81,15 +81,16 @@ pickle_hts_data = load_pickles_from_directory(path)
 os.makedirs(product["data"], exist_ok=True)
 
 if combine_data_with:
-    path2 = Path(path)
-    two_dirs_up = path2.parents[1]
-    new_path = two_dirs_up / combine_data_with / 'processed_hts_obj'
-    pickle_hts_data_2 = load_pickles_from_directory(new_path)
+    for n in combine_data_with:
+        path2 = Path(path)
+        two_dirs_up = path2.parents[1]
+        new_path = two_dirs_up / n / 'processed_hts_obj'
+        pickle_hts_data_2 = load_pickles_from_directory(new_path)
 
-    for key, obj in pickle_hts_data.items():
-        df_combined = pd.concat([obj.dose_response_df, pickle_hts_data_2[key].dose_response_df])
-        df_combined = df_combined.drop(['water'])
-        obj.dose_response_df = df_combined
+        for key, obj in pickle_hts_data.items():
+            merged = pd.concat([obj.dose_response_df, pickle_hts_data_2[key].dose_response_df], axis=1)
+            result = merged.groupby(level=0, axis=1).first()
+            obj.dose_response_df = result
 
 without_serum = []  # the basis
 with_serum = []
@@ -200,7 +201,12 @@ for key, value in tox5_obj_file_names.items():
     pv = PvClust(X, method="ward", metric="euclidean", nboot=1000)
     pv.plot(labels=tox5.tox5_scores['Material'].values, output_directory=product["data"], file_name=value[7])
 
-
+# save dose-response parameters
+df = pd.concat([pickle_hts_data[key].dose_response_df for key in without_serum], axis=1)
+df = df.reset_index().rename(columns={'index': 'material'})
+file_name = os.path.join(product["data"], 'dose_response_PEROVSKITE.xlsx')
+with pd.ExcelWriter(file_name) as writer:
+    df.to_excel(writer, sheet_name='dose_response')
 
 # =========================  Topsis model: test for quantum dots and patrols controls ==============================
 #     sorted_df = rank_with_topsis(pickle_hts_data, without_serum)
