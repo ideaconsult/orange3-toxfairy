@@ -14,7 +14,7 @@ class MetaDataReaderTmp:
         df_names = pd.read_excel(self.template, sheet_name='Front sheet', skiprows=4, index_col=0,
                                  usecols=lambda col: not col.startswith('Unnamed'))
         # TODO: more generic way to find water or blanks keys
-        materials_to_check = ['water', 'Dispersant', 'dispersant', '0.05% BSA water, 30ul EtOH', 'another_material']
+        materials_to_check = ['water', 'Dispersant', 'dispersant', '0.05% BSA water, 30ul EtOH', 'another_material', 'Control', 'c']
 
         sbet = pd.read_excel(self.template, sheet_name='Materials', usecols=['ERM identifiers', 'BET surface in m²/g'])
         sbet.set_index('ERM identifiers', inplace=True)
@@ -132,3 +132,14 @@ class DataReaderTmp:
         self.data.raw_data_df = pd.concat(tmp_results, ignore_index=True)
         self.data.raw_data_df[['time', 'cells', 'replicates']] = self.data.raw_data_df[['time', 'cells', 'replicates']]\
             .astype(str).apply(lambda col: col.str.upper().str.strip())
+
+        if "Description" in self.data.raw_data_df:
+            metadata_cols_num = 4
+        else:
+            metadata_cols_num = 3
+
+        metadata_cols = self.data.raw_data_df[self.data.raw_data_df.columns[:metadata_cols_num]]
+        data_cols = self.data.raw_data_df.columns[metadata_cols_num:]
+        filtered_columns = data_cols.intersection(self.data.metadata.keys())
+        filtered_part = self.data.raw_data_df[filtered_columns]
+        self.data.raw_data_df = pd.concat([metadata_cols, filtered_part], axis=1)
