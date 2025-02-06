@@ -10,7 +10,7 @@ from pynanomapper import aa
 import os, os.path
 import pandas as pd
 import requests
-import pynanomapper.datamodel.ambit as m2n
+from pyambit import datamodel as m2n
 import traceback
 import json
 import re
@@ -43,6 +43,7 @@ extract_config = loadconfig(config_file, config_key, "extract_from_db")
 run_task(extract_config)
 
 enm_api_url = extract_config['enm_api_url']
+enm_api_key = extract_config['enm_api_key']
 db = extract_config['db']
 query = extract_config['query']
 serum_used = extract_config['serum_used']
@@ -78,7 +79,7 @@ def substances2json(url_db, auth, pjson):
 # Extract HTS data from Ambit as json
 config, config_servers, config_security, auth_object, msg = aa.parseOpenAPI3()
 if auth_object != None:
-    auth_object.setKey('')
+    auth_object.setKey(enm_api_key)
 
 rows = 1000
 url_db = "{}/enm/{}/substance?{}&media=application/json&max={}".format(enm_api_url, db, query, rows)
@@ -95,11 +96,12 @@ else:
     print(response.status_code)
 
 substances = substances2json("{}/enm/{}".format(enm_api_url, db), auth_object, pjson)
-substances_json = substances.to_json()
-
-print(substances_json)
-with open(os.path.join(product["data_json"], "substances_obj.json"), 'w') as json_file:
-    json_file.write(substances_json)
+# substances_json = substances.to_json() # model_to_json(), model_dump()
+# model_dump_json() https://docs.pydantic.dev/latest/concepts/serialization/#custom-serializers
+#
+# print(substances_json)
+# with open(os.path.join(product["data_json"], "substances_obj.json"), 'w') as json_file:
+#     json_file.write(substances_json)
 
 
 # Create HTS objects from Ambit substances
