@@ -550,7 +550,8 @@ def _find_threshold_for_n_clusters(Z, num_clusters):
 
 
 def _clusters_by_elbow(features):
-    cluster_range = range(2, 21)
+    max_clusters = min(len(features), 20)
+    cluster_range = range(2, max_clusters + 1)
     inertia_values = []
     for n_clusters in cluster_range:
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
