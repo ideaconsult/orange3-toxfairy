@@ -1,0 +1,36 @@
+#executor: parallel
+
+tasks:
+  - source: tasks/data_concat.py
+    product:
+      nb: "products/data_concat.ipynb"
+      data: "{{folder_output}}/data_concat"
+    params:
+      in_vitro_folder: "{{in_vitro_folder}}"
+      in_vivo_folder: "{{in_vivo_folder}}"
+      in_vitro_cell: "{{in_vitro_cell}}"
+      in_vitro_time: "{{in_vitro_time}}"
+      in_vivo_cell: "{{in_vivo_cell}}"
+      in_vivo_time: "{{in_vivo_time}}"
+
+  - source: tasks/eda_features.py
+    product:
+      nb: "products/eda_features.ipynb"
+      data: "{{folder_output}}/eda_features"
+    params:
+      nan_treatement: "{{nan_treatement}}"
+      power_transform: "{{power_transform}}"
+      standardized: "{{standardized}}"
+      pca_variance_threshold: "{{pca_variance_threshold}}"
+      umap_n_components: "{{umap_n_components}}"
+
+  - source: tasks/models.py
+    product:
+     nb: "products/models.ipynb"
+     data: "{{folder_output}}/models"
+
+
+  - source: tasks/models_intervals.py
+    product:
+      nb: "products/models_intervals.ipynb"
+      data: "{{folder_output}}/models_intervals"

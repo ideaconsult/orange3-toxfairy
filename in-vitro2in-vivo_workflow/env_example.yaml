@@ -1,0 +1,33 @@
+folder_output: "products"
+in_vitro_folder: "file with in vitro data"
+in_vivo_folder: "file with in vivo data"
+
+in_vitro_cell: false
+in_vitro_time: false
+
+#in_vitro_cell: "A549"
+#in_vitro_time: "24H"
+
+in_vivo_cell: "Neutrophil"
+in_vivo_time: 1
+
+nan_treatement: "custom_imputation"
+#nan_treatement: "drop_row"
+#nan_treatement: "drop_col"
+#nan_treatement: "impute_mean"
+#nan_treatement: "impute_median"
+#nan_treatement: "impute_mode"
+#nan_treatement: false
+
+power_transform: "yeo-johnson"
+#power_transform: "box-cox
+#power_transform: false
+
+standardized: true
+#standardized: false
+
+#pca_variance_threshold: 0.85 # Use 85% explained variance
+pca_variance_threshold: false # Do not use PCA
+
+#umap_n_components: 2 # Reduce to 2D
+umap_n_components: false # Do not use UMAP
