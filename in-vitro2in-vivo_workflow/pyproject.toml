@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "in-vitro2in-vivo-workflow"
+version = "0.1.0"
+description = ""
+authors = ["vedina <jeliazkova.nina@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+ploomber = "^0.23.3"
+scikit-learn = "^1.6.1"
+summary = "^0.2.0"
+tools = "^0.1.9"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
+llvmlite = "^0.44.0"
+umap-learn = "^0.5.7"
+summarytools = "^0.3.0"
+missingno = "^0.5.2"
+xgboost = "^2.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
