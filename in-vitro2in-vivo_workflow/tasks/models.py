@@ -1,22 +1,22 @@
+import pandas as pd
+import numpy as np
+import os.path
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, LeaveOneOut
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor
+from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsRegressor
+from xgboost import XGBRegressor, plot_importance
+from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
+                             r2_score, mean_absolute_error, 
+                             mean_absolute_percentage_error)
+
+
 # + tags=["parameters"]
 upstream = ["eda_features"]
 product = None
 # -
 
-import pandas as pd
-import numpy as np
-import os.path
-from sklearn.model_selection import train_test_split, RandomizedSearchCV, LeaveOneOut
-from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.tree import plot_tree
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-from sklearn.neighbors import KNeighborsRegressor
-from xgboost import XGBRegressor, plot_importance
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
 
 path = upstream["eda_features"]["data"]
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
@@ -27,7 +27,7 @@ print(df)
 def evaluate_model(y_test, y_pred):
     metrics = {
         "MSE": mean_squared_error(y_test, y_pred),
-        "RMSE": mean_squared_error(y_test, y_pred, squared=False),
+        "RMSE": root_mean_squared_error(y_test, y_pred),
         "MAE": mean_absolute_error(y_test, y_pred),
         "MAPE": mean_absolute_percentage_error(y_test, y_pred),
         "R^2 Score": r2_score(y_test, y_pred),
