@@ -10,6 +10,7 @@ from xgboost import XGBRegressor, plot_importance
 from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
                              r2_score, mean_absolute_error, 
                              mean_absolute_percentage_error)
+from pathlib import Path
 
 
 # + tags=["parameters"]
@@ -19,6 +20,8 @@ product = None
 
 
 path = upstream["eda_features"]["data"]
+Path(product["data"]).mkdir(parents=True, exist_ok=True)
+
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
 os.makedirs(product["data"], exist_ok=True)
 print(df)

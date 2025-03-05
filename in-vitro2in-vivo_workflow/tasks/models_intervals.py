@@ -1,16 +1,20 @@
-# + tags=["parameters"]
-upstream = ["data_concat", "eda_features", "models"]
-product = None
-# -
-
 import pandas as pd
 import numpy as np
 import os.path
 import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import (mean_squared_error, root_mean_squared_error, 
+                             r2_score, mean_absolute_error, 
+                             mean_absolute_percentage_error)
 from sklearn.model_selection import LeaveOneOut, KFold, train_test_split
+
+
+# + tags=["parameters"]
+upstream = ["data_concat", "eda_features", "models"]
+product = None
+# -
+
 
 path = upstream["eda_features"]["data"]
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
@@ -20,6 +24,7 @@ df = df[df['BMD_SD1'] <= 60]
 features_path = upstream["models"]["data"]
 features = pd.read_csv(os.path.join(features_path, "feature_importance.csv"))
 feature_list = features.iloc[:, 0].tolist()
+feature_list
 
 # Original feature values used to plot Log(x) vs Log(Y)
 path2raw = upstream["data_concat"]["data"]
@@ -63,7 +68,7 @@ def evaluate_model(y_true, y_pred, y_std):
         "R² Score": r2_score(y_true, y_pred),
         "MAE": mean_absolute_error(y_true, y_pred),
         "MSE": mean_squared_error(y_true, y_pred),
-        "RMSE": np.sqrt(mean_squared_error(y_true, y_pred)),
+        "RMSE": root_mean_squared_error(y_true, y_pred),
         "Quantile Loss (5%)": quantile_loss(y_true, y_lower, 0.05),
         "Quantile Loss (95%)": quantile_loss(y_true, y_upper, 0.95),
     }
