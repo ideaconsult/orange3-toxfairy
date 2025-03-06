@@ -1,36 +1,60 @@
-#executor: parallel
+executor: parallel
 
 tasks:
   - source: tasks/data_concat.py
+    name: "data_concat_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "products/data_concat.ipynb"
-      data: "{{folder_output}}/data_concat"
+      nb: "products/data_concat_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}/data_concat_[[in_vivo_cell]]_[[in_vivo_time]]"
     params:
       in_vitro_folder: "{{in_vitro_folder}}"
       in_vivo_folder: "{{in_vivo_folder}}"
       in_vitro_cell: "{{in_vitro_cell}}"
       in_vitro_time: "{{in_vitro_time}}"
-      in_vivo_cell: "{{in_vivo_cell}}"
-      in_vivo_time: "{{in_vivo_time}}"
+    grid:
+      #in_vivo_cell : ["Neutrophil"]
+      #in_vivo_time : [1]    
+      in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
+      in_vivo_time : [1, 28, 3, 90]
 
   - source: tasks/eda_features.py
+    name: "eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "products/eda_features.ipynb"
-      data: "{{folder_output}}/eda_features"
+      nb: "products/eda_features_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}/eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
     params:
       nan_treatement: "{{nan_treatement}}"
       power_transform: "{{power_transform}}"
       standardized: "{{standardized}}"
       pca_variance_threshold: "{{pca_variance_threshold}}"
       umap_n_components: "{{umap_n_components}}"
+    grid:
+      in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
+      in_vivo_time : [1, 28, 3, 90]  
 
   - source: tasks/models.py
+    name: "models_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-     nb: "products/models.ipynb"
-     data: "{{folder_output}}/models"
+     nb: "products/models_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
+     data: "{{folder_output}}/models_[[in_vivo_cell]]_[[in_vivo_time]]"
+    grid:
+      in_vivo_cell : ["Neutrophil"] 
+      #in_vivo_cell : ["Macrophage"] 
+      #in_vivo_cell : ["Lymphocyte"]
+      #in_vivo_cell : [ "Epithelial"] 
+      #in_vivo_cell: ["Eosinophil"]
+      in_vivo_time : [1, 28, 3]   
 
 
   - source: tasks/models_intervals.py
+    name: "intervalmodels_[[in_vivo_cell]]_[[in_vivo_time]]"  
     product:
-      nb: "products/models_intervals.ipynb"
-      data: "{{folder_output}}/models_intervals"
+      nb: "products/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]]"
+    grid:
+      in_vivo_cell : ["Neutrophil"] 
+      #in_vivo_cell : ["Macrophage"] 
+      #in_vivo_cell : ["Lymphocyte"]
+      #in_vivo_cell : [ "Epithelial"] 
+      #in_vivo_cell: ["Eosinophil"]
+      in_vivo_time : [1, 28, 3]   

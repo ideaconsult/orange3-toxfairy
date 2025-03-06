@@ -11,25 +11,27 @@ from sklearn.model_selection import LeaveOneOut, KFold, train_test_split
 
 
 # + tags=["parameters"]
-upstream = ["data_concat", "eda_features", "models"]
+upstream = ["data_concat_*", "eda_features_*", "models_*"]
 product = None
+in_vivo_cell = None
+in_vivo_time = None
 # -
 
 
-path = upstream["eda_features"]["data"]
+path = upstream["eda_features_*"][f"eda_features_{in_vivo_cell}_{in_vivo_time}"]["data"]
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
 df = df[df['BMD_SD1'] <= 60]
 
 # Selected important features from RandomForest
-features_path = upstream["models"]["data"]
+features_path = upstream["models_*"][f"models_{in_vivo_cell}_{in_vivo_time}"]["data"]
 features = pd.read_csv(os.path.join(features_path, "feature_importance.csv"))
 feature_list = features.iloc[:, 0].tolist()
 feature_list
 
 # Original feature values used to plot Log(x) vs Log(Y)
-path2raw = upstream["data_concat"]["data"]
+path2raw = upstream["data_concat_*"][f"data_concat_{in_vivo_cell}_{in_vivo_time}"]["data"]
 df_raw = pd.read_csv(os.path.join(path2raw, "combined.csv"))
-df_raw = df_raw[df_raw['BMD_SD1'] <= 60]
+# df_raw = df_raw[df_raw['BMD_SD1'] <= 60]
 
 y_err_lower = df['BMD_SD1'] - df['BMDL_SD1']
 y_err_upper = df['BMDU_SD1'] - df['BMD_SD1']

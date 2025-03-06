@@ -1,13 +1,3 @@
-# + tags=["parameters"]
-upstream = ["data_concat"]
-product = None
-nan_treatement = None
-power_transform = None
-standardized = None
-pca_variance_threshold = None
-umap_n_components = None
-# -
-
 import pandas as pd
 import numpy as np
 import os.path
@@ -18,7 +8,20 @@ from summarytools import dfSummary
 import missingno as msno
 
 
-path = upstream["data_concat"]["data"]
+# + tags=["parameters"]
+upstream = ["data_concat_*"]
+product = None
+nan_treatement = None
+power_transform = None
+standardized = None
+pca_variance_threshold = None
+umap_n_components = None
+in_vivo_cell = None
+in_vivo_time = None
+# -
+
+
+path = upstream["data_concat_*"][f"data_concat_{in_vivo_cell}_{in_vivo_time}"]["data"]
 df = pd.read_csv(os.path.join(path, "combined.csv"))
 os.makedirs(product["data"], exist_ok=True)
 

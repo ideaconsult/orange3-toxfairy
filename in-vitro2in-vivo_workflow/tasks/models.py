@@ -14,12 +14,14 @@ from pathlib import Path
 
 
 # + tags=["parameters"]
-upstream = ["eda_features"]
+upstream = ["eda_features_*"]
 product = None
+in_vivo_cell = None
+in_vivo_time = None
 # -
 
 
-path = upstream["eda_features"]["data"]
+path = upstream["eda_features_*"][f"eda_features_{in_vivo_cell}_{in_vivo_time}"]["data"]
 Path(product["data"]).mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
