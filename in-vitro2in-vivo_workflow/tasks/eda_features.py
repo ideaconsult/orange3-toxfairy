@@ -111,7 +111,7 @@ def apply_umap_function(df, n_components=2):
     return df_umap_transformed
 
 
-x = df.iloc[:, 6:]
+x = df.iloc[:, 7:]
 df_x = x.copy()
 
 if nan_treatement:
@@ -133,7 +133,7 @@ if umap_n_components and standardized:
     df_x = apply_umap_function(df_x, n_components=umap_n_components)
 
 # df_combined = pd.concat([df.iloc[:, :6], df_x], axis=1)
-df_combined = pd.concat([df.iloc[:, :6], df_x], axis=1).dropna(axis=0)
+df_combined = pd.concat([df.iloc[:, :7], df_x], axis=1).dropna(axis=0)
 
 
 print(df_combined.head())
