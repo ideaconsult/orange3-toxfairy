@@ -12,10 +12,10 @@ tasks:
       in_vitro_cell: "{{in_vitro_cell}}"
       in_vitro_time: "{{in_vitro_time}}"
     grid:
-      #in_vivo_cell : ["Neutrophil"]
-      #in_vivo_time : [1]    
+#      in_vivo_cell : ["Neutrophil"]
+      in_vivo_time : [1]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
-      in_vivo_time : [1, 28, 3, 90]
+#      in_vivo_time : [1, 28, 3, 90]
 
   - source: tasks/eda_features.py
     name: "eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
@@ -29,8 +29,10 @@ tasks:
       pca_variance_threshold: "{{pca_variance_threshold}}"
       umap_n_components: "{{umap_n_components}}"
     grid:
+#      in_vivo_cell: [ "Neutrophil" ]
+      in_vivo_time: [ 1 ]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
-      in_vivo_time : [1, 28, 3, 90]  
+#      in_vivo_time : [1, 28, 3, 90]
 
   - source: tasks/models.py
     name: "models_[[in_vivo_cell]]_[[in_vivo_time]]"
@@ -38,23 +40,27 @@ tasks:
      nb: "products/models_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
      data: "{{folder_output}}/models_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
-      in_vivo_cell : ["Neutrophil"] 
-      #in_vivo_cell : ["Macrophage"] 
+#      in_vivo_cell : ["Neutrophil"]
+      in_vivo_time: [ 1 ]
+      in_vivo_cell: [ "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil" ]
+      #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
-      #in_vivo_cell : [ "Epithelial"] 
+      #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-      in_vivo_time : [1, 28, 3]   
+#      in_vivo_time : [1, 28, 3]
 
 
   - source: tasks/models_intervals.py
-    name: "intervalmodels_[[in_vivo_cell]]_[[in_vivo_time]]"  
+    name: "intervalmodels_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
       nb: "products/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
       data: "{{folder_output}}/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
-      in_vivo_cell : ["Neutrophil"] 
-      #in_vivo_cell : ["Macrophage"] 
+#      in_vivo_cell : ["Neutrophil"]
+      in_vivo_time: [ 1 ]
+      in_vivo_cell: [ "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil" ]
+      #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
-      #in_vivo_cell : [ "Epithelial"] 
+      #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-      in_vivo_time : [1, 28, 3]   
+#      in_vivo_time : [1, 28, 3]

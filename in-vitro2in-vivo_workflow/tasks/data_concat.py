@@ -11,6 +11,7 @@ in_vivo_time = None
 
 import pandas as pd
 import os.path
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 os.makedirs(product["data"], exist_ok=True)
 
@@ -71,3 +72,50 @@ print(dfinal.columns)
 
 file_name = os.path.join(product["data"], "combined.csv")
 dfinal.to_csv(file_name, index=False)
+
+print('new data feature matrix')
+
+
+def extract_col_info(col_name):
+    parts = col_name.split("_")
+    cell = parts[0]
+    time = parts[1]
+    assay = parts[-1]
+    param = "_".join(parts[2:-1])
+    return cell, time, param, assay
+
+
+selected_cols = dfinal.columns[7:-16]
+col_info = [extract_col_info(col) for col in selected_cols]
+columns_df = pd.DataFrame(col_info, columns=["cell", "time", "param", "assay"], index=selected_cols)
+melted_df = dfinal.melt(id_vars=["ParticleID"], value_vars=selected_cols, var_name="original_col", value_name="value")
+melted_df = melted_df.merge(columns_df, left_on="original_col", right_index=True)
+melted_df["value"] = pd.to_numeric(melted_df["value"], errors="coerce")
+final_df = melted_df.pivot_table(index=["ParticleID", "cell", "time", "assay"],
+                                 columns="param", values="value").reset_index()
+final_df.columns.name = None
+non_transformed_cols = [col for col in dfinal.columns if col not in selected_cols]
+final_df = dfinal[non_transformed_cols].merge(final_df, on="ParticleID", how="left")
+print(final_df)
+final_df["time"] = final_df["time"].astype(str).str.replace("H", "", regex=False).astype(float)  # or .astype(int)
+
+# x features encoding
+columns_to_encode = ['cell', 'assay']
+
+# encoder = OneHotEncoder(sparse_output=False, drop='first')  # remove first from each category to prevent multicollinearity
+encoder = OneHotEncoder(sparse_output=False)
+
+encoded_array = encoder.fit_transform(final_df[columns_to_encode])
+encoded_df = pd.DataFrame(encoded_array, columns=encoder.get_feature_names_out(columns_to_encode))
+final_df = pd.concat([final_df.drop(columns=columns_to_encode), encoded_df], axis=1)
+
+# label_encoders = {}
+# for col in columns_to_encode:
+#     le = LabelEncoder()
+#     final_df[col] = le.fit_transform(final_df[col])
+#     label_encoders[col] = le
+
+print(final_df)
+
+file_name2 = os.path.join(product["data"], "combined2.csv")
+final_df.to_csv(file_name2, index=False)

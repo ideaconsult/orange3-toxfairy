@@ -151,30 +151,32 @@ X = df.iloc[:, 7:]
 y = df['BMD_SD1'].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-optimized_models = {}
-for name, model in models.items():
-    print(f"\nTraining {name}...")
-    if df.isnull().values.any():
-        if name in ["GradientBoosting", "SVR", "KNeighbors"]:
-            print(f"Skipping {name} due to NaN values in the dataset.")
-            continue
-
-    best_model = optimize_model(name, model, X_train, y_train)
-    best_model.fit(X_train, y_train)
-    y_pred = best_model.predict(X_test)
-
-    results = evaluate_model(y_test, y_pred)
-    optimized_models[name] = best_model
-
-    print(f"\nMetrics for {name} after optimization: ")
-    for metric, value in results.items():
-        print(f"{metric}: {value: .4f}")
-    print("-" * 30)
-
-print(optimized_models)
+# optimized_models = {}
+# for name, model in models.items():
+#     print(f"\nTraining {name}...")
+#     if df.isnull().values.any():
+#         if name in ["GradientBoosting", "SVR", "KNeighbors"]:
+#             print(f"Skipping {name} due to NaN values in the dataset.")
+#             continue
+#
+#     best_model = optimize_model(name, model, X_train, y_train)
+#     best_model.fit(X_train, y_train)
+#     y_pred = best_model.predict(X_test)
+#
+#     results = evaluate_model(y_test, y_pred)
+#     optimized_models[name] = best_model
+#
+#     print(f"\nMetrics for {name} after optimization: ")
+#     for metric, value in results.items():
+#         print(f"{metric}: {value: .4f}")
+#     print("-" * 30)
+#
+# print(optimized_models)
 
 feature_importances_RF = None
-for name, model in optimized_models.items():
+# for name, model in optimized_models.items():
+for name, model in models.items():
+
     print(f"\nTraining {name}...")
     if df.isnull().values.any():
         if name in ["GradientBoosting", "SVR", "KNeighbors"]:
@@ -182,9 +184,11 @@ for name, model in optimized_models.items():
             continue
 
     model.fit(X_train, y_train)
-    # y_pred = model.predict(X_test)
-    y_true, y_pred = cross_validate_loocv(model, X, y)
-    results = evaluate_model(y_true, y_pred)
+    y_pred = model.predict(X_test)
+    # y_true, y_pred = cross_validate_loocv(model, X, y)
+    # results = evaluate_model(y_true, y_pred)
+    results = evaluate_model(y_test, y_pred)
+
 
     print(f"Metrics for {name} and LOO CV: ")
     for metric, value in results.items():

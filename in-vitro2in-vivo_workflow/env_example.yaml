@@ -11,8 +11,8 @@ in_vitro_time: false
 in_vivo_cell: "Neutrophil"
 in_vivo_time: 1
 
-nan_treatement: "custom_imputation"
-#nan_treatement: "drop_row"
+#nan_treatement: "custom_imputation"
+nan_treatement: "drop_row"
 #nan_treatement: "drop_col"
 #nan_treatement: "impute_mean"
 #nan_treatement: "impute_median"

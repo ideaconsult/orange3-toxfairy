@@ -22,7 +22,8 @@ in_vivo_time = None
 
 
 path = upstream["data_concat_*"][f"data_concat_{in_vivo_cell}_{in_vivo_time}"]["data"]
-df = pd.read_csv(os.path.join(path, "combined.csv"))
+# df = pd.read_csv(os.path.join(path, "combined.csv"))
+df = pd.read_csv(os.path.join(path, "combined2.csv"))
 os.makedirs(product["data"], exist_ok=True)
 
 
@@ -131,7 +132,9 @@ if pca_variance_threshold and standardized:
 if umap_n_components and standardized:
     df_x = apply_umap_function(df_x, n_components=umap_n_components)
 
-df_combined = pd.concat([df.iloc[:, :6], df_x], axis=1)
+# df_combined = pd.concat([df.iloc[:, :6], df_x], axis=1)
+df_combined = pd.concat([df.iloc[:, :6], df_x], axis=1).dropna(axis=0)
+
 
 print(df_combined.head())
 file_name = os.path.join(product["data"], "eda_features.csv")

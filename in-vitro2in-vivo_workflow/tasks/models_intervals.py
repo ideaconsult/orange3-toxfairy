@@ -20,7 +20,7 @@ in_vivo_time = None
 
 path = upstream["eda_features_*"][f"eda_features_{in_vivo_cell}_{in_vivo_time}"]["data"]
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
-df = df[df['BMD_SD1'] <= 60]
+# df = df[df['BMD_SD1'] <= 60]
 
 # Selected important features from RandomForest
 features_path = upstream["models_*"][f"models_{in_vivo_cell}_{in_vivo_time}"]["data"]
@@ -165,7 +165,7 @@ def extract_x_y(df, log=False):
         df_copy[cols_to_log] = np.log(df[cols_to_log] + 1)
 
     df_copy['y_vars'] = (df_copy['BMDU_SD1'] - df_copy['BMDL_SD1']) / 3.92
-    x = df_copy.iloc[:, 6:-1].values
+    x = df_copy.iloc[:, 7:-1].values
     y_vars = df_copy['y_vars'].values
     y_means = df_copy['BMD_SD1'].values
 
@@ -198,7 +198,9 @@ plt.legend()
 plt.show()
 
 # /////////////////////////////////////// Cross Validation ////////////////////////////////////////////////////////
-cv_methods = ["LOO", "TrainTest"]
+# cv_methods = ["LOO", "TrainTest"]
+cv_methods = ["TrainTest"]
+
 
 for method in cv_methods:
     results = cross_validate2(x, Y_means, Y_vars, method=method, n_splits=3, plot=True)
