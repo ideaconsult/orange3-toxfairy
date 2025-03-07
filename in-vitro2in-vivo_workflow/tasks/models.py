@@ -228,7 +228,31 @@ for name, model in models.items():
 print(feature_importances_RF)
 file_name = os.path.join(product["data"], "feature_importance.csv")
 feature_importances_RF.to_csv(file_name, index=True)
-# /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+# ////////////////////////////////////////  Test with isolated material ////////////////////////////////////////////////
+
+material_value = "NRCWE-006"
+
+X_train_custom_material = X[df["ParticleID"] != material_value]
+X_test_custom_material = X[df["ParticleID"] == material_value]
+y_train_custom_material = y[df["ParticleID"] != material_value]
+y_test_custom_material = y[df["ParticleID"] == material_value]
+
+for name, model in models.items():
+    print(f"\nTraining {name}...")
+    if df.isnull().values.any():
+        if name in ["GradientBoosting", "SVR", "KNeighbors"]:
+            print(f"Skipping {name} due to NaN values in the dataset.")
+            continue
+
+    model.fit(X_train_custom_material, y_train_custom_material)
+    y_pred_custom_material = model.predict(X_test_custom_material)
+    results = evaluate_model(y_test_custom_material, y_pred_custom_material)
+
+    print(f"Metrics for {name} and test with izolated material {material_value}: ")
+    for metric, value in results.items():
+        print(f"{metric}: {value: .4f}")
+    print("-" * 30)
 
 ''' 
 
