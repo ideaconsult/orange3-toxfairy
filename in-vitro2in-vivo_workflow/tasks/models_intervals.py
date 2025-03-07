@@ -4,11 +4,10 @@ import os.path
 import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-from sklearn.metrics import (mean_squared_error, root_mean_squared_error, 
-                             r2_score, mean_absolute_error, 
+from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
+                             r2_score, mean_absolute_error,
                              mean_absolute_percentage_error)
 from sklearn.model_selection import LeaveOneOut, KFold, train_test_split
-
 
 # + tags=["parameters"]
 upstream = ["data_concat_*", "eda_features_*", "models_*"]
@@ -157,6 +156,26 @@ def cross_validate2(x, Y_means, Y_vars, method="LOO", n_splits=3, test_size=0.2,
     return results
 
 
+def custom_material_validate(x, Y_means, Y_vars, df, material_value="MKN-A100", plot=True):
+    """
+        Splits the dataset for validation by isolating a specified material for testing.
+    """
+    X_train = x[df["ParticleID"] != material_value]
+    X_test = x[df["ParticleID"] == material_value]
+    Y_train = Y_means[df["ParticleID"] != material_value]
+    Y_test = Y_means[df["ParticleID"] == material_value]
+    y_vars_train = Y_vars[df["ParticleID"] != material_value]
+    y_vars_test = Y_vars[df["ParticleID"] == material_value]
+
+    y_pred, y_std = GPR_model(X_train, Y_train, y_vars_train, X_test)
+    results = evaluate_model(Y_test, y_pred, y_std)
+
+    if plot:
+        plot_results(Y_test, y_pred, y_std, y_vars_test,
+                     title=f'GPR with custom validate by external material {material_value}')
+    return results
+
+
 def extract_x_y(df, log=False):
     df_copy = df.copy()
 
@@ -201,7 +220,6 @@ plt.show()
 # cv_methods = ["LOO", "TrainTest"]
 cv_methods = ["TrainTest"]
 
-
 for method in cv_methods:
     results = cross_validate2(x, Y_means, Y_vars, method=method, n_splits=3, plot=True)
     print(f"Metrics for GaussianProcessRegressor with {method}:")
@@ -209,6 +227,14 @@ for method in cv_methods:
         print(f"{metric}: {value:.2f}")
     print("-" * 30)
 
+# /////////////////////////////////////// Custom validation by isolated material ////////////////////////////////////////////////////////
+
+materials = ["MKN-A100", "NRCWE-006"]
+for material in materials:
+    results = custom_material_validate(x, Y_means, Y_vars, df, material_value=material, plot=True)
+    for metric, value in results.items():
+        print(f"{metric}: {value:.2f}")
+    print("-" * 30)
 
 # Plot BMD vs each original x feature
 x_raw = df_raw.iloc[:, 7:]
