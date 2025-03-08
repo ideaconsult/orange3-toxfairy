@@ -13,9 +13,8 @@ tasks:
       in_vitro_time: "{{in_vitro_time}}"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time : [1]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
-#      in_vivo_time : [1, 28, 3, 90]
+      in_vivo_time : [1, 3, 28]
 
   - source: tasks/eda_features.py
     name: "eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
@@ -30,7 +29,7 @@ tasks:
       umap_n_components: "{{umap_n_components}}"
     grid:
 #      in_vivo_cell: [ "Neutrophil" ]
-      in_vivo_time: [ 1 ]
+      in_vivo_time : [1, 3, 28]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
 #      in_vivo_time : [1, 28, 3, 90]
 
@@ -41,13 +40,13 @@ tasks:
      data: "{{folder_output}}/models_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time: [ 1]
+      # in_vivo_time: [ 1]
       in_vivo_cell: ["Epithelial",  "Neutrophil","Macrophage", "Lymphocyte", "Eosinophil" ]
       #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-#      in_vivo_time : [1, 28, 3]
+      in_vivo_time : [1, 3, 28]
 
 
   - source: tasks/models_intervals.py
@@ -57,15 +56,14 @@ tasks:
       data: "{{folder_output}}/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time: [ 1]
+      in_vivo_time : [1, 3, 28]
       in_vivo_cell: [ "Epithelial", "Neutrophil","Macrophage", "Lymphocyte", "Eosinophil" ]
       #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-      # in_vivo_time : [1, 28, 3]
 
   - source: tasks/metrics_compare.py
     product:
       nb: "products/metrics_compare.ipynb"
-      data: "products/metrics_compare.xlsx"
+      data: "products/metrics_compare_{{nan_treatement}}.xlsx"

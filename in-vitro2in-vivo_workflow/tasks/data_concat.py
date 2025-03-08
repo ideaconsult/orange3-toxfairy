@@ -115,7 +115,7 @@ final_df = pd.concat([final_df.drop(columns=columns_to_encode), encoded_df], axi
 #     final_df[col] = le.fit_transform(final_df[col])
 #     label_encoders[col] = le
 
-print(final_df)
+final_df
 
 file_name2 = os.path.join(product["data"], "combined2.csv")
 final_df.to_csv(file_name2, index=False)
