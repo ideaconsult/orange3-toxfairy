@@ -8,6 +8,9 @@ from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
                              r2_score, mean_absolute_error,
                              mean_absolute_percentage_error)
 from sklearn.model_selection import LeaveOneOut, KFold, train_test_split
+from pathlib import Path
+from IPython.display import display, HTML
+
 
 # + tags=["parameters"]
 upstream = ["data_concat_*", "eda_features_*", "models_*"]
@@ -16,6 +19,8 @@ in_vivo_cell = None
 in_vivo_time = None
 # -
 
+
+Path(product["data"]).mkdir(parents=True, exist_ok=True)
 
 path = upstream["eda_features_*"][f"eda_features_{in_vivo_cell}_{in_vivo_time}"]["data"]
 df = pd.read_csv(os.path.join(path, "eda_features.csv"))
@@ -50,14 +55,14 @@ log_y_err_upper = np.log(y_err_upper + 1)
 
 plt.figure(figsize=(8, 8))
 plt.errorbar(log_bmd, df['ParticleID'], xerr=[log_y_err_lower, log_y_err_upper], fmt='o',
-             ecolor='red', capsize=5, label='Log of BMD')
-plt.xlabel('Log of BMD Value')
+             ecolor='red', capsize=5, label='ln(BMD)')
+plt.xlabel('ln(BMD)')
 plt.ylabel('Materials')
-plt.title('BMD (Natural Logarithmic Scale)')
+plt.title('ln(BMD)')
 plt.legend()
 plt.show()
 
-print(df)
+df.head()
 
 
 def evaluate_model(y_true, y_pred, y_std):
@@ -71,7 +76,7 @@ def evaluate_model(y_true, y_pred, y_std):
         "MSE": mean_squared_error(y_true, y_pred),
         "RMSE": root_mean_squared_error(y_true, y_pred),
         "Quantile Loss (5%)": quantile_loss(y_true, y_lower, 0.05),
-        "Quantile Loss (95%)": quantile_loss(y_true, y_upper, 0.95),
+        "Quantile Loss (95%)": quantile_loss(y_true, y_upper, 0.95)
     }
 
     return metrics
@@ -107,26 +112,26 @@ def plot_results(y_actual, y_pred, y_std, y_vars, title="Gaussian Process Regres
     plt.errorbar(y_actual, y_pred, yerr=y_vars, fmt='o', alpha=0.5, label='BMD_U/L Error (95% CI)', color='green',
                  markersize=0.2)
     plt.plot([y_actual.min(), y_actual.max()], [y_actual.min(), y_actual.max()], 'r--', label='Prediction')
-    plt.xlabel('Actual BMD')
-    plt.ylabel('Predicted BMD')
+    plt.xlabel('Actual ln(BMD)')
+    plt.ylabel('Predicted ln(BMD)')
     plt.title(title)
     plt.legend()
     plt.show()
 
 
-def cross_validate2(x, Y_means, Y_vars, method="LOO", n_splits=3, test_size=0.2, plot=True):
+def cross_validate2(x, Y_means, Y_vars, method="LOO", n_splits=3, test_size=0.2, plot=True, random_state=42):
     y_preds, y_stds, y_actuals = [], [], []
 
     if method == "LOO":
         cv = LeaveOneOut()
     elif method == "KFold":
-        cv = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+        cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     elif method == "TrainTest":
         X_train, X_test, Y_train, Y_test, y_vars_train, y_vars_test = train_test_split(
-            x, Y_means, Y_vars, test_size=test_size, random_state=42)
+            x, Y_means, Y_vars, test_size=test_size, random_state=random_state)
 
         y_pred, y_std = GPR_model(X_train, Y_train, y_vars_train, X_test)
-        results = evaluate_model(Y_test, y_pred, y_std)
+        results = evaluate_model(Y_test, y_pred, y_std  )
 
         if plot:
             plot_results(Y_test, y_pred, y_std, y_vars_test, title=f'GPR with {method} Split')
@@ -196,10 +201,15 @@ df_copy, x, Y_means, Y_vars = extract_x_y(df, log=True)
 #  ////////////////////////////////////// Train model //////////////////////////////////////////////////////////////////////
 Y_pred, Y_std = GPR_model(x, Y_means, Y_vars)
 results = evaluate_model(Y_means, Y_pred, Y_std)
-print(f"Metrics for GaussianProcessRegressor: ")
-for metric, value in results.items():
-    print(f"{metric}: {value: .2f}")
-print("-" * 30)
+metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+metrics["cv_method"] = "None"
+
+metrics 
+
+#print(f"Metrics for GaussianProcessRegressor: ")
+#for metric, value in results.items():
+#print(f"{metric}: {value: .2f}")
+#print("-" * 30)
 
 plt.figure(figsize=(10, 6))
 plt.scatter(Y_means, Y_pred, label='Predicted vs Actual', color='red', edgecolors='black', linewidth=0.5)
@@ -221,20 +231,37 @@ plt.show()
 cv_methods = ["TrainTest"]
 
 for method in cv_methods:
-    results = cross_validate2(x, Y_means, Y_vars, method=method, n_splits=3, plot=True)
-    print(f"Metrics for GaussianProcessRegressor with {method}:")
-    for metric, value in results.items():
-        print(f"{metric}: {value:.2f}")
-    print("-" * 30)
+    for test_size in [0.1, 0.2]:
+        for random_state in [42, 66]:
+            results = cross_validate2(x, Y_means, Y_vars, method=method, n_splits=3, plot=True, test_size=test_size, random_state=random_state)
+            metrics_df = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+            metrics_df["cv_method"] = method
+            metrics_df["cv_test_size"] = test_size
+            metrics_df["random_state"] = random_state
+            print(f"Metrics for GaussianProcessRegressor with {method}:")
+            display(metrics_df)
+            if metrics is None:
+                metrics = metrics_df
+            else:
+                metrics = pd.concat([metrics, metrics_df], ignore_index=True)
 
 # /////////////////////////////////////// Custom validation by isolated material ////////////////////////////////////////////////////////
 
 materials = ["MKN-A100", "NRCWE-006"]
 for material in materials:
     results = custom_material_validate(x, Y_means, Y_vars, df, material_value=material, plot=True)
-    for metric, value in results.items():
-        print(f"{metric}: {value:.2f}")
-    print("-" * 30)
+    metrics_df = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+    metrics_df["cv_method"] = f"materials {material}"
+    display(metrics_df)
+    metrics = pd.concat([metrics, metrics_df], ignore_index=True)
+
+metrics["method"] = "GaussianProcessRegressor"
+metrics["cell"] = in_vivo_cell
+metrics["time"] = in_vivo_time
+
+metrics    
+
+metrics.to_excel(os.path.join(product["data"],"metrics.xlsx"), index=False)
 
 # Plot BMD vs each original x feature
 x_raw = df_raw.iloc[:, 7:]

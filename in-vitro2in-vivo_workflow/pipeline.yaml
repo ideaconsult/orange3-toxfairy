@@ -41,8 +41,8 @@ tasks:
      data: "{{folder_output}}/models_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time: [ 1 ]
-      in_vivo_cell: [ "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil" ]
+      in_vivo_time: [ 1]
+      in_vivo_cell: ["Epithelial",  "Neutrophil","Macrophage", "Lymphocyte", "Eosinophil" ]
       #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
       #in_vivo_cell : [ "Epithelial"]
@@ -57,10 +57,10 @@ tasks:
       data: "{{folder_output}}/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time: [ 1 ]
-      in_vivo_cell: [ "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil" ]
+      in_vivo_time: [ 1]
+      in_vivo_cell: [ "Epithelial", "Neutrophil","Macrophage", "Lymphocyte", "Eosinophil" ]
       #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-#      in_vivo_time : [1, 28, 3]
+      # in_vivo_time : [1, 28, 3]
