@@ -64,3 +64,8 @@ tasks:
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
       # in_vivo_time : [1, 28, 3]
+
+  - source: tasks/metrics_compare.py
+    product:
+      nb: "products/metrics_compare.ipynb"
+      data: "products/metrics_compare.xlsx"
