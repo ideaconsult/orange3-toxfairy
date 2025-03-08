@@ -1,4 +1,4 @@
-executor: parallel
+#executor: parallel
 
 tasks:
   - source: tasks/preprocessing.py 
@@ -28,7 +28,8 @@ tasks:
     grid:
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
       in_vivo_time : [1]
-      model: ["GPR"]
+      #model: ["GPR"]
+      model: ["XGB"]
 
 
   - source: tasks/metrics_compare.py

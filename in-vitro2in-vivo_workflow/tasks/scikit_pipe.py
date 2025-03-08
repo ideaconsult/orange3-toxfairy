@@ -9,10 +9,13 @@ from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
                              r2_score, mean_absolute_error,
                              mean_absolute_percentage_error)
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
+from xgboost import XGBRegressor
 from pathlib import Path
 import os.path 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
+from sklearn.model_selection import LeaveOneGroupOut
 
 
 # + tags=["parameters"]
@@ -27,12 +30,13 @@ model = None
 def plot_results(y_actual, y_pred, y_std, y_vars, title="Gaussian Process Regression"):
     plt.figure(figsize=(10, 6))
     plt.scatter(y_actual, y_pred, label='Predicted vs Actual', color='red', edgecolors='black', linewidth=0.5)
-    plt.errorbar(y_actual, y_pred, yerr=1.96 * y_std, fmt='o', alpha=0.5, label='95% CI', color='blue', markersize=2)
+    if y_std is not None:
+        plt.errorbar(y_actual, y_pred, yerr=1.96 * y_std, fmt='o', alpha=0.5, label='95% CI', color='blue', markersize=2)
     plt.errorbar(y_actual, y_pred, yerr=y_vars, fmt='o', alpha=0.5, label='BMD_U/L Error (95% CI)', color='green',
                  markersize=0.2)
     plt.plot([y_actual.min(), y_actual.max()], [y_actual.min(), y_actual.max()], 'r--', label='Prediction')
-    plt.xlabel('Actual ln(BMD)')
-    plt.ylabel('Predicted ln(BMD)')
+    plt.xlabel('Actual BMD')
+    plt.ylabel('Predicted BMD')
     plt.title(title)
     plt.legend()
     plt.show()
@@ -43,26 +47,31 @@ def quantile_loss(y_true, y_pred, quantile):
     return np.mean(np.maximum(quantile * errors, (quantile - 1) * errors))
 
 
-def evaluate_model(y_true, y_pred, y_std):
+def evaluate_model(y_true, y_pred, y_std = None):
     Z_low, Z_high = -1.645, 1.645
-    y_lower = y_pred + Z_low * y_std
-    y_upper = y_pred + Z_high * y_std
 
     metrics = {
         "R² Score": r2_score(y_true, y_pred),
         "MAE": mean_absolute_error(y_true, y_pred),
         "MSE": mean_squared_error(y_true, y_pred),
         "RMSE": root_mean_squared_error(y_true, y_pred),
-        "Quantile Loss (5%)": quantile_loss(y_true, y_lower, 0.05),
-        "Quantile Loss (95%)": quantile_loss(y_true, y_upper, 0.95)
     }
+    if y_std is not None:
+        y_lower = y_pred + Z_low * y_std
+        y_upper = y_pred + Z_high * y_std
+        metrics["Quantile Loss (5%)"] = quantile_loss(y_true, y_lower, 0.05),
+        metrics["Quantile Loss (95%)"] = quantile_loss(y_true, y_upper, 0.95)
 
     return metrics
 
 
 def gpr_model(y_vars_train=None):
     kernel = ConstantKernel(1.0) * RBF(length_scale=1.0) + WhiteKernel(noise_level=0.1)
-    return GaussianProcessRegressor(kernel=kernel, alpha=y_vars_train.values, n_restarts_optimizer=10)    
+    return GaussianProcessRegressor(kernel=kernel, alpha=y_vars_train, n_restarts_optimizer=10)    
+
+
+def xgb_model():
+    return XGBRegressor(objective='reg:squarederror', n_estimators=100, seed=42)
 
 
 Path(product["data"]).mkdir(parents=True, exist_ok=True)
@@ -83,6 +92,9 @@ df.to_excel(os.path.join(product["data"], "data.xlsx"), index=False)
 X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day'])
 y = df['BMD_SD1']
 y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
+groups = df['material']
+logo = LeaveOneGroupOut()
+logo.split(X, y, groups=groups)
 
 X.columns
 
@@ -102,9 +114,15 @@ preprocessor = ColumnTransformer([
 X_train, X_test, y_train, y_test, y_vars_train, y_vars_test = train_test_split(
             X, y, y_vars, test_size=0.3, random_state=42)
 
+for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
+    print(f"Fold {i+1}:")
+    #print(f"Train indices: {train_idx}")
+    print(f"Test indices: {test_idx}")
+    print("-" * 30)
 
 _models = {
-    "GPR": gpr_model(y_vars_train.values)
+    "GPR": gpr_model(y_vars_train.values),
+    "XGB": xgb_model()
 }
 
 regressor = _models[model]
@@ -124,33 +142,57 @@ pipeline = Pipeline([
 # Fit the pipeline on the training data
 pipeline.fit(X_train, y_train)
 
-# Make predictions and get the variance (standard deviation)
-#y_pred, y_pred_std = pipeline.predict(X_test, return_std=True)
-# Transform X_test first using the pipeline's preprocessor
+
 X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
-
-# Now predict using the actual regressor inside the pipeline
-#y_pred, y_pred_std = pipeline.named_steps['model'].regressor_.predict(X_test_transformed, return_std=True)
-y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
-
-
-# Print the predictions and variances (standard deviations)
-#print("Predictions:", y_pred)
-#print("Standard Deviations (Variances):", y_pred_std)
-
-# Optionally, you can calculate the mean squared error (MSE) to evaluate the performance
-mse = mean_squared_error(y_test, y_pred)
+if model=="GPR":
+    y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+else:
+    y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+    y_pred_std = None
 
 results = evaluate_model(y_test, y_pred, y_pred_std)
-metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-metrics["cv_method"] = "Test"
-metrics["method"] = model
-metrics["cell"] = in_vivo_cell
-metrics["time"] = in_vivo_time
+_metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+_metrics["cv_method"] = "Test"
+_metrics["method"] = model
+_metrics["cell"] = in_vivo_cell
+_metrics["time"] = in_vivo_time
 
+#metrics = pd.concat([metrics, _metrics], ignore_index=True)
+metrics = _metrics
 metrics.to_excel(os.path.join(product["data"], "metrics.xlsx"), index=False)
+
+# Set up k-fold cross-validation
+#kf = KFold(n_splits=5, shuffle=True, random_state=42)
+#scores = cross_val_score(pipeline, X, Y_means, cv=kf, scoring="neg_mean_squared_error")
 
 metrics
 
+#method = "Train"
+#plot_results(y_train, y_pred0, y_pred_std0, y_vars_train, title=f'{model} with {method} Split')
+
 method = "Test"
 plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
+
+
+def cv(pipeline, X, Y_means, Y_vars):
+    # Define cross-validation strategy (e.g., 5-Fold)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+    # Custom cross-validation loop to pass Y_vars (noise levels) to the regressor
+    scores = []
+    for train_idx, val_idx in kf.split(X):
+        # Split data
+        X_train, X_val = X[train_idx], X[val_idx]
+        Y_train, Y_val = Y_means[train_idx], Y_means[val_idx]
+        Y_train_vars, Y_val_vars = Y_vars[train_idx], Y_vars[val_idx]
+        
+        # Assign the training noise (alpha) to the GP model
+        pipeline.named_steps['model'].alpha = Y_train_vars  # Set noise level for GP model
+        
+        # Fit the pipeline on the training data
+        pipeline.fit(X_train, Y_train)
+        
+        # Evaluate the model on the validation set
+        val_score = pipeline.score(X_val, Y_val)
+        scores.append(val_score)
+    return scores
