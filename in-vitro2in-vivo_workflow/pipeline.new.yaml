@@ -1,0 +1,37 @@
+executor: parallel
+
+tasks:
+  - source: tasks/preprocessing.py 
+    product: 
+      nb: "{{folder_output}}/preprocessing.ipynb"
+      x: "{{folder_output}}/preprocessing/xwide_{{missingvals}}.xlsx"
+      x_long: "{{folder_output}}/preprocessing/xlong_{{missingvals}}.xlsx"
+      y: "{{folder_output}}/preprocessing/y_{{missingvals}}.xlsx"
+      xy: "{{folder_output}}/preprocessing/xy_{{missingvals}}.xlsx"
+    params:
+      in_vitro_folder: "{{in_vitro_folder}}"
+      in_vivo_folder: "{{in_vivo_folder}}"
+      in_vivo_sheet: "BMD_mass_TT"
+      n_neighbors: 5
+      scaler_type_x: "standard"
+      scaler_type_y: "power"
+      threshold: 0.66
+      #missingvals: "impute"
+      missingvals: "{{missingvals}}"
+
+
+  - source: tasks/scikit_pipe.py
+    name: "scikit_[[model]]_[[in_vivo_cell]]_[[in_vivo_time]]"
+    product:
+      nb: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]"
+    grid:
+      in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
+      in_vivo_time : [1]
+      model: ["GPR"]
+
+
+  - source: tasks/metrics_compare.py
+    product:
+      nb: "products/metrics_compare.ipynb"
+      data: "products/metrics_compare_{{missingvals}}.xlsx"      

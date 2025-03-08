@@ -80,7 +80,3 @@ tasks:
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
 
-  - source: tasks/metrics_compare.py
-    product:
-      nb: "products/metrics_compare.ipynb"
-      data: "products/metrics_compare_{{nan_treatement}}.xlsx"

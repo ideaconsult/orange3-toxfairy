@@ -141,7 +141,8 @@ dfSummary(dfy, is_collapsible=True)
 dfy.to_excel(product["y"], index=False)
 
 
-df_merged = pd.merge(dfx, dfy, on="material", how="outer")
+df_merged = pd.merge(final_df, dfy, on="material", how="outer")
+df_merged = df_merged.dropna(subset=['BMD_SD1'])
 df_merged.to_excel(product["xy"], index=False)
 
 
