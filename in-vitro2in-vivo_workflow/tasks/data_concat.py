@@ -1,12 +1,12 @@
 # + tags=["parameters"]
-upstream = []
+upstream = ["preprocessing"]
 product = None
 in_vivo_folder = None
-in_vitro_folder = None
 in_vitro_cell = None
 in_vitro_time = None
 in_vivo_cell = None
 in_vivo_time = None
+missingvals = None
 # -
 
 import pandas as pd
@@ -16,25 +16,13 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 os.makedirs(product["data"], exist_ok=True)
 
 # ///////////////////////////////////////// IN-VITRO /////////////////////////////////////////////////////////////////
-in_vitro_df = pd.read_excel(in_vitro_folder)
-in_vitro_df = in_vitro_df.drop(in_vitro_df.columns[0], axis=1)
-in_vitro_df = in_vitro_df.iloc[:-7]
-# IN VITRO CELLS: A549, BEAS-2B, HEPG2, THP-1
-# IN VITRO TIME: 6H, 24H, 72H
+in_vitro_df = pd.read_excel(upstream["preprocessing"]["x"])
+# no explicit drop
+# in_vitro_df = in_vitro_df.iloc[:-7]
+in_vitro_df.columns
 
-# in_vitro_cell = "A549"
-# in_vitro_time = "24H"
-df_filtered_cells = pd.DataFrame()
-if in_vitro_time and in_vitro_cell:
-    cols_to_keep = in_vitro_df.columns[1:-20][
-        in_vitro_df.columns[1:-20].str.contains(in_vitro_cell, na=False) &
-        in_vitro_df.columns[1:-20].str.contains(in_vitro_time, na=False)
-        ]
-    df_filtered_cells = in_vitro_df[[in_vitro_df.columns[0]] + cols_to_keep.tolist() + list(in_vitro_df.columns[-20:])]
-else:
-    df_filtered_cells = in_vitro_df
 
-print(df_filtered_cells.columns)
+df_filtered_cells = in_vitro_df
 
 # ///////////////////////////////////////// IN-VIVO /////////////////////////////////////////////////////////////////
 
@@ -51,11 +39,17 @@ filtered_df = in_vivo_df[columns_to_keep]
 filtered_df2 = filtered_df[filtered_df['CellType'] == in_vivo_cell]
 filtered_df3 = filtered_df2[filtered_df['Day'] == in_vivo_time]
 
-print(filtered_df3)
+filtered_df3.head()
 
 # /////////////////////////////////////// combine by matched materials ///////////////////////////////////////////////
-df_filtered_cells['material_lower'] = df_filtered_cells['material'].str.lower()
-filtered_df3['material_lower'] = filtered_df3['ParticleID'].str.lower()
+df_filtered_cells['material_lower'] = df_filtered_cells['material'].astype(str) 
+df_filtered_cells['material_lower'] = df_filtered_cells['material_lower'].str.lower()
+df_filtered_cells.shape
+
+filtered_df3['material_lower'] = filtered_df3['ParticleID'].astype(str) 
+filtered_df3['material_lower'] = filtered_df3['material_lower'].str.lower()
+filtered_df3.shape
+
 
 filtered = filtered_df3[filtered_df3['material_lower'].isin(df_filtered_cells['material_lower'])]
 
@@ -63,12 +57,12 @@ filtered.reset_index(drop=True)
 dfinal = filtered.merge(df_filtered_cells, on="material_lower")
 dfinal = dfinal.drop([
     # 'ParticleID',
-    'Day', 'CellType', 'Doses', 'material_lower', 'material',
-    'Chemical_composition', 'Morphology', 'Crystalline_phase',
-    'Substance_group'], axis=1)
+    'Day', 'CellType', 'Doses'
+    ], axis=1)
 
-print(dfinal)
-print(dfinal.columns)
+dfinal.head()
+
+dfinal.columns
 
 file_name = os.path.join(product["data"], "combined.csv")
 dfinal.to_csv(file_name, index=False)
@@ -84,8 +78,11 @@ def extract_col_info(col_name):
     param = "_".join(parts[2:-1])
     return cell, time, param, assay
 
+dfinal.columns
 
 selected_cols = dfinal.columns[7:-16]
+selected_cols
+
 col_info = [extract_col_info(col) for col in selected_cols]
 columns_df = pd.DataFrame(col_info, columns=["cell", "time", "param", "assay"], index=selected_cols)
 melted_df = dfinal.melt(id_vars=["ParticleID"], value_vars=selected_cols, var_name="original_col", value_name="value")

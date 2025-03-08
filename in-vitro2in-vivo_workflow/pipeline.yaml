@@ -1,26 +1,43 @@
 executor: parallel
 
 tasks:
+  - source: tasks/preprocessing.py 
+    product: 
+      nb: "{{folder_output}}/preprocessing.ipynb"
+      x: "{{folder_output}}/preprocessing/xwide_{{missingvals}}.xlsx"
+      x_long: "{{folder_output}}/preprocessing/xlong_{{missingvals}}.xlsx"
+      y: "{{folder_output}}/preprocessing/y_{{missingvals}}.xlsx"
+      xy: "{{folder_output}}/preprocessing/xy_{{missingvals}}.xlsx"
+    params:
+      in_vitro_folder: "{{in_vitro_folder}}"
+      in_vivo_folder: "{{in_vivo_folder}}"
+      in_vivo_sheet: "BMD_mass_TT"
+      n_neighbors: 5
+      scaler_type_x: "standard"
+      scaler_type_y: "power"
+      threshold: 0.66
+      #missingvals: "impute"
+      missingvals: "{{missingvals}}"
+
   - source: tasks/data_concat.py
     name: "data_concat_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "products/data_concat_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
-      data: "{{folder_output}}/data_concat_[[in_vivo_cell]]_[[in_vivo_time]]"
+      nb: "{{folder_output}}//[[in_vivo_cell]]//data_concat_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}//[[in_vivo_cell]]//data_concat_[[in_vivo_time]]"
     params:
-      in_vitro_folder: "{{in_vitro_folder}}"
       in_vivo_folder: "{{in_vivo_folder}}"
       in_vitro_cell: "{{in_vitro_cell}}"
       in_vitro_time: "{{in_vitro_time}}"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
-      in_vivo_time : [1, 3, 28]
+      in_vivo_time : [1]
 
   - source: tasks/eda_features.py
     name: "eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "products/eda_features_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
-      data: "{{folder_output}}/eda_features_[[in_vivo_cell]]_[[in_vivo_time]]"
+      nb: "{{folder_output}}//[[in_vivo_cell]]//eda_features_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}//[[in_vivo_cell]]//eda_features_[[in_vivo_time]]"
     params:
       nan_treatement: "{{nan_treatement}}"
       power_transform: "{{power_transform}}"
@@ -29,15 +46,15 @@ tasks:
       umap_n_components: "{{umap_n_components}}"
     grid:
 #      in_vivo_cell: [ "Neutrophil" ]
-      in_vivo_time : [1, 3, 28]
+      in_vivo_time : [1]
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
 #      in_vivo_time : [1, 28, 3, 90]
 
   - source: tasks/models.py
     name: "models_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-     nb: "products/models_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
-     data: "{{folder_output}}/models_[[in_vivo_cell]]_[[in_vivo_time]]"
+     nb: "{{folder_output}}//[[in_vivo_cell]]//models_[[in_vivo_time]].ipynb"
+     data: "{{folder_output}}//[[in_vivo_cell]]//models_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
       # in_vivo_time: [ 1]
@@ -46,17 +63,17 @@ tasks:
       #in_vivo_cell : ["Lymphocyte"]
       #in_vivo_cell : [ "Epithelial"]
       #in_vivo_cell: ["Eosinophil"]
-      in_vivo_time : [1, 3, 28]
+      in_vivo_time : [1]
 
 
   - source: tasks/models_intervals.py
     name: "intervalmodels_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "products/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]].ipynb"
-      data: "{{folder_output}}/models_intervals_[[in_vivo_cell]]_[[in_vivo_time]]"
+      nb: "{{folder_output}}//[[in_vivo_cell]]//models_intervals_[[in_vivo_time]].ipynb"
+      data: "{{folder_output}}//[[in_vivo_cell]]//models_intervals_[[in_vivo_time]]"
     grid:
 #      in_vivo_cell : ["Neutrophil"]
-      in_vivo_time : [1, 3, 28]
+      in_vivo_time : [1]
       in_vivo_cell: [ "Epithelial", "Neutrophil","Macrophage", "Lymphocyte", "Eosinophil" ]
       #in_vivo_cell : ["Macrophage"]
       #in_vivo_cell : ["Lymphocyte"]
