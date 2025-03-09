@@ -43,12 +43,14 @@ tasks:
       nb: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/notebook.ipynb"
       data: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/data.xlsx"
       metrics: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/metrics.xlsx"
+#      model: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/model.pkl"
     grid:
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
-      in_vivo_time : [1]
+      in_vivo_time : [1, 3, 28, 90]
       #model: ["GPR"]
-      model: ["XGB","GPR"]
-      cv_LOGO: 4
+      model: ["XGB","RF"]
+      cv_LOGO: 0
+      cv_KFOLD: 3
 
 
   - source: tasks/metrics_compare.py

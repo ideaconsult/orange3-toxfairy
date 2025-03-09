@@ -3,6 +3,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler, PowerTransforme
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.compose import TransformedTargetRegressor
+from sklearn.ensemble import RandomForestRegressor 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
@@ -14,8 +15,7 @@ from pathlib import Path
 import os.path 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold
-from sklearn.model_selection import LeaveOneGroupOut
+from sklearn.model_selection import StratifiedKFold, LeaveOneGroupOut
 
 
 # + tags=["parameters"]
@@ -25,6 +25,7 @@ in_vivo_cell = None
 in_vivo_time = None
 model = None
 cv_LOGO = None
+cv_KFOLD = None
 # -
 
 
@@ -48,7 +49,7 @@ def quantile_loss(y_true, y_pred, quantile):
     return np.mean(np.maximum(quantile * errors, (quantile - 1) * errors))
 
 
-def evaluate_model(y_true, y_pred, y_std = None):
+def evaluate_model(y_true, y_pred, y_std=None):
     Z_low, Z_high = -1.645, 1.645
 
     metrics = {
@@ -74,6 +75,10 @@ def gpr_model(y_vars_train=None, n_restarts_optimizer=3):
 def xgb_model():
     return XGBRegressor(objective='reg:squarederror', n_estimators=100, seed=42)
 
+def rf_model():
+    return RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
+
+
 
 def create_pipeline(X, y_vars_train=None, model="XGB"):
     categorical_cols = ['cell', 'assay']
@@ -85,7 +90,8 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
 
     _models = {
         "GPR": gpr_model(y_vars_train.values),
-        "XGB": xgb_model()
+        "XGB": xgb_model(),
+        "RF": rf_model()
     }
 
     regressor = _models[model]
@@ -125,13 +131,14 @@ X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', '
 y = df['BMD_SD1']
 y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
 groups = df['cluster_label']
+materials = df['material']
 
 X.columns
 
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test = train_test_split(
-                X, y, y_vars, groups, test_size=0.3, random_state=42)
+    X, y, y_vars, materials, test_size=0.3, random_state=42, stratify=groups)
 
 pipeline = create_pipeline(X, y_vars_train, model)
 
@@ -170,12 +177,22 @@ metrics
 method = "Test"
 plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
 
+split_tag = None
 if cv_LOGO > 0:
     logo = LeaveOneGroupOut()
-    logo.split(X, y, groups=groups)
+    split = logo.split(X, y, groups=groups)
+    split_tag = "LOGO"
+elif cv_KFOLD > 0:
+    skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
+    split = skf.split(X, y=groups)
+    split_tag = "KFOLD"
+else:
+    split = None
 
-    for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
-        if i > cv_LOGO:
+print(split_tag)
+if split is not None:
+    for i, (train_idx, test_idx) in enumerate(split):
+        if (cv_LOGO > 0) & (i > cv_LOGO):
             break        
         X_train = X.iloc[train_idx]
         y_train = y.iloc[train_idx]
@@ -187,7 +204,8 @@ if cv_LOGO > 0:
         X_test = X.iloc[test_idx]
         y_test = y.iloc[test_idx]
         y_vars_test = y_vars.iloc[test_idx]
-        materials = groups.iloc[test_idx].unique()
+        clusters = groups.iloc[test_idx].unique()
+        _materials = materials.iloc[test_idx].unique()
 
         X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
         if model == "GPR":
@@ -198,11 +216,12 @@ if cv_LOGO > 0:
 
         results = evaluate_model(y_test, y_pred, y_pred_std)
         _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-        _metrics["cv_method"] = f"LOGO {i}"
+        _metrics["cv_method"] = f"{split_tag} {i}"
         _metrics["method"] = model
         _metrics["cell"] = in_vivo_cell
         _metrics["time"] = in_vivo_time
-        _metrics["materials"] = "Cluster " + ", ".join(map(str, materials))
+        _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
+        _metrics["materials"] = len(_materials)
         metrics = pd.concat([metrics, _metrics], ignore_index=True)
 
 
@@ -216,26 +235,3 @@ with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
                 {'columns': column_settings, 'style': 'Table Style Light 1'})    
 
 
-def cv(pipeline, model, X, Y_means, Y_vars, groups):
-    # Define cross-validation strategy (e.g., 5-Fold)
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-    # Custom cross-validation loop to pass Y_vars (noise levels) to the regressor
-    scores = []
-    for train_idx, val_idx in kf.split(X):
-        # Split data
-        X_train, X_val = X[train_idx], X[val_idx]
-        Y_train, Y_val = Y_means[train_idx], Y_means[val_idx]
-        Y_train_vars, Y_val_vars = Y_vars[train_idx], Y_vars[val_idx]
-        
-        # Assign the training noise (alpha) to the GP model
-        if model == "GPR":
-            pipeline.named_steps['model'].alpha = Y_train_vars  # Set noise level for GP model
-        
-        # Fit the pipeline on the training data
-        pipeline.fit(X_train, Y_train)
-        
-        # Evaluate the model on the validation set
-        val_score = pipeline.score(X_val, Y_val)
-        scores.append(val_score)
-    return scores
