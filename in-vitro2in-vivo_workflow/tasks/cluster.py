@@ -40,7 +40,7 @@ def cluster_kmeans(tag, df, columns_weights=None, alg="lloyd", clusters=[  3, 4]
             unique_labels, label_counts = np.unique(
                 clustering.labels_, return_counts=True)            
             if any(count == 1 for count in label_counts):  # penalize if any cluster has only one point
-                score = silhouette_score(X, clustering.labels_)   
+                score = -1
             else:                   
                 score = silhouette_score(X, clustering.labels_)
             nclusters = len(set(clustering.labels_)) - (1 if -1 in clustering.labels_ else 0)
@@ -107,7 +107,7 @@ def cluster_spectral(tag, df, columns_weights=None, affinity="nearest_neighbors"
             unique_labels, label_counts = np.unique(clustering.labels_, 
                                                     return_counts=True)
             if any(count == 1 for count in label_counts):  # Skip if any cluster has only one point
-                score = silhouette_score(X, clustering.labels_)   
+                score = -1
             else:                    
                 score = silhouette_score(X, clustering.labels_)
             nclusters = len(set(clustering.labels_)) - (1 if -1 in clustering.labels_ else 0)
@@ -169,7 +169,7 @@ def cluster_agglomerative(tag, df, columns_weights, _linkage="ward", clusters = 
         unique_labels, label_counts = np.unique(clustering.labels_,
                                             return_counts=True)
         if any(count == 1 for count in label_counts):  # Skip if any cluster has only one point
-            score = silhouette_score(X, clustering.labels_)   
+            score = -1
         else: 
             score = silhouette_score(X, clustering.labels_)   
         silhouette_scores.append(score)
