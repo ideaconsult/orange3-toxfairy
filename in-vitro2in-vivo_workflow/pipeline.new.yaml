@@ -23,13 +23,14 @@ tasks:
   - source: tasks/scikit_pipe.py
     name: "scikit_[[model]]_[[in_vivo_cell]]_[[in_vivo_time]]"
     product:
-      nb: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]].ipynb"
-      data: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]"
+      nb: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/notebook.ipynb"
+      data: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/data.xlsx"
+      metrics: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/metrics.xlsx"
     grid:
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
       in_vivo_time : [1]
       #model: ["GPR"]
-      model: ["XGB"]
+      model: ["XGB","GPR"]
 
 
   - source: tasks/metrics_compare.py

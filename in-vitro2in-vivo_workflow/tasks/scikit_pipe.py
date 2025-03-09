@@ -74,7 +74,34 @@ def xgb_model():
     return XGBRegressor(objective='reg:squarederror', n_estimators=100, seed=42)
 
 
-Path(product["data"]).mkdir(parents=True, exist_ok=True)
+def create_pipeline(X, y_vars_train=None, model="XGB"):
+    categorical_cols = ['cell', 'assay']
+    numerical_cols = X.columns.difference(categorical_cols)  # Other numeric features
+    preprocessor = ColumnTransformer([
+        ('cat', OneHotEncoder(sparse_output=False), categorical_cols),
+        ('num', PowerTransformer(), numerical_cols)  # Standardize numeric features
+    ])
+
+    _models = {
+        "GPR": gpr_model(y_vars_train.values),
+        "XGB": xgb_model()
+    }
+
+    regressor = _models[model]
+
+    # Use TransformedTargetRegressor to apply log transformation to y
+    #regressor = TransformedTargetRegressor(regressor=gpr, 
+    #                                       func=np.log1p,  # Log-transform y
+    #                                       inverse_func=np.expm1)  # Reverse log transform
+
+    # Define the full pipeline
+    return Pipeline([
+        ('preprocessor', preprocessor),
+        ('model', regressor)  # Use transformed target regressor
+    ])
+
+
+Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_excel(upstream["preprocessing"]["xy"])
 df.head()
@@ -87,7 +114,7 @@ df = df.loc[(df["CellType"] == in_vivo_cell) & (df["Day"] == in_vivo_time)]
 df.head()
 
 df = df.dropna(how="any")
-df.to_excel(os.path.join(product["data"], "data.xlsx"), index=False)
+df.to_excel(product["data"], index=False)
 
 X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day'])
 y = df['BMD_SD1']
@@ -98,46 +125,12 @@ logo.split(X, y, groups=groups)
 
 X.columns
 
-# Define categorical columns to apply OneHotEncoder
-categorical_cols = ['cell', 'assay']
-numerical_cols = X.columns.difference(categorical_cols)  # Other numeric features
-
-numerical_cols
-
-# Define preprocessing pipeline
-preprocessor = ColumnTransformer([
-    ('cat', OneHotEncoder(sparse_output=False), categorical_cols),
-    ('num', PowerTransformer(), numerical_cols)  # Standardize numeric features
-])
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test, y_vars_train, y_vars_test = train_test_split(
-            X, y, y_vars, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test = train_test_split(
+                X, y, y_vars, groups, test_size=0.3, random_state=42)
 
-for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
-    print(f"Fold {i+1}:")
-    #print(f"Train indices: {train_idx}")
-    print(f"Test indices: {test_idx}")
-    print("-" * 30)
-
-_models = {
-    "GPR": gpr_model(y_vars_train.values),
-    "XGB": xgb_model()
-}
-
-regressor = _models[model]
-
-# Use TransformedTargetRegressor to apply log transformation to y
-#regressor = TransformedTargetRegressor(regressor=gpr, 
-#                                       func=np.log1p,  # Log-transform y
-#                                       inverse_func=np.expm1)  # Reverse log transform
-
-# Define the full pipeline
-pipeline = Pipeline([
-    ('preprocessor', preprocessor),
-    ('model', regressor)  # Use transformed target regressor
-])
-
+pipeline = create_pipeline(X, y_vars_train, model)
 
 # Fit the pipeline on the training data
 pipeline.fit(X_train, y_train)
@@ -156,10 +149,11 @@ _metrics["cv_method"] = "Test"
 _metrics["method"] = model
 _metrics["cell"] = in_vivo_cell
 _metrics["time"] = in_vivo_time
+_metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
 
 #metrics = pd.concat([metrics, _metrics], ignore_index=True)
 metrics = _metrics
-metrics.to_excel(os.path.join(product["data"], "metrics.xlsx"), index=False)
+metrics.to_excel(product["metrics"], index=False)
 
 # Set up k-fold cross-validation
 #kf = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -173,8 +167,47 @@ metrics
 method = "Test"
 plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
 
+for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
+    X_train = X.iloc[train_idx]
+    y_train = y.iloc[train_idx]
+    y_vars_train = y_vars.iloc[train_idx]
+    
+    pipeline = create_pipeline(X, y_vars_train, model)
+    pipeline.fit(X_train, y_train)
+    
+    X_test = X.iloc[test_idx]
+    y_test = y.iloc[test_idx]
+    y_vars_test = y_vars.iloc[test_idx]
+    materials = groups.iloc[test_idx].unique()
 
-def cv(pipeline, X, Y_means, Y_vars):
+
+    X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
+    if model == "GPR":
+        y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+    else:
+        y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+        y_pred_std = None    
+
+    results = evaluate_model(y_test, y_pred, y_pred_std)
+    _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+    _metrics["cv_method"] = f"LOGO {i}"
+    _metrics["method"] = model
+    _metrics["cell"] = in_vivo_cell
+    _metrics["time"] = in_vivo_time
+    _metrics["materials"] = ", ".join(map(str, materials))
+    metrics = pd.concat([metrics, _metrics], ignore_index=True)
+
+with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
+    sheet = "metrics"
+    metrics.to_excel(writer, sheet_name=sheet, index=False)
+    worksheet = writer.sheets[sheet]    
+    (max_row, max_col) = metrics.shape
+    column_settings = [{'header': column} for column in metrics.columns]
+    worksheet.add_table(0, 0, max_row, max_col - 1,
+                {'columns': column_settings, 'style': 'Table Style Light 1'})    
+
+
+def cv(pipeline, model, X, Y_means, Y_vars, groups):
     # Define cross-validation strategy (e.g., 5-Fold)
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -187,7 +220,8 @@ def cv(pipeline, X, Y_means, Y_vars):
         Y_train_vars, Y_val_vars = Y_vars[train_idx], Y_vars[val_idx]
         
         # Assign the training noise (alpha) to the GP model
-        pipeline.named_steps['model'].alpha = Y_train_vars  # Set noise level for GP model
+        if model == "GPR":
+            pipeline.named_steps['model'].alpha = Y_train_vars  # Set noise level for GP model
         
         # Fit the pipeline on the training data
         pipeline.fit(X_train, Y_train)

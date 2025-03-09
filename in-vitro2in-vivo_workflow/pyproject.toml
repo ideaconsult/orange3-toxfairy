@@ -18,6 +18,7 @@ umap-learn = "^0.5.7"
 summarytools = "^0.3.0"
 missingno = "^0.5.2"
 xgboost = "^2.1.4"
+xlsxwriter = "^3.2.2"
 
 
 [build-system]
