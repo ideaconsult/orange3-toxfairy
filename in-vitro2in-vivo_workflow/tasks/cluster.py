@@ -13,6 +13,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 upstream = ["preprocessing"]
 product = None
 cluster_method = None
+dataset = None
 # -
 
 print(cluster_method)
@@ -237,8 +238,8 @@ def apply_cluster(tag, df, cluster_method = "spectral", df_stats = []):
 
 df_stats = []
 
-df = pd.read_excel(upstream["preprocessing"]["x"])
+df = pd.read_excel(upstream["preprocessing"][dataset])
 print(df.columns, df.shape)
-df_stats = apply_cluster("x", df, cluster_method, df_stats)
+df_stats = apply_cluster(dataset, df, cluster_method, df_stats)
 
 pd.DataFrame(df_stats).to_excel(product["stats"], index=False)

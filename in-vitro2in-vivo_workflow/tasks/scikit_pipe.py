@@ -15,7 +15,7 @@ from pathlib import Path
 import os.path 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedKFold, LeaveOneGroupOut, LeavePGroupsOut
+from sklearn.model_selection import StratifiedKFold, KFold, LeaveOneOut, LeaveOneGroupOut, LeavePGroupsOut
 
 
 # + tags=["parameters"]
@@ -24,11 +24,10 @@ product = None
 in_vivo_cell = None
 in_vivo_time = None
 in_vitro_assay = None
+cluster_label = None
 model = None
 cv_LOGO = None
 cv_KFOLD = None
-cv_LOGO_ASSAY = None
-cv_LOGO_CELL = None
 # -
 
 
@@ -123,15 +122,20 @@ clusters.head()
 
 print("Unique CellType values:", df["CellType"].unique())
 print("Unique time values:", df["time"].unique())
-print("Filtering for:", in_vivo_cell, in_vivo_time)
+print("Unique in vitro assay values:", df["assay"].unique())
+print("Unique cluster values:", clusters["cluster_label"].unique())
+print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
 
 df = df.loc[(df["CellType"] == in_vivo_cell) & (df["Day"] == in_vivo_time)]
 if in_vitro_assay != "ALL":
     df = df.loc[df["assay"] == in_vitro_assay]
+
 df.head()
 
 df = df.dropna(how="any")
 df = pd.merge(df, clusters, on="material", how="left")
+if cluster_label != "ALL":
+    df = df.loc[df["cluster_label"] == cluster_label]
 df.to_excel(product["data"], index=False)
 
 X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day','cluster_label'])
@@ -167,15 +171,12 @@ _metrics["method"] = model
 _metrics["cell"] = in_vivo_cell
 _metrics["time"] = in_vivo_time
 _metrics["invitro_assay"] = in_vitro_assay
+_metrics["cluster_label"] = cluster_label
 _metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
 
 #metrics = pd.concat([metrics, _metrics], ignore_index=True)
 metrics = _metrics
 metrics.to_excel(product["metrics"], index=False)
-
-# Set up k-fold cross-validation
-#kf = KFold(n_splits=5, shuffle=True, random_state=42)
-#scores = cross_val_score(pipeline, X, Y_means, cv=kf, scoring="neg_mean_squared_error")
 
 metrics
 
@@ -188,27 +189,29 @@ plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {meth
 split_tag = []
 splits = []
 if cv_LOGO > 0:
-    logo = LeaveOneGroupOut()
-    splits.append(logo.split(X, y, groups=groups))
-    split_tag.append("LOGO")
-if cv_LOGO_ASSAY > 0:
-    logo = LeavePGroupsOut(n_groups=df["assay"].nunique()-1)
-    print(df["assay"].unique())
-    splits.append(logo.split(X, y, groups=df["assay"]))
-    split_tag.append("LPGO_ASSAY")
-if cv_LOGO_CELL > 0:
-    logo = LeavePGroupsOut(n_groups=df["cell"].nunique()-1)
-    print(df["cell"].unique())
-    splits.append(logo.split(X, y, groups=df["cell"]))
-    split_tag.append("LPGO_CELL")         
+    if cluster_label == "ALL":
+        logo = LeaveOneGroupOut()
+        splits.append(logo.split(X, y, groups=groups))
+        split_tag.append("LOGO")
+    else:
+        #logo = LeaveOneOut()
+        logo = LeaveOneGroupOut()
+        splits.append(logo.split(X, y, groups=materials))
+        split_tag.append("LOGO")
 if cv_KFOLD > 0:
-    skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
-    splits.append(skf.split(X, y=groups))
-    split_tag.append("KFOLD")
+    if cluster_label == "ALL":
+        skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
+        splits.append(skf.split(X, y=groups if cluster_label == "ALL" else y))
+        split_tag.append("SKFOLD")
+    else:
+        skf = KFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
+        splits.append(skf.split(X, y))
+        split_tag.append("KFOLD")    
 
 print(split_tag)
 for tag, split in zip(split_tag, splits):
     print(tag)
+    y_test_loo, y_pred_loo, y_std_loo = [], [], []
     for i, (train_idx, test_idx) in enumerate(split):
         print(i)
         X_train = X.iloc[train_idx]
@@ -231,17 +234,35 @@ for tag, split in zip(split_tag, splits):
             y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
             y_pred_std = None    
 
-        results = evaluate_model(y_test, y_pred, y_pred_std)
+        if tag != "LOO":
+            results = evaluate_model(y_test, y_pred, y_pred_std)
+            _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+            _metrics["cv_method"] = f"{tag} {i}"
+            _metrics["method"] = model
+            _metrics["cell"] = in_vivo_cell
+            _metrics["time"] = in_vivo_time
+            _metrics["cluster_label"] = cluster_label
+            _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
+            _metrics["materials"] = len(_materials)
+            _metrics["invitro_assay"] = in_vitro_assay
+            metrics = pd.concat([metrics, _metrics], ignore_index=True)
+        else:
+            y_test_loo.append(y_test.values[0])
+            y_pred_loo.append(y_pred[0])
+            if y_pred_std is not None:
+                y_std_loo.append(y_pred_std[0])
+
+    if tag == "LOO":
+        results = evaluate_model(y_test_loo, y_pred_loo)
         _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-        _metrics["cv_method"] = f"{tag} {i}"
+        _metrics["cv_method"] = f"{tag}"
         _metrics["method"] = model
         _metrics["cell"] = in_vivo_cell
         _metrics["time"] = in_vivo_time
+        _metrics["cluster_label"] = cluster_label
         _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
-        _metrics["materials"] = len(_materials)
         _metrics["invitro_assay"] = in_vitro_assay
-        metrics = pd.concat([metrics, _metrics], ignore_index=True)
-
+        metrics = pd.concat([metrics, _metrics], ignore_index=True)        
 
 with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
     sheet = "metrics"
