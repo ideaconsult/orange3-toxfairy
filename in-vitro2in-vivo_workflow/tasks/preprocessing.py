@@ -109,7 +109,7 @@ final_df.head()
 non_transformed_cols = [col for col in dfx.columns if col not in selected_cols]
 non_transformed_cols
 
-final_df = dfx[non_transformed_cols].merge(final_df[['material','cell', 'assay','time']], on="material", how="left")
+final_df = dfx[non_transformed_cols].merge(final_df[['material','cell', 'assay','time','1st_2SD','1st_3SD','AUC','MAX']], on="material", how="left")
 final_df["time"] = final_df["time"].astype(str).str.replace("H", "", regex=False).astype(float)  # or .astype(int)
 
 final_df.to_excel(product["x_long"], index=False)
