@@ -197,7 +197,7 @@ if cv_LOGO > 0:
         #logo = LeaveOneOut()
         logo = LeaveOneGroupOut()
         splits.append(logo.split(X, y, groups=materials))
-        split_tag.append("LOGO")
+        split_tag.append("LOO")
 if cv_KFOLD > 0:
     if cluster_label == "ALL":
         skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
@@ -247,10 +247,10 @@ for tag, split in zip(split_tag, splits):
             _metrics["invitro_assay"] = in_vitro_assay
             metrics = pd.concat([metrics, _metrics], ignore_index=True)
         else:
-            y_test_loo.append(y_test.values[0])
-            y_pred_loo.append(y_pred[0])
+            y_test_loo.extend(y_test.values)
+            y_pred_loo.extend(y_pred)
             if y_pred_std is not None:
-                y_std_loo.append(y_pred_std[0])
+                y_std_loo.extend(y_pred_std)
 
     if tag == "LOO":
         results = evaluate_model(y_test_loo, y_pred_loo)
