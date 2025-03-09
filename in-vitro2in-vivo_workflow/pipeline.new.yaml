@@ -19,6 +19,23 @@ tasks:
       #missingvals: "impute"
       missingvals: "{{missingvals}}"
 
+  - source: tasks/cluster.py
+    name : "cluster-[[cluster_method]]"
+    product: 
+      nb: "{{folder_output}}/cluster/notebook_[[cluster_method]].ipynb"
+      data: "{{folder_output}}/cluster/cluster-[[cluster_method]]"
+      stats: "{{folder_output}}/cluster/stats_[[cluster_method]].xlsx"
+    grid:
+      cluster_method: ["spectral","kmeans","agglomerative"]
+
+
+  - source: tasks/cluster_compare.py
+    name : "compare_clusters"
+    product: 
+      nb: "{{folder_output}}/cluster/notebook.ipynb"
+      data: "{{folder_output}}/cluster/labels.xlsx"
+      stats: "{{folder_output}}/cluster/stats.xlsx"
+
 
   - source: tasks/scikit_pipe.py
     name: "scikit_[[model]]_[[in_vivo_cell]]_[[in_vivo_time]]"
@@ -31,6 +48,7 @@ tasks:
       in_vivo_time : [1]
       #model: ["GPR"]
       model: ["XGB","GPR"]
+      cv_LOGO: 4
 
 
   - source: tasks/metrics_compare.py

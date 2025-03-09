@@ -19,11 +19,12 @@ from sklearn.model_selection import LeaveOneGroupOut
 
 
 # + tags=["parameters"]
-upstream = ["preprocessing"]
+upstream = ["preprocessing", "compare_clusters"]
 product = None
 in_vivo_cell = None
 in_vivo_time = None
 model = None
+cv_LOGO = None
 # -
 
 
@@ -65,9 +66,9 @@ def evaluate_model(y_true, y_pred, y_std = None):
     return metrics
 
 
-def gpr_model(y_vars_train=None):
+def gpr_model(y_vars_train=None, n_restarts_optimizer=3):
     kernel = ConstantKernel(1.0) * RBF(length_scale=1.0) + WhiteKernel(noise_level=0.1)
-    return GaussianProcessRegressor(kernel=kernel, alpha=y_vars_train, n_restarts_optimizer=10)    
+    return GaussianProcessRegressor(kernel=kernel, alpha=y_vars_train, n_restarts_optimizer=n_restarts_optimizer)    
 
 
 def xgb_model():
@@ -106,6 +107,9 @@ Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 df = pd.read_excel(upstream["preprocessing"]["xy"])
 df.head()
 
+clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
+clusters.head()
+
 print("Unique CellType values:", df["CellType"].unique())
 print("Unique time values:", df["time"].unique())
 print("Filtering for:", in_vivo_cell, in_vivo_time)
@@ -114,14 +118,13 @@ df = df.loc[(df["CellType"] == in_vivo_cell) & (df["Day"] == in_vivo_time)]
 df.head()
 
 df = df.dropna(how="any")
+df = pd.merge(df, clusters, on="material", how="left")
 df.to_excel(product["data"], index=False)
 
-X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day'])
+X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day','cluster_label'])
 y = df['BMD_SD1']
 y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
-groups = df['material']
-logo = LeaveOneGroupOut()
-logo.split(X, y, groups=groups)
+groups = df['cluster_label']
 
 X.columns
 
@@ -167,35 +170,41 @@ metrics
 method = "Test"
 plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
 
-for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
-    X_train = X.iloc[train_idx]
-    y_train = y.iloc[train_idx]
-    y_vars_train = y_vars.iloc[train_idx]
-    
-    pipeline = create_pipeline(X, y_vars_train, model)
-    pipeline.fit(X_train, y_train)
-    
-    X_test = X.iloc[test_idx]
-    y_test = y.iloc[test_idx]
-    y_vars_test = y_vars.iloc[test_idx]
-    materials = groups.iloc[test_idx].unique()
+if cv_LOGO > 0:
+    logo = LeaveOneGroupOut()
+    logo.split(X, y, groups=groups)
 
+    for i, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups)):
+        if i > cv_LOGO:
+            break        
+        X_train = X.iloc[train_idx]
+        y_train = y.iloc[train_idx]
+        y_vars_train = y_vars.iloc[train_idx]
 
-    X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
-    if model == "GPR":
-        y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
-    else:
-        y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
-        y_pred_std = None    
+        pipeline = create_pipeline(X, y_vars_train, model)
+        pipeline.fit(X_train, y_train)
+        
+        X_test = X.iloc[test_idx]
+        y_test = y.iloc[test_idx]
+        y_vars_test = y_vars.iloc[test_idx]
+        materials = groups.iloc[test_idx].unique()
 
-    results = evaluate_model(y_test, y_pred, y_pred_std)
-    _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-    _metrics["cv_method"] = f"LOGO {i}"
-    _metrics["method"] = model
-    _metrics["cell"] = in_vivo_cell
-    _metrics["time"] = in_vivo_time
-    _metrics["materials"] = ", ".join(map(str, materials))
-    metrics = pd.concat([metrics, _metrics], ignore_index=True)
+        X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
+        if model == "GPR":
+            y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+        else:
+            y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+            y_pred_std = None    
+
+        results = evaluate_model(y_test, y_pred, y_pred_std)
+        _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+        _metrics["cv_method"] = f"LOGO {i}"
+        _metrics["method"] = model
+        _metrics["cell"] = in_vivo_cell
+        _metrics["time"] = in_vivo_time
+        _metrics["materials"] = "Cluster " + ", ".join(map(str, materials))
+        metrics = pd.concat([metrics, _metrics], ignore_index=True)
+
 
 with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
     sheet = "metrics"
