@@ -22,12 +22,13 @@ in_vivo_sheet = None
 
 def fix(df, column="material"):
     _fix = {
-        "JRCNM04001a" : "NM401",
-        "JRCNM04003a" : "NM403",
+        "jrcnm04001a" : "nm-401",
+        "jrcnm04003a" : "nm-403",
         "ncrwe-026": "nrcwe-026",
-        "Mitsui-7" : "NRCWE006",
-        "1, NM401" : "NM-401",
-        "10, NRCWE-051" : "NRCWE-051"
+        "mitsui-7" : "nrcwe-006",
+        "1, NM401" : "nm-401",
+        "1, nm401" : "nm-401",
+        "10, nrcwe-051" : "nrcwe-051"
     }
     for f in _fix:
         df.loc[df[column] == f, column] = _fix[f]
