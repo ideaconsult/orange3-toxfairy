@@ -15,7 +15,7 @@ from pathlib import Path
 import os.path 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedKFold, LeaveOneGroupOut
+from sklearn.model_selection import StratifiedKFold, LeaveOneGroupOut, LeavePGroupsOut
 
 
 # + tags=["parameters"]
@@ -23,9 +23,12 @@ upstream = ["preprocessing", "compare_clusters"]
 product = None
 in_vivo_cell = None
 in_vivo_time = None
+in_vitro_assay = None
 model = None
 cv_LOGO = None
 cv_KFOLD = None
+cv_LOGO_ASSAY = None
+cv_LOGO_CELL = None
 # -
 
 
@@ -110,6 +113,8 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
 
 Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 
+in_vitro_assay
+
 df = pd.read_excel(upstream["preprocessing"]["xy"])
 df.head()
 
@@ -121,6 +126,8 @@ print("Unique time values:", df["time"].unique())
 print("Filtering for:", in_vivo_cell, in_vivo_time)
 
 df = df.loc[(df["CellType"] == in_vivo_cell) & (df["Day"] == in_vivo_time)]
+if in_vitro_assay != "ALL":
+    df = df.loc[df["assay"] == in_vitro_assay]
 df.head()
 
 df = df.dropna(how="any")
@@ -159,6 +166,7 @@ _metrics["cv_method"] = "Test"
 _metrics["method"] = model
 _metrics["cell"] = in_vivo_cell
 _metrics["time"] = in_vivo_time
+_metrics["invitro_assay"] = in_vitro_assay
 _metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
 
 #metrics = pd.concat([metrics, _metrics], ignore_index=True)
@@ -183,6 +191,16 @@ if cv_LOGO > 0:
     logo = LeaveOneGroupOut()
     splits.append(logo.split(X, y, groups=groups))
     split_tag.append("LOGO")
+if cv_LOGO_ASSAY > 0:
+    logo = LeavePGroupsOut(n_groups=df["assay"].nunique()-1)
+    print(df["assay"].unique())
+    splits.append(logo.split(X, y, groups=df["assay"]))
+    split_tag.append("LPGO_ASSAY")
+if cv_LOGO_CELL > 0:
+    logo = LeavePGroupsOut(n_groups=df["cell"].nunique()-1)
+    print(df["cell"].unique())
+    splits.append(logo.split(X, y, groups=df["cell"]))
+    split_tag.append("LPGO_CELL")         
 if cv_KFOLD > 0:
     skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
     splits.append(skf.split(X, y=groups))
@@ -221,6 +239,7 @@ for tag, split in zip(split_tag, splits):
         _metrics["time"] = in_vivo_time
         _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
         _metrics["materials"] = len(_materials)
+        _metrics["invitro_assay"] = in_vitro_assay
         metrics = pd.concat([metrics, _metrics], ignore_index=True)
 
 
