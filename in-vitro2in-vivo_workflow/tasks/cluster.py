@@ -28,7 +28,7 @@ def cluster_kmeans(tag, df, columns_weights=None, alg="lloyd", clusters=[  3, 4]
     cluster_size = []
     for _c in clusters:
         PARAM.append({"n_clusters": _c} )
-    X = preprocess(df,columns_weights=columns_weights)
+    X = preprocess(df, columns_weights=columns_weights)
     for param in PARAM:
         try:
             score = -1
@@ -94,12 +94,13 @@ def cluster_spectral(tag, df, columns_weights=None, affinity="nearest_neighbors"
     for _c in clusters:
         PARAM.append({"n_clusters": _c } )
     # they are already preprocessed
-    # X = preprocess(df,columns_weights=columns_weights)
-    X = df.drop(columns=[get_material_id()])
+    X = preprocess(df, columns_weights=columns_weights)
+    #X = df.drop(columns=[get_material_id()])
     for param in PARAM:
         try:
             score = -1
             nclusters = -1
+
             clustering = SpectralClustering(**param, affinity=affinity).fit(X)
             if all(x == clustering.labels_[0] for x in clustering.labels_):
                 continue

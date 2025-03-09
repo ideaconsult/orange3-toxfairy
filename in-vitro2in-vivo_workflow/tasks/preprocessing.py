@@ -1,6 +1,9 @@
 import pandas as pd
 from pathlib import Path
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
+from sklearn.preprocessing import StandardScaler
 from summarytools import dfSummary
 from tasks.utils import (
     get_material_id, get_scaler, drop_columns_by_missing_percentage)
@@ -44,7 +47,19 @@ def extract_col_info(col_name):
     return cell, time, param, assay
 
 
-def preprocess(df, scaler_type="standard"):
+# Custom transformer to inverse the scaling after imputation
+class InverseScaler(BaseEstimator, TransformerMixin):
+    def __init__(self, scaler):
+        self.scaler = scaler
+
+    def fit(self, X, y=None):
+        return self  # No fitting needed for inverse transform
+
+    def transform(self, X):
+        return self.scaler.inverse_transform(X)
+
+
+def preprocess_old(df, scaler_type="standard", missingvals = None):
 
     # Calculate the percentage of missing values per column
     missing_percentage = df.isnull().mean()
@@ -73,6 +88,40 @@ def preprocess(df, scaler_type="standard"):
     return df_processed
 
 
+def preprocess(df, scaler_type="standard", missingvals = None):
+
+    # Calculate the percentage of missing values per column
+    missing_percentage = df.isnull().mean()
+    cols_to_drop = missing_percentage[missing_percentage > threshold].index
+    df = drop_columns_by_missing_percentage(df, threshold)
+
+    ids = df[get_material_id()]
+    scaler = get_scaler(scaler_type)
+    if missingvals == "impute":
+        # Define the pipeline with scaling first, then imputation
+        #scaler = StandardScaler()
+        preprocessor = Pipeline([
+            ("scaler", scaler),  # First scale the data
+            ("imputer", KNNImputer(n_neighbors=5)),  # Then impute missing values
+            ("inverse_scaler", InverseScaler(scaler))  # Apply inverse scaling to the imputed data
+        ])
+              
+        # Step 2: Apply KNN Imputer
+        df_no_id = df.drop(columns=[get_material_id()])
+        df_processed = pd.DataFrame(
+            preprocessor.fit_transform(df_no_id.values),
+            columns=df_no_id.columns
+        )
+        df_processed.insert(0, get_material_id(), ids)
+    else:
+        df = df.dropna(how='all')
+        df_no_id = df.drop(columns=[get_material_id()])
+        df_processed = pd.DataFrame(scaler.fit_transform(df_no_id), 
+                                    columns=df_no_id.columns)
+        df_processed.insert(0, get_material_id(), ids)
+    return df_processed
+
+
 Path(product["x"]).parent.mkdir(parents=True, exist_ok=True)
 
 dfx = pd.read_excel(in_vitro_folder, index_col=None)
@@ -80,11 +129,16 @@ dfx = dfx.drop(["Unnamed: 0",'Chemical_composition', 'Morphology',
               'Crystalline_phase','Substance_group'], axis=1)
 dfx.columns
 
-dfx = preprocess(dfx, scaler_type=scaler_type_x)
+dfx.describe()
+
+dfx = preprocess(dfx, scaler_type=scaler_type_x, missingvals=missingvals)
+
+
 dfx['material'] = dfx['material'].astype(str) 
 dfx['material'] = dfx['material'].str.lower()
 
-dfx.columns
+dfx.describe()
+
 
 dfx = fix(dfx)
 dfSummary(dfx, is_collapsible=True)
@@ -109,7 +163,10 @@ final_df.head()
 non_transformed_cols = [col for col in dfx.columns if col not in selected_cols]
 non_transformed_cols
 
-final_df = dfx[non_transformed_cols].merge(final_df[['material','cell', 'assay','time','1st_2SD','1st_3SD','AUC','MAX']], on="material", how="left")
+cols = ['material','cell', 'assay','time','1st_2SD','1st_3SD','AUC','MAX']
+# cols = ['material','cell', 'assay','time','AUC']
+
+final_df = dfx[non_transformed_cols].merge(final_df[cols], on="material", how="left")
 final_df["time"] = final_df["time"].astype(str).str.replace("H", "", regex=False).astype(float)  # or .astype(int)
 
 final_df.to_excel(product["x_long"], index=False)

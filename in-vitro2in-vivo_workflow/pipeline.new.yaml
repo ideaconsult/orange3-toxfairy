@@ -13,7 +13,7 @@ tasks:
       in_vivo_folder: "{{in_vivo_folder}}"
       in_vivo_sheet: "BMD_mass_TT"
       n_neighbors: 5
-      scaler_type_x: "standard"
+      scaler_type_x: "power"
       scaler_type_y: "power"
       threshold: 0.66
       #missingvals: "impute"
@@ -49,11 +49,11 @@ tasks:
       in_vivo_time : [1, 3, 28, 90]
       #model: ["GPR"]
       model: ["XGB","RF"]
-      cv_LOGO: 0
-      cv_KFOLD: 3
+      cv_LOGO: 5
+      cv_KFOLD: 5
 
 
   - source: tasks/metrics_compare.py
     product:
-      nb: "products/metrics_compare.ipynb"
-      data: "products/metrics_compare_{{missingvals}}.xlsx"      
+      nb: "{{folder_output}}/metrics_compare.ipynb"
+      data: "{{folder_output}}/metrics_compare_{{missingvals}}.xlsx"      
