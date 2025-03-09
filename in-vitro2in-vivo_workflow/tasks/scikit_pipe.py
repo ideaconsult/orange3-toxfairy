@@ -177,23 +177,22 @@ metrics
 method = "Test"
 plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
 
-split_tag = None
+split_tag = []
+splits = []
 if cv_LOGO > 0:
     logo = LeaveOneGroupOut()
-    split = logo.split(X, y, groups=groups)
-    split_tag = "LOGO"
-elif cv_KFOLD > 0:
+    splits.append(logo.split(X, y, groups=groups))
+    split_tag.append("LOGO")
+if cv_KFOLD > 0:
     skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
-    split = skf.split(X, y=groups)
-    split_tag = "KFOLD"
-else:
-    split = None
+    splits.append(skf.split(X, y=groups))
+    split_tag.append("KFOLD")
 
 print(split_tag)
-if split is not None:
+for tag, split in zip(split_tag, splits):
+    print(tag)
     for i, (train_idx, test_idx) in enumerate(split):
-        if (cv_LOGO > 0) & (i > cv_LOGO):
-            break        
+        print(i)
         X_train = X.iloc[train_idx]
         y_train = y.iloc[train_idx]
         y_vars_train = y_vars.iloc[train_idx]
@@ -216,7 +215,7 @@ if split is not None:
 
         results = evaluate_model(y_test, y_pred, y_pred_std)
         _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-        _metrics["cv_method"] = f"{split_tag} {i}"
+        _metrics["cv_method"] = f"{tag} {i}"
         _metrics["method"] = model
         _metrics["cell"] = in_vivo_cell
         _metrics["time"] = in_vivo_time
