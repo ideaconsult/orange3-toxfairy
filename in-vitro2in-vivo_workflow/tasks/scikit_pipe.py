@@ -1,3 +1,4 @@
+from IPython.display import display, HTML
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, PowerTransformer
 from sklearn.compose import ColumnTransformer
@@ -112,7 +113,8 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
 
 
 Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
-
+if dataset is None:
+	dataset = "xy"
 in_vitro_assay
 
 df = pd.read_excel(upstream["preprocessing"][dataset])
@@ -121,22 +123,29 @@ df.head()
 clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
 clusters.head()
 
-print("Unique CellType values:", df["CellType"].unique())
-print("Unique time values:", df["Day"].unique())
-print("Unique in vitro assay values:", df["assay"].unique())
 print("Unique cluster values:", clusters["cluster_label"].unique())
-print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
+
 
 if in_vivo_cell != "ALL":
+    print("Unique CellType values:", df["CellType"].unique())
     df = df.loc[df["CellType"] == in_vivo_cell]
+    display(df.head())
 if in_vivo_time != "ALL":
+    print("Unique time values:", df["Day"].unique())
     df = df.loc[df["Day"] == in_vivo_time]
+    display(df.head())
 if in_vitro_assay != "ALL":
+    print("Unique in vitro assay values:", df["assay"].unique())
     df = df.loc[df["assay"] == in_vitro_assay]
+    display(df.head())
+
+print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
 
 df.head()
 
 df = df.dropna(how="any")
+display(df.head())
+
 df = pd.merge(df, clusters, on="material", how="left")
 if cluster_label != "ALL":
     df = df.loc[df["cluster_label"] == cluster_label]
