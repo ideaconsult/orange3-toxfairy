@@ -6,8 +6,10 @@ tasks:
       nb: "{{folder_output}}/preprocessing.ipynb"
       x: "{{folder_output}}/preprocessing/xwide_{{missingvals}}.xlsx"
       x_long: "{{folder_output}}/preprocessing/xlong_{{missingvals}}.xlsx"
+      x_lag: "{{folder_output}}/preprocessing/xlag_{{missingvals}}.xlsx"
       y: "{{folder_output}}/preprocessing/y_{{missingvals}}.xlsx"
       xy: "{{folder_output}}/preprocessing/xy_{{missingvals}}.xlsx"
+      xlag_y: "{{folder_output}}/preprocessing/xlagy_{{missingvals}}.xlsx"
     params:
       in_vitro_folder: "{{in_vitro_folder}}"
       in_vivo_folder: "{{in_vivo_folder}}"
@@ -31,17 +33,6 @@ tasks:
       dataset: "x"
 
 
-  - source: tasks/cluster.py
-    name : "eda-xy-[[cluster_method]]"
-    product: 
-      nb: "{{folder_output}}/clusterxy/notebook_[[cluster_method]].ipynb"
-      data: "{{folder_output}}/clusterxy/cluster-[[cluster_method]]"
-      stats: "{{folder_output}}/clusterxy/stats_[[cluster_method]].xlsx"
-    grid:
-      cluster_method: ["spectral","kmeans","agglomerative"]
-    params:
-      dataset: "xy"
-
   - source: tasks/cluster_compare.py
     name : "compare_clusters"
     product: 
@@ -57,14 +48,16 @@ tasks:
       data: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/data.xlsx"
       metrics: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/metrics.xlsx"
 #      model: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/model.pkl"
+    params:
+      dataset: "xlag_y"
     grid:
       in_vivo_cell : ["Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
       #in_vivo_time : [1, 3, 28, 90]
-      in_vivo_time : [28, 90]
+      in_vivo_time : [1,3,28, 90]
       in_vitro_assay: ['ALL','DAPI', '8OHG', 'CTG', 'CASP', 'H2AX']
       #in_vitro_assay: ['ALL']
-      model: ["GPR"]
-      #model: ["XGB","RF"]
+      #model: ["GPR"]
+      model: ["XGB","RF"]
       #cluster_label: ["ALL",0,1,2]
       cluster_label: ["ALL"]
       cv_LOGO: 5

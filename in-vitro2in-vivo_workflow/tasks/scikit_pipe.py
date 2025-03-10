@@ -28,6 +28,7 @@ cluster_label = None
 model = None
 cv_LOGO = None
 cv_KFOLD = None
+dataset = None
 # -
 
 
@@ -114,7 +115,7 @@ Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 
 in_vitro_assay
 
-df = pd.read_excel(upstream["preprocessing"]["xy"])
+df = pd.read_excel(upstream["preprocessing"][dataset])
 df.head()
 
 clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]

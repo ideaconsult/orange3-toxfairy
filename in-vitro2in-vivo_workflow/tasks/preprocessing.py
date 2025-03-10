@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from summarytools import dfSummary
 from tasks.utils import (
     get_material_id, get_scaler, drop_columns_by_missing_percentage)
+from IPython.display import display, HTML
 
 
 # + tags=["parameters"]
@@ -59,33 +60,28 @@ class InverseScaler(BaseEstimator, TransformerMixin):
         return self.scaler.inverse_transform(X)
 
 
-def preprocess_old(df, scaler_type="standard", missingvals = None):
+def preprocess_lag(df):
+    # Pivot the data to have time-series format for autoregression
+    df_pivot = df.pivot_table(index=["material", "cell", "assay"], columns="time", values=["1st_2SD", "1st_3SD", "AUC", "MAX"])
 
-    # Calculate the percentage of missing values per column
-    missing_percentage = df.isnull().mean()
-    cols_to_drop = missing_percentage[missing_percentage > threshold].index
-    df = drop_columns_by_missing_percentage(df, threshold)
+    # Flatten MultiIndex column names
+    df_pivot.columns = [f"{col[0]}_t{col[1]}" for col in df_pivot.columns]
 
-    ids = df[get_material_id()]
-    scaler = get_scaler(scaler_type)
-    if missingvals == "impute":
-        # Step 2: Apply KNN Imputer
-        df_no_id = df.drop(columns=[get_material_id()])
-        df_no_id = pd.DataFrame(scaler.fit_transform(df_no_id), 
-                                columns=df_no_id.columns)
-        knn_imputer = KNNImputer(n_neighbors=n_neighbors)
-        df_processed = pd.DataFrame(
-            knn_imputer.fit_transform(df_no_id.values),
-            columns=df_no_id.columns
-        )
-        df_processed.insert(0, get_material_id(), ids)
-    else:
-        df = df.dropna(how='all')
-        df_no_id = df.drop(columns=[get_material_id()])
-        df_processed = pd.DataFrame(scaler.fit_transform(df_no_id), 
-                                    columns=df_no_id.columns)
-        df_processed.insert(0, get_material_id(), ids)
-    return df_processed
+    # Reset index for better manipulation
+    df_pivot = df_pivot.reset_index()
+
+    # Create lag features for autoregressive modeling
+    timepoints = sorted(df["time"].unique())
+
+    for time in timepoints:
+        for metric in ["1st_2SD", "1st_3SD", "AUC", "MAX"]:
+            col_name = f"{metric}_t{time}"
+            if col_name in df_pivot.columns:
+                df_pivot[f"{metric}_lag_t{time}"] = df_pivot[col_name].shift(1)  # 1-step lag
+
+    # Fill missing values (can be forward fill, mean, or zero-fill)
+    df_pivot.fillna(0, inplace=True)  # Modify based on need
+    return df_pivot
 
 
 def preprocess(df, scaler_type="standard", missingvals = None):
@@ -144,11 +140,12 @@ dfx = fix(dfx)
 dfSummary(dfx, is_collapsible=True)
 
 dfx.to_excel(product["x"], index=False)
-# onehot
 
 # 4 dashes
 selected_cols = [col for col in dfx.columns if col.count('_') >= 3]
 selected_cols
+
+
 
 col_info = [extract_col_info(col) for col in selected_cols]
 columns_df = pd.DataFrame(col_info, columns=["cell", "time", "param", "assay"], index=selected_cols)
@@ -170,18 +167,10 @@ final_df = dfx[non_transformed_cols].merge(final_df[cols], on="material", how="l
 final_df["time"] = final_df["time"].astype(str).str.replace("H", "", regex=False).astype(float)  # or .astype(int)
 
 final_df.to_excel(product["x_long"], index=False)
-# x features encoding
-columns_to_encode = ['cell', 'assay']
-
-# encoder = OneHotEncoder(sparse_output=False, drop='first')  # remove first from each category to prevent multicollinearity
-#encoder = OneHotEncoder(sparse_output=False)
-
-#encoded_array = encoder.fit_transform(final_df[columns_to_encode])
-#encoded_df = pd.DataFrame(encoded_array, columns=encoder.get_feature_names_out(columns_to_encode))
-#final_df = pd.concat([final_df.drop(columns=columns_to_encode), encoded_df], axis=1)
 
 
-
+df_lag = preprocess_lag(final_df)
+df_lag.to_excel(product["x_lag"], index=False)
 
 # in-vivo
 dfy = pd.read_excel(in_vivo_folder, sheet_name=in_vivo_sheet, index_col=None)
@@ -203,4 +192,8 @@ df_merged = pd.merge(final_df, dfy, on="material", how="outer")
 df_merged = df_merged.dropna(subset=['BMD_SD1'])
 df_merged.to_excel(product["xy"], index=False)
 
+
+df_merged = pd.merge(df_lag, dfy, on="material", how="outer")
+df_merged = df_merged.dropna(subset=['BMD_SD1'])
+df_merged.to_excel(product["xlag_y"], index=False)
 
