@@ -84,7 +84,7 @@ def rf_model():
 
 
 def create_pipeline(X, y_vars_train=None, model="XGB"):
-    categorical_cols = ['cell', 'assay']
+    categorical_cols = ['cell', 'assay', 'CellType']
     numerical_cols = X.columns.difference(categorical_cols)  # Other numeric features
     preprocessor = ColumnTransformer([
         ('cat', OneHotEncoder(sparse_output=False), categorical_cols),
@@ -122,12 +122,15 @@ clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "clu
 clusters.head()
 
 print("Unique CellType values:", df["CellType"].unique())
-print("Unique time values:", df["time"].unique())
+print("Unique time values:", df["Day"].unique())
 print("Unique in vitro assay values:", df["assay"].unique())
 print("Unique cluster values:", clusters["cluster_label"].unique())
 print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
 
-df = df.loc[(df["CellType"] == in_vivo_cell) & (df["Day"] == in_vivo_time)]
+if in_vivo_cell != "ALL":
+    df = df.loc[df["CellType"] == in_vivo_cell]
+if in_vivo_time != "ALL":
+    df = df.loc[df["Day"] == in_vivo_time]
 if in_vitro_assay != "ALL":
     df = df.loc[df["assay"] == in_vitro_assay]
 
@@ -139,7 +142,7 @@ if cluster_label != "ALL":
     df = df.loc[df["cluster_label"] == cluster_label]
 df.to_excel(product["data"], index=False)
 
-X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'CellType', 'Day','cluster_label'])
+X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
 y = df['BMD_SD1']
 y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
 groups = df['cluster_label']
