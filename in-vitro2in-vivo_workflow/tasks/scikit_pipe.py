@@ -25,6 +25,7 @@ product = None
 in_vivo_cell = None
 in_vivo_time = None
 in_vitro_assay = None
+in_vitro_cell = None
 cluster_label = None
 model = None
 cv_LOGO = None
@@ -138,6 +139,11 @@ if in_vitro_assay != "ALL":
     print("Unique in vitro assay values:", df["assay"].unique())
     df = df.loc[df["assay"] == in_vitro_assay]
     display(df.head())
+if in_vitro_cell != "ALL":
+    print("Unique in vitro cell values:", df["cell"].unique())
+    df = df.loc[df["cell"] == in_vitro_cell]
+    display(df.head())    
+    
 
 print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
 
