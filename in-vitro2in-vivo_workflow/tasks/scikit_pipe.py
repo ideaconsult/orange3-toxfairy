@@ -190,6 +190,7 @@ _metrics["method"] = model
 _metrics["cell"] = in_vivo_cell
 _metrics["time"] = in_vivo_time
 _metrics["invitro_assay"] = in_vitro_assay
+_metrics["invitro_cell"] = in_vitro_cell
 _metrics["cluster_label"] = cluster_label
 _metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
 
@@ -264,6 +265,7 @@ for tag, split in zip(split_tag, splits):
             _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
             _metrics["materials"] = len(_materials)
             _metrics["invitro_assay"] = in_vitro_assay
+            _metrics["invitro_cell"] = in_vitro_cell
             metrics = pd.concat([metrics, _metrics], ignore_index=True)
         else:
             y_test_loo.extend(y_test.values)
@@ -281,6 +283,7 @@ for tag, split in zip(split_tag, splits):
         _metrics["cluster_label"] = cluster_label
         _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
         _metrics["invitro_assay"] = in_vitro_assay
+        _metrics["invitro_cell"] = in_vitro_cell        
         metrics = pd.concat([metrics, _metrics], ignore_index=True)        
 
 with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
