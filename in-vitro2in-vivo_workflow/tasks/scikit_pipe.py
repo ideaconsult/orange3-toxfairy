@@ -114,185 +114,201 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
 
 
 Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
-if dataset is None:
-	dataset = "xy"
-in_vitro_assay
 
-df = pd.read_excel(upstream["preprocessing"][dataset])
-df.head()
+if not Path(product["metrics"]).exists():
 
-clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
-clusters.head()
+    if dataset is None:
+        dataset = "xy"
+    in_vitro_assay
 
-print("Unique cluster values:", clusters["cluster_label"].unique())
+    df = pd.read_excel(upstream["preprocessing"][dataset])
+    df.head()
 
+    clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
+    clusters.head()
 
-if in_vivo_cell != "ALL":
-    print("Unique CellType values:", df["CellType"].unique())
-    df = df.loc[df["CellType"] == in_vivo_cell]
-    display(df.head())
-if in_vivo_time != "ALL":
-    print("Unique time values:", df["Day"].unique())
-    df = df.loc[df["Day"] == in_vivo_time]
-    display(df.head())
-if in_vitro_assay != "ALL":
-    print("Unique in vitro assay values:", df["assay"].unique())
-    df = df.loc[df["assay"] == in_vitro_assay]
-    display(df.head())
-if in_vitro_cell != "ALL":
-    print("Unique in vitro cell values:", df["cell"].unique())
-    df = df.loc[df["cell"] == in_vitro_cell]
-    display(df.head())    
-    
-
-print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
-
-df.head()
-
-df = df.dropna(how="any")
-display(df.head())
-
-df = pd.merge(df, clusters, on="material", how="left")
-if cluster_label != "ALL":
-    df = df.loc[df["cluster_label"] == cluster_label]
-df.to_excel(product["data"], index=False)
-
-X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
-y = df['BMD_SD1']
-y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
-groups = df['cluster_label']
-materials = df['material']
-
-X.columns
+    print("Unique cluster values:", clusters["cluster_label"].unique())
 
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test = train_test_split(
-    X, y, y_vars, materials, test_size=0.3, random_state=42, stratify=groups)
-
-pipeline = create_pipeline(X, y_vars_train, model)
-
-# Fit the pipeline on the training data
-pipeline.fit(X_train, y_train)
-
-
-X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
-if model=="GPR":
-    y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
-else:
-    y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
-    y_pred_std = None
-
-results = evaluate_model(y_test, y_pred, y_pred_std)
-_metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-_metrics["cv_method"] = "Test"
-_metrics["method"] = model
-_metrics["cell"] = in_vivo_cell
-_metrics["time"] = in_vivo_time
-_metrics["invitro_assay"] = in_vitro_assay
-_metrics["invitro_cell"] = in_vitro_cell
-_metrics["cluster_label"] = cluster_label
-_metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
-
-#metrics = pd.concat([metrics, _metrics], ignore_index=True)
-metrics = _metrics
-metrics.to_excel(product["metrics"], index=False)
-
-metrics
-
-#method = "Train"
-#plot_results(y_train, y_pred0, y_pred_std0, y_vars_train, title=f'{model} with {method} Split')
-
-method = "Test"
-plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
-
-split_tag = []
-splits = []
-if cv_LOGO > 0:
-    if cluster_label == "ALL":
-        logo = LeaveOneGroupOut()
-        splits.append(logo.split(X, y, groups=groups))
-        split_tag.append("LOGO")
-    else:
-        #logo = LeaveOneOut()
-        logo = LeaveOneGroupOut()
-        splits.append(logo.split(X, y, groups=materials))
-        split_tag.append("LOO")
-if cv_KFOLD > 0:
-    if cluster_label == "ALL":
-        skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
-        splits.append(skf.split(X, y=groups if cluster_label == "ALL" else y))
-        split_tag.append("SKFOLD")
-    else:
-        skf = KFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
-        splits.append(skf.split(X, y))
-        split_tag.append("KFOLD")    
-
-print(split_tag)
-for tag, split in zip(split_tag, splits):
-    print(tag)
-    y_test_loo, y_pred_loo, y_std_loo = [], [], []
-    for i, (train_idx, test_idx) in enumerate(split):
-        print(i)
-        X_train = X.iloc[train_idx]
-        y_train = y.iloc[train_idx]
-        y_vars_train = y_vars.iloc[train_idx]
-
-        pipeline = create_pipeline(X, y_vars_train, model)
-        pipeline.fit(X_train, y_train)
+    if in_vivo_cell != "ALL":
+        print("Unique CellType values:", df["CellType"].unique())
+        df = df.loc[df["CellType"] == in_vivo_cell]
+        display(df.head())
+    if in_vivo_time != "ALL":
+        print("Unique time values:", df["Day"].unique())
+        df = df.loc[df["Day"] == in_vivo_time]
+        display(df.head())
+    if in_vitro_assay != "ALL":
+        print("Unique in vitro assay values:", df["assay"].unique())
+        df = df.loc[df["assay"] == in_vitro_assay]
+        display(df.head())
+    if in_vitro_cell != "ALL":
+        print("Unique in vitro cell values:", df["cell"].unique())
+        df = df.loc[df["cell"] == in_vitro_cell]
+        display(df.head())    
         
-        X_test = X.iloc[test_idx]
-        y_test = y.iloc[test_idx]
-        y_vars_test = y_vars.iloc[test_idx]
-        clusters = groups.iloc[test_idx].unique()
-        _materials = materials.iloc[test_idx].unique()
 
-        X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
-        if model == "GPR":
-            y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+    print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
+
+    df.head()
+
+    df = df.dropna(how="any")
+    display(df.head())
+
+    df = pd.merge(df, clusters, on="material", how="left")
+    if cluster_label != "ALL":
+        df = df.loc[df["cluster_label"] == cluster_label]
+    df.to_excel(product["data"], index=False)
+
+    X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
+    y = df['BMD_SD1']
+    y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
+    groups = df['cluster_label']
+    materials = df['material']
+
+    X.columns
+
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test = train_test_split(
+        X, y, y_vars, materials, test_size=0.3, random_state=42, stratify=groups)
+
+    pipeline = create_pipeline(X, y_vars_train, model)
+
+    # Fit the pipeline on the training data
+    pipeline.fit(X_train, y_train)
+
+
+    X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
+    if model=="GPR":
+        y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+    else:
+        y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+        y_pred_std = None
+
+    results = evaluate_model(y_test, y_pred, y_pred_std)
+    _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+    _metrics["cv_method"] = "Test"
+    _metrics["method"] = model
+    _metrics["cell"] = in_vivo_cell
+    _metrics["time"] = in_vivo_time
+    _metrics["invitro_assay"] = in_vitro_assay
+    _metrics["invitro_cell"] = in_vitro_cell
+    _metrics["cluster_label"] = cluster_label
+    _metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
+
+    #metrics = pd.concat([metrics, _metrics], ignore_index=True)
+    metrics = _metrics
+    metrics.to_excel(product["metrics"], index=False)
+
+    metrics
+
+    #method = "Train"
+    #plot_results(y_train, y_pred0, y_pred_std0, y_vars_train, title=f'{model} with {method} Split')
+
+    method = "Test"
+    plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
+
+    split_tag = []
+    splits = []
+    if cv_LOGO > 0:
+        try:
+            if cluster_label == "ALL":
+                logo = LeaveOneGroupOut()
+                splits.append(logo.split(X, y, groups=groups))
+                split_tag.append("LOGO")
+            else:
+                #logo = LeaveOneOut()
+                logo = LeaveOneGroupOut()
+                splits.append(logo.split(X, y, groups=materials))
+                split_tag.append("LOO")
+        except Exception as err: 
+            print(err)        
+    if cv_KFOLD > 0:
+        if cluster_label == "ALL":
+            try:
+                skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
+                splits.append(skf.split(X, y=groups if cluster_label == "ALL" else y))
+                split_tag.append("SKFOLD")
+            except Exception as err: 
+                print(err)
         else:
-            y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
-            y_pred_std = None    
+            try:
+                skf = KFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
+                splits.append(skf.split(X, y))
+                split_tag.append("KFOLD")    
+            except Exception as err: 
+                print(err)
 
-        if tag != "LOO":
-            results = evaluate_model(y_test, y_pred, y_pred_std)
-            _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-            _metrics["cv_method"] = f"{tag} {i}"
-            _metrics["method"] = model
-            _metrics["cell"] = in_vivo_cell
-            _metrics["time"] = in_vivo_time
-            _metrics["cluster_label"] = cluster_label
-            _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
-            _metrics["materials"] = len(_materials)
-            _metrics["invitro_assay"] = in_vitro_assay
-            _metrics["invitro_cell"] = in_vitro_cell
-            metrics = pd.concat([metrics, _metrics], ignore_index=True)
-        else:
-            y_test_loo.extend(y_test.values)
-            y_pred_loo.extend(y_pred)
-            if y_pred_std is not None:
-                y_std_loo.extend(y_pred_std)
+    print(split_tag)
+    for tag, split in zip(split_tag, splits):
+        print(tag)
+        y_test_loo, y_pred_loo, y_std_loo = [], [], []
+        try:
+            for i, (train_idx, test_idx) in enumerate(split):
+                print(i)
 
-    if tag == "LOO":
-        results = evaluate_model(y_test_loo, y_pred_loo)
-        _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-        _metrics["cv_method"] = f"{tag}"
-        _metrics["method"] = model
-        _metrics["cell"] = in_vivo_cell
-        _metrics["time"] = in_vivo_time
-        _metrics["cluster_label"] = cluster_label
-        _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
-        _metrics["invitro_assay"] = in_vitro_assay
-        _metrics["invitro_cell"] = in_vitro_cell        
-        metrics = pd.concat([metrics, _metrics], ignore_index=True)        
+                X_train = X.iloc[train_idx]
+                y_train = y.iloc[train_idx]
+                y_vars_train = y_vars.iloc[train_idx]
 
-with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
-    sheet = "metrics"
-    metrics.to_excel(writer, sheet_name=sheet, index=False)
-    worksheet = writer.sheets[sheet]    
-    (max_row, max_col) = metrics.shape
-    column_settings = [{'header': column} for column in metrics.columns]
-    worksheet.add_table(0, 0, max_row, max_col - 1,
-                {'columns': column_settings, 'style': 'Table Style Light 1'})    
+                pipeline = create_pipeline(X, y_vars_train, model)
+                pipeline.fit(X_train, y_train)
+                
+                X_test = X.iloc[test_idx]
+                y_test = y.iloc[test_idx]
+                y_vars_test = y_vars.iloc[test_idx]
+                clusters = groups.iloc[test_idx].unique()
+                _materials = materials.iloc[test_idx].unique()
+
+                X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
+                if model == "GPR":
+                    y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
+                else:
+                    y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+                    y_pred_std = None    
+
+                if tag != "LOO":
+                    results = evaluate_model(y_test, y_pred, y_pred_std)
+                    _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+                    _metrics["cv_method"] = f"{tag} {i}"
+                    _metrics["method"] = model
+                    _metrics["cell"] = in_vivo_cell
+                    _metrics["time"] = in_vivo_time
+                    _metrics["cluster_label"] = cluster_label
+                    _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
+                    _metrics["materials"] = len(_materials)
+                    _metrics["invitro_assay"] = in_vitro_assay
+                    _metrics["invitro_cell"] = in_vitro_cell
+                    metrics = pd.concat([metrics, _metrics], ignore_index=True)
+                else:
+                    y_test_loo.extend(y_test.values)
+                    y_pred_loo.extend(y_pred)
+                    if y_pred_std is not None:
+                        y_std_loo.extend(y_pred_std)
+            if tag == "LOO":
+                results = evaluate_model(y_test_loo, y_pred_loo)
+                _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
+                _metrics["cv_method"] = f"{tag}"
+                _metrics["method"] = model
+                _metrics["cell"] = in_vivo_cell
+                _metrics["time"] = in_vivo_time
+                _metrics["cluster_label"] = cluster_label
+                _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
+                _metrics["invitro_assay"] = in_vitro_assay
+                _metrics["invitro_cell"] = in_vitro_cell        
+                metrics = pd.concat([metrics, _metrics], ignore_index=True)        
+        except Exception as err:
+            print(err)
+
+
+    with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
+        sheet = "metrics"
+        metrics.to_excel(writer, sheet_name=sheet, index=False)
+        worksheet = writer.sheets[sheet]    
+        (max_row, max_col) = metrics.shape
+        column_settings = [{'header': column} for column in metrics.columns]
+        worksheet.add_table(0, 0, max_row, max_col - 1,
+                    {'columns': column_settings, 'style': 'Table Style Light 1'})    
 
 
