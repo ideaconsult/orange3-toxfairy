@@ -154,6 +154,8 @@ if df.empty:
     ])
     _metrics.to_excel(product["metrics"], index=False)
     df.to_excel(product["data"], index=False)
+    plt.figure()
+    plt.savefig(product["plot"])
 elif not Path(product["metrics"]).exists():
 
     df = pd.merge(df, clusters, on="material", how="left")
