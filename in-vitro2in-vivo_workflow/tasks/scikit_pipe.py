@@ -153,6 +153,7 @@ if df.empty:
         "invitro_assay", "invitro_cell", "cluster_label", "materials"
     ])
     _metrics.to_excel(product["metrics"], index=False)
+    df.to_excel(product["data"], index=False)
 elif not Path(product["metrics"]).exists():
 
     df = pd.merge(df, clusters, on="material", how="left")
@@ -167,8 +168,6 @@ elif not Path(product["metrics"]).exists():
     materials = df['material']
     Y_lower = df['BMDL_SD1']
     Y_upper = df['BMDU_SD1']
-    print(f"y lower without log transform")
-    print(Y_lower)
 
     if log_transform:
         Y_lower = np.log1p(df['BMDL_SD1'])
@@ -176,8 +175,6 @@ elif not Path(product["metrics"]).exists():
 
     # y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
     y_vars = (Y_upper - Y_lower) / 3.92
-    print(f"y lower with log transform")
-    print(Y_lower)
 
     # X.columns
 
@@ -190,9 +187,6 @@ elif not Path(product["metrics"]).exists():
 
     if log_transform:
         y_test = np.log1p(y_test)
-
-    print(f"y test with log transform")
-    print(y_test)
 
     pipeline = create_pipeline(X, y_vars_train, model, log_transform)
 
@@ -209,7 +203,6 @@ elif not Path(product["metrics"]).exists():
         print(f"Max y_pred before expm1: {y_pred.max()}")
         print(f"Min y_pred before expm1: {y_pred.min()}")
         y_pred = np.expm1(y_pred)
-        print(y_pred)
 
     results = evaluate_model(y_test, y_pred, y_pred_std)
     _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
