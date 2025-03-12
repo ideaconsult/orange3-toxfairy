@@ -4,7 +4,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler, PowerTransforme
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.compose import TransformedTargetRegressor
-from sklearn.ensemble import RandomForestRegressor 
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
@@ -13,11 +13,11 @@ from sklearn.metrics import (mean_squared_error, root_mean_squared_error,
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
 from xgboost import XGBRegressor
 from pathlib import Path
-import os.path 
+import os.path
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, KFold, LeaveOneOut, LeaveOneGroupOut, LeavePGroupsOut
-
+from tasks.utils import plot_results
 
 # + tags=["parameters"]
 upstream = ["preprocessing", "compare_clusters"]
@@ -33,21 +33,6 @@ cv_KFOLD = None
 dataset = None
 clean_products = None
 # -
-
-
-def plot_results(y_actual, y_pred, y_std, y_vars, title="Gaussian Process Regression"):
-    plt.figure(figsize=(10, 6))
-    plt.scatter(y_actual, y_pred, label='Predicted vs Actual', color='red', edgecolors='black', linewidth=0.5)
-    if y_std is not None:
-        plt.errorbar(y_actual, y_pred, yerr=1.96 * y_std, fmt='o', alpha=0.5, label='95% CI', color='blue', markersize=2)
-    plt.errorbar(y_actual, y_pred, yerr=y_vars, fmt='o', alpha=0.5, label='BMD_U/L Error (95% CI)', color='green',
-                 markersize=0.2)
-    plt.plot([y_actual.min(), y_actual.max()], [y_actual.min(), y_actual.max()], 'r--', label='Prediction')
-    plt.xlabel('Actual BMD')
-    plt.ylabel('Predicted BMD')
-    plt.title(title)
-    plt.legend()
-    plt.show()
 
 
 def quantile_loss(y_true, y_pred, quantile):
@@ -103,7 +88,7 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
     regressor = _models[model]
 
     # Use TransformedTargetRegressor to apply log transformation to y
-    #regressor = TransformedTargetRegressor(regressor=gpr, 
+    # regressor = TransformedTargetRegressor(regressor=gpr,
     #                                       func=np.log1p,  # Log-transform y
     #                                       inverse_func=np.expm1)  # Reverse log transform
 
@@ -142,23 +127,23 @@ if in_vitro_assay != "ALL":
 if in_vitro_cell != "ALL":
     print("Unique in vitro cell values:", df["cell"].unique())
     df = df.loc[df["cell"] == in_vitro_cell]
-    display(df.head())    
+    display(df.head())
 
 print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
 df.head()
 
 df = df.dropna(how="any")
-display(df.head())    
+display(df.head())
 
 if clean_products:
     os.remove(product["data"])
     os.remove(product["metrics"])
-        
+
 if df.empty:
     _metrics = pd.DataFrame(columns=[
-        "Metric", "Value", "cv_method", "method", "cell", "time", 
+        "Metric", "Value", "cv_method", "method", "cell", "time",
         "invitro_assay", "invitro_cell", "cluster_label", "materials"
-    ]) 
+    ])
     _metrics.to_excel(product["metrics"], index=False)
 elif not Path(product["metrics"]).exists():
 
@@ -167,30 +152,30 @@ elif not Path(product["metrics"]).exists():
         df = df.loc[df["cluster_label"] == cluster_label]
     df.to_excel(product["data"], index=False)
 
-    X = df.drop(columns=['material','BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
+    X = df.drop(columns=['material', 'BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
     y = df['BMD_SD1']
     y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
     groups = df['cluster_label']
     materials = df['material']
+    Y_lower = df['BMDL_SD1']
+    Y_upper = df['BMDU_SD1']
 
     X.columns
 
-
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test = train_test_split(
-        X, y, y_vars, materials, test_size=0.3, random_state=42, stratify=groups)
+    X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test, y_lower_train, y_lower_test, y_upper_train, y_upper_test, = train_test_split(
+        X, y, y_vars, materials, Y_lower, Y_upper, test_size=0.3, random_state=42, stratify=groups)
 
     pipeline = create_pipeline(X, y_vars_train, model)
 
     # Fit the pipeline on the training data
     pipeline.fit(X_train, y_train)
 
-
     X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
-    if model=="GPR":
+    if model == "GPR":
         y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
     else:
-        y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
+        y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
         y_pred_std = None
 
     results = evaluate_model(y_test, y_pred, y_pred_std)
@@ -202,19 +187,22 @@ elif not Path(product["metrics"]).exists():
     _metrics["invitro_assay"] = in_vitro_assay
     _metrics["invitro_cell"] = in_vitro_cell
     _metrics["cluster_label"] = cluster_label
-    _metrics["materials"] = len(m_test.unique()) # ", ".join(map(str, m_test.unique()))
+    _metrics["materials"] = len(m_test.unique())  # ", ".join(map(str, m_test.unique()))
 
-    #metrics = pd.concat([metrics, _metrics], ignore_index=True)
+    # metrics = pd.concat([metrics, _metrics], ignore_index=True)
     metrics = _metrics
     metrics.to_excel(product["metrics"], index=False)
 
     metrics
 
-    #method = "Train"
-    #plot_results(y_train, y_pred0, y_pred_std0, y_vars_train, title=f'{model} with {method} Split')
+    # method = "Train"
+    # plot_results(y_train, y_pred0, y_pred_std0, y_lower_train, y_upper_train,
+    # title=f'{model} with {method} Split for {in_vitro_assay} - {in_vitro_cell} vs {in_vivo_cell} - {in_vivo_time} day.')
 
     method = "Test"
-    plot_results(y_test, y_pred, y_pred_std, y_vars_test, title=f'{model} with {method} Split')
+    plot_obj = plot_results(y_test, y_pred, y_pred_std, y_lower_test, y_upper_test,
+                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cells vs in-vivo {in_vivo_cell} cells - {in_vivo_time} day.')
+    plot_obj.savefig(product["plot"])
 
     split_tag = []
     splits = []
@@ -225,26 +213,26 @@ elif not Path(product["metrics"]).exists():
                 splits.append(logo.split(X, y, groups=groups))
                 split_tag.append("LOGO")
             else:
-                #logo = LeaveOneOut()
+                # logo = LeaveOneOut()
                 logo = LeaveOneGroupOut()
                 splits.append(logo.split(X, y, groups=materials))
                 split_tag.append("LOO")
-        except Exception as err: 
-            print(err)        
+        except Exception as err:
+            print(err)
     if cv_KFOLD > 0:
         if cluster_label == "ALL":
             try:
                 skf = StratifiedKFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
                 splits.append(skf.split(X, y=groups if cluster_label == "ALL" else y))
                 split_tag.append("SKFOLD")
-            except Exception as err: 
+            except Exception as err:
                 print(err)
         else:
             try:
                 skf = KFold(n_splits=cv_KFOLD, shuffle=True, random_state=42)
                 splits.append(skf.split(X, y))
-                split_tag.append("KFOLD")    
-            except Exception as err: 
+                split_tag.append("KFOLD")
+            except Exception as err:
                 print(err)
 
     print(split_tag)
@@ -261,7 +249,7 @@ elif not Path(product["metrics"]).exists():
 
                 pipeline = create_pipeline(X, y_vars_train, model)
                 pipeline.fit(X_train, y_train)
-                
+
                 X_test = X.iloc[test_idx]
                 y_test = y.iloc[test_idx]
                 y_vars_test = y_vars.iloc[test_idx]
@@ -272,8 +260,8 @@ elif not Path(product["metrics"]).exists():
                 if model == "GPR":
                     y_pred, y_pred_std = pipeline.named_steps['model'].predict(X_test_transformed, return_std=True)
                 else:
-                    y_pred = pipeline.named_steps['model'].predict(X_test_transformed)    
-                    y_pred_std = None    
+                    y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
+                    y_pred_std = None
 
                 if tag != "LOO":
                     results = evaluate_model(y_test, y_pred, y_pred_std)
@@ -303,19 +291,16 @@ elif not Path(product["metrics"]).exists():
                 _metrics["cluster_label"] = cluster_label
                 _metrics["clusters"] = "Cluster " + ", ".join(map(str, clusters))
                 _metrics["invitro_assay"] = in_vitro_assay
-                _metrics["invitro_cell"] = in_vitro_cell        
-                metrics = pd.concat([metrics, _metrics], ignore_index=True)        
+                _metrics["invitro_cell"] = in_vitro_cell
+                metrics = pd.concat([metrics, _metrics], ignore_index=True)
         except Exception as err:
             print(err)
-
 
     with pd.ExcelWriter(product["metrics"], engine='xlsxwriter') as writer:
         sheet = "metrics"
         metrics.to_excel(writer, sheet_name=sheet, index=False)
-        worksheet = writer.sheets[sheet]    
+        worksheet = writer.sheets[sheet]
         (max_row, max_col) = metrics.shape
         column_settings = [{'header': column} for column in metrics.columns]
         worksheet.add_table(0, 0, max_row, max_col - 1,
-                    {'columns': column_settings, 'style': 'Table Style Light 1'})    
-
-
+                            {'columns': column_settings, 'style': 'Table Style Light 1'})
