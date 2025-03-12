@@ -31,6 +31,7 @@ model = None
 cv_LOGO = None
 cv_KFOLD = None
 dataset = None
+clean_products = None
 # -
 
 
@@ -115,45 +116,51 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
 
 Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 
-if not Path(product["metrics"]).exists():
+if dataset is None:
+    dataset = "xy"
 
-    if dataset is None:
-        dataset = "xy"
-    in_vitro_assay
+df = pd.read_excel(upstream["preprocessing"][dataset])
+df.head()
 
-    df = pd.read_excel(upstream["preprocessing"][dataset])
-    df.head()
+clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
+clusters.head()
 
-    clusters = pd.read_excel(upstream["compare_clusters"]["data"])[["material", "cluster_label"]]
-    clusters.head()
+print("Unique cluster values:", clusters["cluster_label"].unique())
 
-    print("Unique cluster values:", clusters["cluster_label"].unique())
-
-
-    if in_vivo_cell != "ALL":
-        print("Unique CellType values:", df["CellType"].unique())
-        df = df.loc[df["CellType"] == in_vivo_cell]
-        display(df.head())
-    if in_vivo_time != "ALL":
-        print("Unique time values:", df["Day"].unique())
-        df = df.loc[df["Day"] == in_vivo_time]
-        display(df.head())
-    if in_vitro_assay != "ALL":
-        print("Unique in vitro assay values:", df["assay"].unique())
-        df = df.loc[df["assay"] == in_vitro_assay]
-        display(df.head())
-    if in_vitro_cell != "ALL":
-        print("Unique in vitro cell values:", df["cell"].unique())
-        df = df.loc[df["cell"] == in_vitro_cell]
-        display(df.head())    
-        
-
-    print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
-
-    df.head()
-
-    df = df.dropna(how="any")
+if in_vivo_cell != "ALL":
+    print("Unique CellType values:", df["CellType"].unique())
+    df = df.loc[df["CellType"] == in_vivo_cell]
     display(df.head())
+if in_vivo_time != "ALL":
+    print("Unique time values:", df["Day"].unique())
+    df = df.loc[df["Day"] == in_vivo_time]
+    display(df.head())
+if in_vitro_assay != "ALL":
+    print("Unique in vitro assay values:", df["assay"].unique())
+    df = df.loc[df["assay"] == in_vitro_assay]
+    display(df.head())
+if in_vitro_cell != "ALL":
+    print("Unique in vitro cell values:", df["cell"].unique())
+    df = df.loc[df["cell"] == in_vitro_cell]
+    display(df.head())    
+
+print("Filtering for:", in_vivo_cell, in_vivo_time, in_vitro_assay, cluster_label)
+df.head()
+
+df = df.dropna(how="any")
+display(df.head())    
+
+if clean_products:
+    os.remove(product["data"])
+    os.remove(product["metrics"])
+        
+if df.empty:
+    _metrics = pd.DataFrame(columns=[
+        "Metric", "Value", "cv_method", "method", "cell", "time", 
+        "invitro_assay", "invitro_cell", "cluster_label", "materials"
+    ]) 
+    _metrics.to_excel(product["metrics"], index=False)
+elif not Path(product["metrics"]).exists():
 
     df = pd.merge(df, clusters, on="material", how="left")
     if cluster_label != "ALL":
