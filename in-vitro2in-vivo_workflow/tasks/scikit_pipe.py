@@ -32,6 +32,7 @@ cv_LOGO = None
 cv_KFOLD = None
 dataset = None
 clean_products = None
+log_transform = None
 # -
 
 
@@ -71,7 +72,7 @@ def rf_model():
 
 
 
-def create_pipeline(X, y_vars_train=None, model="XGB"):
+def create_pipeline(X, y_vars_train=None, model="XGB", log_transform=False):
     categorical_cols = ['cell', 'assay', 'CellType']
     numerical_cols = X.columns.difference(categorical_cols)  # Other numeric features
     preprocessor = ColumnTransformer([
@@ -86,6 +87,13 @@ def create_pipeline(X, y_vars_train=None, model="XGB"):
     }
 
     regressor = _models[model]
+
+    if log_transform:
+        regressor = TransformedTargetRegressor(
+            regressor=regressor,
+            func=np.log1p,  # Apply log transformation (log(1 + y))
+            inverse_func=np.expm1  # Reverse transformation (exp(y) - 1)
+        )
 
     # Use TransformedTargetRegressor to apply log transformation to y
     # regressor = TransformedTargetRegressor(regressor=gpr,
@@ -154,19 +162,39 @@ elif not Path(product["metrics"]).exists():
 
     X = df.drop(columns=['material', 'BMD_SD1', 'BMDL_SD1', 'BMDU_SD1', 'cluster_label'])
     y = df['BMD_SD1']
-    y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
+    # y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
     groups = df['cluster_label']
     materials = df['material']
     Y_lower = df['BMDL_SD1']
     Y_upper = df['BMDU_SD1']
+    print(f"y lower without log transform")
+    print(Y_lower)
 
-    X.columns
+    if log_transform:
+        Y_lower = np.log1p(df['BMDL_SD1'])
+        Y_upper = np.log1p(df['BMDU_SD1'])
+
+    # y_vars = (df['BMDU_SD1'] - df['BMDL_SD1']) / 3.92
+    y_vars = (Y_upper - Y_lower) / 3.92
+    print(f"y lower with log transform")
+    print(Y_lower)
+
+    # X.columns
 
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test, y_lower_train, y_lower_test, y_upper_train, y_upper_test, = train_test_split(
         X, y, y_vars, materials, Y_lower, Y_upper, test_size=0.3, random_state=42, stratify=groups)
 
-    pipeline = create_pipeline(X, y_vars_train, model)
+    print(f"y test without log transform")
+    print(y_test)
+
+    if log_transform:
+        y_test = np.log1p(y_test)
+
+    print(f"y test with log transform")
+    print(y_test)
+
+    pipeline = create_pipeline(X, y_vars_train, model, log_transform)
 
     # Fit the pipeline on the training data
     pipeline.fit(X_train, y_train)
@@ -177,6 +205,11 @@ elif not Path(product["metrics"]).exists():
     else:
         y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
         y_pred_std = None
+    if log_transform:
+        print(f"Max y_pred before expm1: {y_pred.max()}")
+        print(f"Min y_pred before expm1: {y_pred.min()}")
+        y_pred = np.expm1(y_pred)
+        print(y_pred)
 
     results = evaluate_model(y_test, y_pred, y_pred_std)
     _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
@@ -193,15 +226,19 @@ elif not Path(product["metrics"]).exists():
     metrics = _metrics
     metrics.to_excel(product["metrics"], index=False)
 
-    metrics
+    # metrics
 
     # method = "Train"
     # plot_results(y_train, y_pred0, y_pred_std0, y_lower_train, y_upper_train,
     # title=f'{model} with {method} Split for {in_vitro_assay} - {in_vitro_cell} vs {in_vivo_cell} - {in_vivo_time} day.')
 
     method = "Test"
+    print('plot')
+    print(y_test)
+    print(y_pred)
     plot_obj = plot_results(y_test, y_pred, y_pred_std, y_lower_test, y_upper_test,
-                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cells vs in-vivo {in_vivo_cell} cells - {in_vivo_time} day.')
+                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cells vs in-vivo {in_vivo_cell} cells - {in_vivo_time} day.',
+                            log=log_transform)
     plot_obj.savefig(product["plot"])
 
     split_tag = []
@@ -247,7 +284,7 @@ elif not Path(product["metrics"]).exists():
                 y_train = y.iloc[train_idx]
                 y_vars_train = y_vars.iloc[train_idx]
 
-                pipeline = create_pipeline(X, y_vars_train, model)
+                pipeline = create_pipeline(X, y_vars_train, model, log_transform)
                 pipeline.fit(X_train, y_train)
 
                 X_test = X.iloc[test_idx]
@@ -262,6 +299,8 @@ elif not Path(product["metrics"]).exists():
                 else:
                     y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
                     y_pred_std = None
+                # if log_transform:
+                #     y_pred = np.expm1(y_pred)
 
                 if tag != "LOO":
                     results = evaluate_model(y_test, y_pred, y_pred_std)

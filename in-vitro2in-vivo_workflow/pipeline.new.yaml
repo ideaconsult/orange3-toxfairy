@@ -52,6 +52,7 @@ tasks:
     params:
       dataset: "{{dataset}}"
       clean_products: False
+      log_transform: True
     grid:
 #      in_vivo_cell : ["ALL", "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]
       in_vivo_cell : ["Neutrophil"]
