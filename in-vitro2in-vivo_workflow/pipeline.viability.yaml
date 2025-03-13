@@ -52,7 +52,7 @@ tasks:
 #      model: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/model.pkl"
     params:
       dataset: "{{dataset}}"
-      clean_products: False
+      clean_products: True
       log_transform: True
     grid:
 #      in_vivo_cell : ["ALL", "Neutrophil","Macrophage", "Lymphocyte", "Epithelial", "Eosinophil"]

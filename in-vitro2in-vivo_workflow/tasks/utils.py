@@ -73,13 +73,18 @@ def plot_results(y_actual, y_pred, y_std, y_err_lower, y_err_upper, title="Gauss
     if log:
         xlabel = 'Actual log BMD (μg/mouse)'
         ylabel = 'Predicted log BMD (μg/mouse)'
+        y_actual = np.log1p(y_actual)
+        y_pred = np.log1p(y_pred)
+        y_err_lower = np.log1p(y_err_lower)
+        y_err_upper = np.log1p(y_err_upper)
 
     plt.figure(figsize=(10, 6))
+
     plt.scatter(y_actual, y_pred, label='Predicted vs Actual', color='red', edgecolors='black', linewidth=0.5)
     if y_std is not None:
         plt.errorbar(y_actual, y_pred, yerr=1.96 * y_std, fmt='o', alpha=0.5, label='95% CI', color='blue',
                      markersize=2)
-    plt.errorbar(y_actual, y_pred, yerr=[y_err_lower, y_err_upper], fmt='o', alpha=0.5, label='BMD_U/L Error (95% CI)',
+    plt.errorbar(y_actual, y_pred, yerr=[y_err_lower, y_err_upper], fmt='o', alpha=0.5, label='BMD_U/L (95% CI)',
                  color='green',
                  markersize=0.2)
     plt.plot([y_actual.min(), y_actual.max()], [y_actual.min(), y_actual.max()], 'r--', label='Prediction')

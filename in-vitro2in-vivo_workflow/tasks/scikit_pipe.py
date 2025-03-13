@@ -92,6 +92,7 @@ def create_pipeline(X, y_vars_train=None, model="XGB", log_transform=False):
         regressor = TransformedTargetRegressor(
             regressor=regressor,
             func=np.log1p,  # Apply log transformation (log(1 + y))
+            #inverse_func=lambda x: x 
             inverse_func=np.expm1  # Reverse transformation (exp(y) - 1)
         )
 
@@ -170,10 +171,11 @@ elif not Path(product["metrics"]).exists():
     Y_lower = df['BMDL_SD1']
     Y_upper = df['BMDU_SD1']
 
-    if log_transform:
-        Y_lower = np.log1p(df['BMDL_SD1'])
-        Y_upper = np.log1p(df['BMDU_SD1'])
 
+    #if log_transform:
+    #    Y_lower = np.log1p(df['BMDL_SD1'])
+    #    Y_upper = np.log1p(df['BMDU_SD1'])
+    # handling log variance is more tricky , good that we don't use it in xgb/rf
     y_vars = (Y_upper - Y_lower) / 3.92
 
     # X.columns
@@ -189,8 +191,8 @@ elif not Path(product["metrics"]).exists():
         cv_method = "Test*"
 
 
-    if log_transform:
-        y_test = np.log1p(y_test)
+    #if log_transform:
+    #    y_test = np.log1p(y_test)
 
     pipeline = create_pipeline(X, y_vars_train, model, log_transform)
 
@@ -203,12 +205,12 @@ elif not Path(product["metrics"]).exists():
     else:
         y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
         y_pred_std = None
-    if log_transform:
-        y_pred = np.log1p(y_pred)
+    #if log_transform:
+    #    y_pred = np.log1p(y_pred)
 
     results = evaluate_model(y_test, y_pred, y_pred_std)
     _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-    _metrics["c_method"] = cv_method
+    _metrics["cv_method"] = cv_method
     _metrics["method"] = model
     _metrics["cell"] = in_vivo_cell
     _metrics["time"] = in_vivo_time
@@ -229,7 +231,7 @@ elif not Path(product["metrics"]).exists():
 
     method = "Test"
     plot_obj = plot_results(y_test, y_pred, y_pred_std, y_lower_test, y_upper_test,
-                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cells vs in-vivo {in_vivo_cell} cells - {in_vivo_time} day.',
+                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cell vs in-vivo {in_vivo_cell} - {in_vivo_time} day.',
                             log=log_transform)
     plot_obj.savefig(product["plot"])
 
@@ -291,8 +293,9 @@ elif not Path(product["metrics"]).exists():
                 else:
                     y_pred = pipeline.named_steps['model'].predict(X_test_transformed)
                     y_pred_std = None
-                if log_transform:
-                    y_pred = np.log1p(y_pred)
+                
+                #if log_transform:
+                #    y_pred = np.log1p(y_pred)
 
                 if tag != "LOO":
                     results = evaluate_model(y_test, y_pred, y_pred_std)
