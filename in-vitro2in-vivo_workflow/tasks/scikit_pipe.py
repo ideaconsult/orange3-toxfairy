@@ -145,8 +145,14 @@ df = df.dropna(how="any")
 display(df.head())
 
 if clean_products:
-    os.remove(product["data"])
-    os.remove(product["metrics"])
+    try:
+        os.remove(product["data"])
+    except:
+        pass
+    try:
+        os.remove(product["metrics"])
+    except:
+        pass
 
 if df.empty:
     _metrics = pd.DataFrame(columns=[
