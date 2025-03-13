@@ -74,3 +74,10 @@ tasks:
     product:
       nb: "{{folder_output}}/metrics_compare.ipynb"
       data: "{{folder_output}}/metrics_compare_{{missingvals}}.xlsx"
+
+  - source: tasks/bmd_variance.py
+    product:
+      nb: "{{folder_output}}/bmd_variance.ipynb"
+      bmd_variance: "{{folder_output}}/bmd_variance.csv"
+    params:
+      in_vivo_folder: "{{in_vivo_folder}}"
