@@ -1,0 +1,9 @@
+tasks:
+  - source: tasks/aop_solr.py
+    product:
+      nb: products/aop_solr.ipynb
+    params:
+      solr_url: "{{solr_url}}"
+      solr_user: "{{solr_user}}"
+      solr_pass: "{{solr_pass}}"
+      solr_query: "{{solr_query}}"
