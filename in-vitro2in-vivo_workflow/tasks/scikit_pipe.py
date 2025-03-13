@@ -179,8 +179,14 @@ elif not Path(product["metrics"]).exists():
     # X.columns
 
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test, y_lower_train, y_lower_test, y_upper_train, y_upper_test, = train_test_split(
-        X, y, y_vars, materials, Y_lower, Y_upper, test_size=0.3, random_state=42, stratify=groups)
+    try:
+        X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test, y_lower_train, y_lower_test, y_upper_train, y_upper_test, = train_test_split(
+            X, y, y_vars, materials, Y_lower, Y_upper, test_size=0.3, random_state=42, stratify=groups)
+        cv_method = "Test"
+    except Exception as err:
+        X_train, X_test, y_train, y_test, y_vars_train, y_vars_test, m_train, m_test, y_lower_train, y_lower_test, y_upper_train, y_upper_test, = train_test_split(
+            X, y, y_vars, materials, Y_lower, Y_upper, test_size=0.3, random_state=42)
+        cv_method = "Test*"
 
 
     if log_transform:
@@ -202,7 +208,7 @@ elif not Path(product["metrics"]).exists():
 
     results = evaluate_model(y_test, y_pred, y_pred_std)
     _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-    _metrics["cv_method"] = "Test"
+    _metrics["c_method"] = cv_method
     _metrics["method"] = model
     _metrics["cell"] = in_vivo_cell
     _metrics["time"] = in_vivo_time
