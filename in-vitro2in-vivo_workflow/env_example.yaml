@@ -1,6 +1,7 @@
 folder_output: "products"
 in_vitro_folder: "file with in vitro data"
 in_vivo_folder: "file with in vivo data"
+aop_file: "./aop_solr.xlsx"
 
 in_vitro_cell: false
 in_vitro_time: false
@@ -20,6 +21,7 @@ nan_treatement: "drop_row"
 #nan_treatement: false
 
 power_transform: "yeo-johnson"
+missingvals: "impute"
 #power_transform: "box-cox
 #power_transform: false
 
@@ -31,3 +33,5 @@ pca_variance_threshold: false # Do not use PCA
 
 #umap_n_components: 2 # Reduce to 2D
 umap_n_components: false # Do not use UMAP
+
+dataset: "xy"

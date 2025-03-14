@@ -1,8 +1,8 @@
 #executor: parallel
 
 tasks:
-  - source: tasks/preprocessing.py 
-    product: 
+  - source: tasks/preprocessing.py
+    product:
       nb: "{{folder_output}}/preprocessing.ipynb"
       x: "{{folder_output}}/preprocessing/xwide_{{missingvals}}.xlsx"
       x_long: "{{folder_output}}/preprocessing/xlong_{{missingvals}}.xlsx"
@@ -23,7 +23,7 @@ tasks:
 
   - source: tasks/cluster.py
     name : "cluster-[[cluster_method]]"
-    product: 
+    product:
       nb: "{{folder_output}}/cluster/notebook_[[cluster_method]].ipynb"
       data: "{{folder_output}}/cluster/cluster-[[cluster_method]]"
       stats: "{{folder_output}}/cluster/stats_[[cluster_method]].xlsx"
@@ -35,7 +35,7 @@ tasks:
 
   - source: tasks/cluster_compare.py
     name : "compare_clusters"
-    product: 
+    product:
       nb: "{{folder_output}}/cluster/notebook.ipynb"
       data: "{{folder_output}}/cluster/labels.xlsx"
       stats: "{{folder_output}}/cluster/stats.xlsx"
@@ -67,7 +67,7 @@ tasks:
       #cluster_label: ["ALL",0,1,2]
       cluster_label: ["ALL"]
       cv_LOGO: 5
-      cv_KFOLD: 5 
+      cv_KFOLD: 5
 
 
   - source: tasks/metrics_compare.py
@@ -81,3 +81,10 @@ tasks:
       bmd_variance: "{{folder_output}}/bmd_variance.csv"
     params:
       in_vivo_folder: "{{in_vivo_folder}}"
+
+  - source: tasks/aop_graph.py
+    product:
+      nb: "{{folder_output}}/aop_graph.ipynb"
+      aop_graph: "{{folder_output}}/aop_graph"
+    params:
+      aop_file: "{{aop_file}}"
