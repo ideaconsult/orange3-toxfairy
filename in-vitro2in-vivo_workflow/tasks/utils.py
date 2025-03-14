@@ -94,3 +94,36 @@ def plot_results(y_actual, y_pred, y_std, y_err_lower, y_err_upper, title="Gauss
     plt.legend()
 
     return plt
+
+def plot_results_materials(y_actual, y_pred, y_std, y_err_lower, y_err_upper, materials, title="Gaussian Process Regression",
+                   log=False):
+    ylabel = 'Predicted BMD (μg/mouse)'
+    if log:
+        ylabel = 'Predicted log BMD (μg/mouse)'
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(materials, y_actual, color='green',
+                # edgecolors='black', linewidth=0.5,
+                label='Actual BMD',
+                marker='o', s=80, zorder=3)
+    plt.scatter(materials, y_pred, color='red',
+                # edgecolors='black', linewidth=0.5,
+                label='Predicted BMD',
+                marker='^', s=50, zorder=3)
+
+    if y_std is not None:
+        plt.errorbar(y_actual, y_pred, yerr=1.96 * y_std, fmt='o', alpha=0.5, label='95% CI', color='blue',
+                     markersize=2)
+    plt.errorbar(materials, y_actual, yerr=[y_err_lower, y_err_upper], fmt='none',
+                 color='blue', ecolor='green', capsize=2, label='Actual BMD with (95% CI) intervals')
+
+    plt.xticks(rotation=45, ha='right')
+    plt.xlabel("Materials")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend()
+    plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)  # Adding grid
+    plt.tight_layout()
+
+
+    return plt

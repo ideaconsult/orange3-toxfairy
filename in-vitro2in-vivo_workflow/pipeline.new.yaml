@@ -48,7 +48,8 @@ tasks:
       data: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//[[in_vitro_cell]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/data_{{dataset}}.xlsx"
       metrics: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//[[in_vitro_cell]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/metrics_{{dataset}}.xlsx"
       plot: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//[[in_vitro_cell]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/plot_{{dataset}}.png"
-#      model: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/model.pkl"
+      plot_m: "{{folder_output}}//[[in_vivo_cell]]//[[in_vitro_assay]]//[[in_vitro_cell]]//scikit_[[model]]_[[in_vivo_time]]_C[[cluster_label]]/plot_materials_{{dataset}}.png"
+    #      model: "{{folder_output}}//[[in_vivo_cell]]//scikit_[[model]]_[[in_vivo_time]]/model.pkl"
     params:
       dataset: "{{dataset}}"
       clean_products: False

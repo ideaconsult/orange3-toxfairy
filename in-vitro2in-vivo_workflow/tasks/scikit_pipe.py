@@ -17,7 +17,7 @@ import os.path
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, KFold, LeaveOneOut, LeaveOneGroupOut, LeavePGroupsOut
-from tasks.utils import plot_results
+from tasks.utils import plot_results, plot_results_materials
 
 # + tags=["parameters"]
 upstream = ["preprocessing", "compare_clusters"]
@@ -234,6 +234,10 @@ elif not Path(product["metrics"]).exists():
                             title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cell vs in-vivo {in_vivo_cell} - {in_vivo_time} day.',
                             log=log_transform)
     plot_obj.savefig(product["plot"])
+    plot_obj_materials = plot_results_materials(y_test, y_pred, y_pred_std, y_lower_test, y_upper_test,m_test,
+                            title=f'{model} with {method} Split for in-vitro {in_vitro_assay} assay - {in_vitro_cell} cell vs in-vivo {in_vivo_cell} - {in_vivo_time} day.',
+                            log=log_transform)
+    plot_obj_materials.savefig(product["plot_m"])
 
     split_tag = []
     splits = []
