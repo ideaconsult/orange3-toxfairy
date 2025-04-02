@@ -14,6 +14,7 @@ upstream = ["preprocessing"]
 product = None
 cluster_method = None
 dataset = None
+min_cluster_size = None
 # -
 
 print(cluster_method)

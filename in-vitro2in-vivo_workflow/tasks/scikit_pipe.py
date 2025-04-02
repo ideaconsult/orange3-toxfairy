@@ -1,6 +1,6 @@
 from IPython.display import display, HTML
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, PowerTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, PowerTransformer, QuantileTransformer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.compose import TransformedTargetRegressor
@@ -18,6 +18,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, KFold, LeaveOneOut, LeaveOneGroupOut, LeavePGroupsOut
 from tasks.utils import plot_results, plot_results_materials
+from sklearn.model_selection import RandomizedSearchCV
+import joblib
+from summarytools import dfSummary
+
 
 # + tags=["parameters"]
 upstream = ["preprocessing", "compare_clusters"]
@@ -30,9 +34,12 @@ cluster_label = None
 model = None
 cv_LOGO = None
 cv_KFOLD = None
+cv_MATERIAL = None
 dataset = None
 clean_products = None
 log_transform = None
+predict_all = None
+param_search = None
 # -
 
 
@@ -69,6 +76,9 @@ def xgb_model():
 
 def rf_model():
     return RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
+    #return RandomForestRegressor(n_estimators=200, random_state=42, min_samples_split= 2, min_samples_leaf= 3, max_features= 'log2', max_depth= 5, oob_score=True)
+#Best Parameters: {'model__n_estimators': 200, 'model__min_samples_split': 2, 'model__min_samples_leaf': 3, 'model__max_features': 'sqrt', 'model__max_depth': 5}
+#Best Parameters: {'model__n_estimators': 200, 'model__min_samples_split': 2, 'model__min_samples_leaf': 3, 'model__max_features': 'log2', 'model__max_depth': 5}
 
 
 
@@ -78,6 +88,7 @@ def create_pipeline(X, y_vars_train=None, model="XGB", log_transform=False):
     preprocessor = ColumnTransformer([
         ('cat', OneHotEncoder(sparse_output=False), categorical_cols),
         ('num', PowerTransformer(), numerical_cols)  # Standardize numeric features
+        #('num', QuantileTransformer(), numerical_cols)  # Standardize numeric features
     ])
 
     _models = {
@@ -112,6 +123,8 @@ Path(product["data"]).parent.mkdir(parents=True, exist_ok=True)
 
 if dataset is None:
     dataset = "xy"
+if predict_all is None:
+    predict_all = False
 
 df = pd.read_excel(upstream["preprocessing"][dataset])
 df.head()
@@ -202,8 +215,31 @@ elif not Path(product["metrics"]).exists():
 
     pipeline = create_pipeline(X, y_vars_train, model, log_transform)
 
-    # Fit the pipeline on the training data
-    pipeline.fit(X_train, y_train)
+    param_grid = {
+        'model__n_estimators': [100, 200, 300],
+        'model__max_depth': [1,2,3,4,5, 10, 15],
+        'model__min_samples_split': [2, 5, 10, 20],
+        'model__min_samples_leaf': [1, 3, 5, 10],
+        'model__max_features': ['sqrt', 'log2']
+    }
+   
+    if model == "RF" and param_search: 
+        logo = LeaveOneGroupOut()
+        random_search = RandomizedSearchCV(
+            pipeline, param_grid, n_iter=20, cv=logo, scoring='r2', n_jobs=-1, verbose=1
+        )
+        random_search.fit(X, y, groups=materials)
+        #random_search.fit(X_train, y_train, groups=m_train)
+        print("Best Parameters:", random_search.best_params_)
+        pipeline = random_search.best_estimator_
+        if "model" in product:
+            joblib.dump(pipeline, product["model"])
+        #pipeline.fit(X_train, y_train)
+    else:
+        # Fit the pipeline on the training data
+        pipeline.fit(X_train, y_train)
+        if "model" in product:
+            joblib.dump(pipeline, product["model"])
 
     X_test_transformed = pipeline.named_steps['preprocessor'].transform(X_test)
     if model == "GPR":
@@ -245,8 +281,16 @@ elif not Path(product["metrics"]).exists():
                             log=log_transform)
     plot_obj_materials.savefig(product["plot_m"])
 
+    #bag_ids = X_test_instances['bag_id']
+    #bag_preds = [np.mean(instance_preds[bag_ids == bag]) for bag in np.unique(bag_ids)]
+
     split_tag = []
     splits = []
+    if cv_MATERIAL > 0:
+        logo = LeaveOneGroupOut()
+        splits.append(logo.split(X, y, groups=materials))
+        split_tag.append("MATERIAL")
+             
     if cv_LOGO > 0:
         try:
             if cluster_label == "ALL":
@@ -282,14 +326,21 @@ elif not Path(product["metrics"]).exists():
         y_test_loo, y_pred_loo, y_std_loo = [], [], []
         try:
             for i, (train_idx, test_idx) in enumerate(split):
-                print(i)
 
                 X_train = X.iloc[train_idx]
                 y_train = y.iloc[train_idx]
                 y_vars_train = y_vars.iloc[train_idx]
 
                 pipeline = create_pipeline(X, y_vars_train, model, log_transform)
-                pipeline.fit(X_train, y_train)
+                if tag == "MATERIAL" and param_search and model=="RF":
+                    random_search = RandomizedSearchCV(
+                        pipeline, param_grid, n_iter=20, cv=3, scoring='r2', n_jobs=-1, verbose=1
+                    )
+                    random_search.fit(X_train, y_train)
+                    print("Best Parameters:", random_search.best_params_)
+                    pipeline = random_search.best_estimator_
+                else:                    
+                    pipeline.fit(X_train, y_train)
 
                 X_test = X.iloc[test_idx]
                 y_test = y.iloc[test_idx]
@@ -310,7 +361,10 @@ elif not Path(product["metrics"]).exists():
                 if tag != "LOO":
                     results = evaluate_model(y_test, y_pred, y_pred_std)
                     _metrics = pd.DataFrame(list(results.items()), columns=["Metric", "Value"])
-                    _metrics["cv_method"] = f"{tag} {i}"
+                    if tag == "MATERIAL":
+                        _metrics["cv_method"] = f"{tag}"
+                    else:
+                        _metrics["cv_method"] = f"{tag} {i}"
                     _metrics["method"] = model
                     _metrics["cell"] = in_vivo_cell
                     _metrics["time"] = in_vivo_time
@@ -320,6 +374,11 @@ elif not Path(product["metrics"]).exists():
                     _metrics["invitro_assay"] = in_vitro_assay
                     _metrics["invitro_cell"] = in_vitro_cell
                     metrics = pd.concat([metrics, _metrics], ignore_index=True)
+                    if predict_all:
+                        X_transformed = pipeline.named_steps['preprocessor'].transform(X)
+                        y_pred_all = pipeline.named_steps['model'].predict(X_transformed)
+                        df[f"{tag}_{i}_model"] = y_pred_all
+                    
                 else:
                     y_test_loo.extend(y_test.values)
                     y_pred_loo.extend(y_pred)
@@ -348,3 +407,7 @@ elif not Path(product["metrics"]).exists():
         column_settings = [{'header': column} for column in metrics.columns]
         worksheet.add_table(0, 0, max_row, max_col - 1,
                             {'columns': column_settings, 'style': 'Table Style Light 1'})
+
+if predict_all:
+    df.to_excel(product["data"], index=False)
+    dfSummary(df, is_collapsible=True)
