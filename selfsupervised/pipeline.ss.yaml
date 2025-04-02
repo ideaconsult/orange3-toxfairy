@@ -23,7 +23,7 @@ tasks:
       missingvals: "{{missingvals}}"
 
 
-  - source: tasks/vae_prepare.py
+  - source: tasks/vae/vae_prepare.py
     product:
       nb: "{{folder_output}}/vae_prepare.ipynb"
       numeric_file: "{{folder_output}}/vae/num_features.csv"
@@ -33,3 +33,11 @@ tasks:
     params:
       dataset: "{{dataset}}"
       label: "BMD_SD1"      
+
+
+  - source: tasks/vae/selfsupervised.py 
+    product: 
+      nb: "{{folder_output}}/vae_selfsupervised.ipynb"
+      model: "{{folder_output}}/vae/selfsupervised_model_full.pth"
+    params:
+      nepoch: 2
