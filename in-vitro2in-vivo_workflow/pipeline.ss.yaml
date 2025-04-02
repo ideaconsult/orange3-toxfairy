@@ -1,0 +1,35 @@
+#semisupervised
+
+
+tasks:
+  - source: tasks/preprocessing.py
+    product:
+      nb: "{{folder_output}}/preprocessing.ipynb"
+      x: "{{folder_output}}/preprocessing/xwide_{{missingvals}}.xlsx"
+      x_long: "{{folder_output}}/preprocessing/xlong_{{missingvals}}.xlsx"
+      x_lag: "{{folder_output}}/preprocessing/xlag_{{missingvals}}.xlsx"
+      y: "{{folder_output}}/preprocessing/y_{{missingvals}}.xlsx"
+      xy: "{{folder_output}}/preprocessing/xy_{{missingvals}}.xlsx"
+      xy_wide: "{{folder_output}}/preprocessing/xywide_{{missingvals}}.xlsx"
+      xlag_y: "{{folder_output}}/preprocessing/xlagy_{{missingvals}}.xlsx"
+    params:
+      in_vitro_folder: "{{in_vitro_folder}}"
+      in_vivo_folder: "{{in_vivo_folder}}"
+      in_vivo_sheet: "BMD_mass_TT"
+      n_neighbors: 5
+      scaler_type_x: "power"
+      scaler_type_y: "power"
+      threshold: 0.66
+      missingvals: "{{missingvals}}"
+
+
+  - source: tasks/vae_prepare.py
+    product:
+      nb: "{{folder_output}}/vae_prepare.ipynb"
+      numeric_file: "{{folder_output}}/vae/num_features.csv"
+      categorical_file: "{{folder_output}}/vae/cat_features.csv"
+      text_file: "{{folder_output}}/vae/text_features.txt"  
+      labels_file:  "{{folder_output}}/vae/labels.csv"    
+    params:
+      dataset: "{{dataset}}"
+      label: "BMD_SD1"      

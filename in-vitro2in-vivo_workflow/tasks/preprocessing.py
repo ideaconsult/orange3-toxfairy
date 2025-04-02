@@ -109,12 +109,14 @@ def preprocess(df, scaler_type="standard", missingvals = None):
             columns=df_no_id.columns
         )
         df_processed.insert(0, get_material_id(), ids)
-    else:
+    elif missingvals == "drop":
         df = df.dropna(how='all')
         df_no_id = df.drop(columns=[get_material_id()])
         df_processed = pd.DataFrame(scaler.fit_transform(df_no_id), 
                                     columns=df_no_id.columns)
         df_processed.insert(0, get_material_id(), ids)
+    else:
+        df_processed = df
     return df_processed
 
 
@@ -192,6 +194,11 @@ df_merged = pd.merge(final_df, dfy, on="material", how="outer")
 df_merged = df_merged.dropna(subset=['BMD_SD1'])
 df_merged.to_excel(product["xy"], index=False)
 
+df_merged = pd.merge(dfx, dfy, on="material", how="outer")
+df_merged = df_merged.dropna(subset=['BMD_SD1'])
+if missingvals != "keep":
+    df_merged.dropna(how="any").to_excel(product["xy_wide"], index=False)
+dfSummary(df_merged, is_collapsible=True)
 
 df_merged = pd.merge(df_lag, dfy, on="material", how="outer")
 df_merged = df_merged.dropna(subset=['BMD_SD1'])
